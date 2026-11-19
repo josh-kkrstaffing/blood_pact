@@ -278,6 +278,14 @@ G.UnitIsGroupAssistant = function() return false end
 G.IsInGuild = function() return true end
 G.IsInRaid = function() return false end
 G.IsInGroup = function() return false end
+-- PvP rank, served two ways: the GM through the older call (id 11 = rank 7),
+-- the Officer through Forever's rank track, and the Member has no rank.
+G.UnitFactionGroup = function() return "Horde" end
+G.UnitPVPRank = function() return ctx.guid == "Player-1-GM" and 11 or 0 end
+G.C_MajorFactions = { GetMajorFactionData = function(id)
+    if id == 2800 and ctx.guid == "Player-1-OFFICER" then return { renownLevel = 3 } end
+    return nil
+end }
 -- Items: the game knows 1001 at once and 1002 only after being asked.
 local shiftDown, linked = false, {}
 local itemsAsked = {}
@@ -632,6 +640,21 @@ run(officer, "recipes arrive", function()
 end)
 slash(gm, "recipes")
 check(said(gm, "Open one of your profession windows first."), "/bp recipes explains itself with no window open")
+
+-- PvP rank: read by each player's own addon and shown on everyone's roster.
+advance(150)
+slash(gm, "pvp")
+run(member, "pvp ranks", function()
+    local st = member.ns.Reducer.State()
+    check(st.pvp[gm.guid] and st.pvp[gm.guid].r == 7, "a PvP rank read the older way syncs to the guild")
+    check(st.pvp[officer.guid] and st.pvp[officer.guid].r == 3, "a PvP rank read from Forever's rank track syncs too")
+    check(st.pvp[MEMBER] == nil, "a player with no rank shares nothing")
+    local row
+    for _, r in ipairs(member.ns.Roster.Rows(st)) do if r.guid == gm.guid then row = r end end
+    check(row and row.pvp and member.ns.PvP.Icon(row.pvp.r) == "Interface\\PvPRankBadges\\PvPRank07"
+        and member.ns.PvP.Title(row.pvp.r, "Horde") == "Blood Guard", "the roster row carries the rank badge and its title")
+end)
+check(said(gm, "Your PvP rank: 7, Blood Guard."), "/bp pvp shows what the game reported")
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

@@ -112,7 +112,10 @@ function M.Command(arg)
         fakeEvent(1, "ROSTER", { ev = "join", who = fakeGUID(18), name = ns.NameForGUID(fakeGUID(18)) or "Newbie", ri = 5, rank = "Initiate", idem = "mj:" .. day, live = true }, true)
         fakeEvent(1, "ROSTER", { ev = "promote", who = fakeGUID(5), name = ns.NameForGUID(fakeGUID(5)) or "Vet", ri = 3, rank = "Veteran", by = "Grimtusk", idem = "mp:" .. day, live = true }, true)
         fakeEvent(1, "ALT_LINK", { alt = fakeGUID(19), main = fakeGUID(4) }, true)
-        -- A few fake guildmates share their professions, and one their recipes.
+        -- Fake PvP ranks, and a few fake guildmates share their professions and recipes.
+        fakeEvent(1, "PVP", { r = 7 }, true)
+        fakeEvent(3, "PVP", { r = 2 }, true)
+        fakeEvent(5, "PVP", { r = 14 }, true)
         fakeEvent(2, "RECIPES", { p = "Enchanting", ids = ns.U.PackIDs({ 7418, 7420, 7421, 7426, 7428, 7443, 7454, 7457 }), reset = true }, true)
         fakeEvent(1, "PROF", { p1 = "Blacksmithing", l1 = 300, x1 = 300, p2 = "Mining", l2 = 300, x2 = 300, fa = 300, xfa = 300, ck = 225, xck = 300, fi = 150, xfi = 225 }, true)
         fakeEvent(2, "PROF", { p1 = "Enchanting", l1 = 290, x1 = 300, p2 = "Tailoring", l2 = 300, x2 = 300, fa = 225, xfa = 225, ck = 300, xck = 300, fi = 75, xfi = 75 }, true)

@@ -10,6 +10,7 @@ local function help()
     ns.Print("/bp about - who makes Blood Pact and how to join us")
     ns.Print("/bp prof - read your professions now, share them, and show what the game reported")
     ns.Print("/bp recipes - with a profession window open: record and share its recipes now")
+    ns.Print("/bp pvp - read your PvP rank now, share it, and show what the game reported")
 end
 
 SLASH_BLOODPACT1 = "/bp"
@@ -29,6 +30,8 @@ SlashCmdList.BLOODPACT = function(input)
         ns.Mock.Command(rest)
     elseif cmd == "prof" or cmd == "profs" or cmd == "professions" then
         ns.Professions.Diagnose()
+    elseif cmd == "pvp" or cmd == "rank" then
+        ns.PvP.Diagnose()
     elseif cmd == "recipes" or cmd == "recipe" then
         ns.Recipes.Scan(false)
     elseif cmd == "about" or cmd == "discord" then

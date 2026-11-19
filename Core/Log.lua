@@ -112,6 +112,8 @@ L.KINDS = {
         return str(d.p, 1, 24) and str(d.ids, 1, 1200) and ns.U.UnpackIDs(d.ids, 400) ~= nil
             and (d.reset == nil or d.reset == true)
     end },
+    -- A player's own PvP rank, 0 (none) to 14.
+    PVP = { "signup", function(d) return isInt(d.r, 0, 14) end },
     TASK = { "roster", function(d)
         return str(d.id, 1, 96) and L.TASK_STATES[d.st] ~= nil
     end },

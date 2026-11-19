@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.14.0
+
+- Roster: each member's PvP rank badge shows to the left of their name; hover the row for the rank number and title (Scout to High Warlord, or Private to Grand Marshal)
+- Each player's addon reads their own rank and shares it with the guild when it changes
+- The selected member's details show their PvP rank
+- `/bp pvp` reads your rank now, shares it, and prints what the game reported
+- The badge is the game's own icon; nothing is bundled
+
 ## 0.13.0
 
 - About: an About button in the title bar (and `/bp about`) shows who makes Blood Pact, the Blood Pact guild on US East PvP Horde, with the Discord link ready to copy

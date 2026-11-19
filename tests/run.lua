@@ -28,6 +28,7 @@ ns.DKP = { GroupGUIDs = function() return {} end }
 load("Modules/Raids.lua")
 load("Modules/Officer.lua")
 ns.Char = function() return {} end
+load("Modules/PvP.lua")
 load("Modules/Loot.lua")
 load("Modules/Recipes.lua")
 load("Modules/Professions.lua")
@@ -936,6 +937,28 @@ test("loot: charges become a history, by person and by raid night; voided ones a
     eq(#Loot.Nights(all, "nobody", who, what), 0)
     eq(Loot.NightLabel("2026-11-07"), "Nov 7, 2026"); eq(Loot.NightLabel("soon"), "soon")
     eq(#Loot.Entries(nil), 0)
+end)
+
+test("pvp: ranks 1 to 14 have a title and a badge; each player's own report syncs", function()
+    local V = ns.PvP
+    eq(V.Title(1, "Horde"), "Scout"); eq(V.Title(14, "Horde"), "High Warlord"); eq(V.Title(7, "Horde"), "Blood Guard")
+    eq(V.Title(1, "Alliance"), "Private"); eq(V.Title(14, "Alliance"), "Grand Marshal")
+    eq(#V.TITLES.Horde, 14); eq(#V.TITLES.Alliance, 14)
+    eq(V.Title(0, "Horde"), nil); eq(V.Title(15, "Horde"), nil); eq(V.Title(2.5, "Horde"), nil); eq(V.Title(nil), nil)
+    eq(V.Icon(7), "Interface\\PvPRankBadges\\PvPRank07"); eq(V.Icon(14), "Interface\\PvPRankBadges\\PvPRank14"); eq(V.Icon(0), nil)
+    eq(V.FromRankID(0), 0); eq(V.FromRankID(4), 0); eq(V.FromRankID(5), 1); eq(V.FromRankID(18), 14); eq(V.FromRankID(nil), nil)
+
+    local g = newStore()
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "PVP", { r = 3 }),
+        author(g, "Player-1-MEM2", "PVP", { r = 0 }),
+        author(g, "Player-1-MEM1", "PVP", { r = 4 }),
+    })
+    for _, bad in ipairs({ { r = 15 }, { r = -1 }, { r = 2.5 }, { r = "7" }, {} }) do
+        eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "PVP", bad), true)), "payload")
+    end
+    local st = Red.Build(g)
+    eq(st.pvp["Player-1-MEM1"].r, 4); eq(st.pvp["Player-1-MEM2"].r, 0); eq(st.pvp["Player-1-VET"], nil)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

@@ -215,6 +215,7 @@ function R.Rows(st)
             rows[#rows + 1] = { guid = guid, name = nm, rank = m.rank or "", ri = m.rankIndex or 9, level = m.level or 0,
                 joined = known and known.joined, main = main, activity = level,
                 lastKey = m.online and -1 or m.offlineDays,       -- smaller = seen more recently
+                pvp = st and st.pvp[guid],
                 last = "|cff" .. ns.Officer.LEVEL_COLOR[level] .. lastOn(m) .. "|r" }
         end
     end
@@ -255,7 +256,20 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         p.head[#p.head + 1] = b
     end
     p.list = W.List(p, 440, 310, 16, function(row, r)
-        p.list.Col(row, 1, 5, 144):SetText(U.Safe(r.name, 40) .. (r.main and " |cff808080(alt)|r" or ""))
+        -- PvP rank badge to the left of the name; hover the row for the rank's name.
+        if not row.badge then
+            row.badge = row:CreateTexture(nil, "ARTWORK")
+            row.badge:SetSize(14, 14)
+            row.badge:SetPoint("LEFT", 4, 0)
+            row:SetScript("OnEnter", function(self)
+                if self.item then ns.PvP.Tooltip(self, self.item.name, self.item.pvp) end
+            end)
+            row:SetScript("OnLeave", GameTooltip_Hide)
+        end
+        local icon = r.pvp and ns.PvP.Icon(r.pvp.r)
+        row.badge:SetShown(icon ~= nil)
+        if icon then row.badge:SetTexture(icon) end
+        p.list.Col(row, 1, 22, 128):SetText(U.Safe(r.name, 40) .. (r.main and " |cff808080(alt)|r" or ""))
         p.list.Col(row, 2, 157, 90):SetText(U.Safe(r.rank, 32))
         p.list.Col(row, 3, 255, 34):SetText(r.level)
         p.list.Col(row, 4, 297, 72):SetText(day(r.joined))
@@ -417,6 +431,9 @@ end, function(p)
     local gear = st and st.gear[sel.guid]
     lines[#lines + 1] = gear and ("Pre-raid BiS: %d%% owned, %d%% worn (%s)"):format(gear.pre, gear.worn, U.Safe(gear.spec, 24))
         or "Pre-raid BiS: no score yet"
+    local rank = sel.pvp and ns.PvP.Valid(sel.pvp.r)
+    lines[#lines + 1] = rank and ("PvP rank %d: %s"):format(rank, ns.PvP.Title(rank, ns.PvP.MyFaction()) or "?")
+        or (sel.pvp and "PvP rank: none yet" or "PvP rank: not shared yet")
     local pr = st and st.profs[sel.guid]
     if pr then
         local L = ns.Professions.Label
@@ -429,7 +446,7 @@ end, function(p)
     lines[#lines + 1] = "Rank history:"
     local hist = known and known.history or {}
     if #hist == 0 then lines[#lines + 1] = "  nothing recorded yet" end
-    for i = #hist, math.max(1, #hist - 5), -1 do
+    for i = #hist, math.max(1, #hist - 4), -1 do
         lines[#lines + 1] = "  " .. date("%b %d, %Y", hist[i].t) .. "  " .. U.Safe(R.Describe(hist[i]), 80)
     end
     p.detail:SetText(table.concat(lines, "\n"))

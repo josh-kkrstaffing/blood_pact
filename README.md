@@ -19,6 +19,8 @@ Guild DKP, standings, loot charging and recruiting for **World of Warcraft: Fore
 
 The Roster tab lists every member with rank, level, join date and when they were last online. The guild log records joins, leaves, kicks, promotions and demotions, and who made the change when the game reports it. Each member shows their alts and rank history. Officers link and unlink alts by name. Changes are written to the same synced log as DKP, so every officer sees the same history. Tracking starts the first time a Team Captain or above runs Blood Pact; join dates from before that aren't known.
 
+PvP rank shows on the Roster as the game's own rank badge to the left of each name; hover a row for the rank's number and title. The guild roster doesn't carry PvP rank, so each player's addon reads their own and shares it when it changes. `/bp pvp` does it on demand.
+
 Loot history comes from the loot charges officers record in Raid & Loot. Select a member in the Roster and press Loot to see what they've received (linked alts count together), or open Raid & Loot > Loot history for the guild's loot night by night, visible to every member. Item names, icons and the stats tooltip are the game's own, looked up by item id; nothing is bundled or downloaded. Only loot charged through Blood Pact with the item attached is listed.
 
 The Professions tab lists the guild by profession: pick one on the left and see who has it on the right, with their skill level and a bar against their current cap. Only a player's own client can read their skills, so each player's addon reads them (two professions plus First Aid, Cooking and Fishing) and shares them with the guild when they change. Press Level to flip the order; filter by player name, online only, or alts. The profession icons are the game's own; none are bundled. If your own professions don't show, type `/bp prof`.
@@ -72,7 +74,7 @@ Blood Pact never plays the game for you. It does not automate combat, movement, 
 
 ## Privacy
 
-Blood Pact sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests, and each player's own readiness score, profession levels and known recipes) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
+Blood Pact sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests, and each player's own readiness score, profession levels, known recipes and PvP rank) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
 
 ## Commands
 
