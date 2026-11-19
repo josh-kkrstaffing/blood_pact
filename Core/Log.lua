@@ -29,6 +29,7 @@ L.SETTING_KEYS = {
 L.TIERS = { bis = true, major = true, minor = true, off = true }
 L.SIGNUP_STATUS = { yes = true, maybe = true, no = true }
 L.ROLES = { tank = true, healer = true, dps = true }
+L.ROSTER_EVENTS = { join = true, leave = true, kick = true, promote = true, demote = true }
 
 local function str(s, lo, hi) return type(s) == "string" and #s >= lo and #s <= hi end
 
@@ -78,6 +79,15 @@ L.KINDS = {
         for _, g in ipairs(d.who) do if not isGUID(g) then return false end end
         return type(d.day) == "string" and d.day:match("^%d%d%d%d%-%d%d%-%d%d$") ~= nil
             and str(d.idem, 1, 64)
+    end },
+    ALT_UNLINK = { "altlink", function(d)
+        return isGUID(d.alt)
+    end },
+    ROSTER = { "roster", function(d)
+        return L.ROSTER_EVENTS[d.ev] ~= nil and isGUID(d.who) and str(d.name, 1, 48)
+            and (d.by == nil or str(d.by, 1, 48)) and (d.rank == nil or str(d.rank, 1, 32))
+            and (d.ri == nil or isInt(d.ri, 0, 9)) and str(d.idem, 1, 96)
+            and (d.live == nil or type(d.live) == "boolean")
     end },
     RECRUIT_MSGS = { "recruitEdit", function(d)
         if type(d.msgs) ~= "table" or #d.msgs < 1 or #d.msgs > 3 then return false end

@@ -68,7 +68,7 @@ end
 
 local function build()
     frame = CreateFrame("Frame", "BloodPactMainFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(700, 500)
+    frame:SetSize(760, 500)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("DIALOG")
     frame:SetBackdrop({
@@ -95,11 +95,11 @@ local function build()
 
     frame.feedback = W.Text(frame, "", "GameFontNormalSmall")
     frame.feedback:SetPoint("BOTTOMLEFT", 22, 18)
-    frame.feedback:SetWidth(650)
+    frame.feedback:SetWidth(710)
 
     for _, key in ipairs(order) do
         local t = tabs[key]
-        t.button = W.Button(frame, t.label, 100, 22, function() selectTab(key) end)
+        t.button = W.Button(frame, t.label, 96, 22, function() selectTab(key) end)
         t.panel = CreateFrame("Frame", nil, frame)
         t.panel:SetPoint("TOPLEFT", 20, -76)
         t.panel:SetPoint("BOTTOMRIGHT", -20, 36)

@@ -96,10 +96,17 @@ function M.Command(arg)
         fakeEvent(12, "SIGNUP", { ev = r.id, st = "maybe", role = "dps" }, true)
         fakeEvent(13, "SIGNUP", { ev = r.id, st = "no" }, true)
         ns.Print("13 fake guildmates answered the sign-up for " .. r.title .. ".")
+    elseif arg == "roster" then
+        -- A fake Officer records some guild changes.
+        local day = date("!%Y-%m-%d")
+        fakeEvent(1, "ROSTER", { ev = "join", who = fakeGUID(18), name = ns.NameForGUID(fakeGUID(18)) or "Newbie", ri = 5, rank = "Initiate", idem = "mj:" .. day, live = true }, true)
+        fakeEvent(1, "ROSTER", { ev = "promote", who = fakeGUID(5), name = ns.NameForGUID(fakeGUID(5)) or "Vet", ri = 3, rank = "Veteran", by = "Grimtusk", idem = "mp:" .. day, live = true }, true)
+        fakeEvent(1, "ALT_LINK", { alt = fakeGUID(19), main = fakeGUID(4) }, true)
+        ns.Print("Grimtusk logged a join, a promotion and an alt link. See the Roster tab.")
     elseif arg == "attend" then
         local e, n = ns.Raids.TakeAttendance("mock")
         ns.Print(e and ("Attendance taken for " .. n .. " raiders.") or tostring(n))
     else
-        ns.Print("Mock commands: on, off, boss, award, forge, signups, attend, reset")
+        ns.Print("Mock commands: on, off, boss, award, forge, signups, attend, roster, reset")
     end
 end

@@ -26,6 +26,8 @@ load("Modules/BiSData.lua")
 load("Modules/BiS.lua")
 ns.DKP = { GroupGUIDs = function() return {} end }
 load("Modules/Raids.lua")
+ns.Listen = function() end
+load("Modules/Roster.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
 local passed, failed = 0, 0
@@ -394,6 +396,60 @@ test("reminders: 30 and 15 minutes before, once each, only if signed up", functi
     eq(#due, 1); eq(due[1].mark, 15)
     eq(#ns.Raids.DueReminders(st, "Player-1-MEM2", NOW + 1800, {}), 0)        -- said no
     eq(#ns.Raids.DueReminders(st, "Player-1-VET", NOW + 1800, {}), 0)         -- never signed up
+end)
+
+test("roster: guild system messages parse, names with dashes and spaced ranks", function()
+    local P = ns.Roster.ParseSystem
+    local j = P("Binky has joined the guild."); eq(j.ev, "join"); eq(j.name, "Binky")
+    local l = P("Binky-Forever has left the guild."); eq(l.ev, "leave"); eq(l.name, "Binky-Forever")
+    local k = P("Pip has been kicked out of the guild by Grimtusk."); eq(k.ev, "kick"); eq(k.name, "Pip"); eq(k.by, "Grimtusk")
+    local pr = P("Grimtusk has promoted Pip to Team Captain."); eq(pr.ev, "promote"); eq(pr.name, "Pip"); eq(pr.by, "Grimtusk")
+    local dm = P("Grimtusk has demoted Pip to Member."); eq(dm.ev, "demote"); eq(dm.name, "Pip")
+    eq(P("Pip says hello."), nil)
+    eq(P("50% of the guild (joined) the guild."), nil)
+end)
+
+test("roster: diff finds joins, leaves, promotions; skips what's logged; refuses partial rosters", function()
+    local old = {
+        A = { name = "Alpha", ri = 4 }, B = { name = "Bravo", ri = 4 }, C = { name = "Charlie", ri = 2 }, D = { name = "Delta", ri = 5 },
+    }
+    local new = {
+        A = { name = "Alpha", ri = 3, rank = "Veteran" }, C = { name = "Charlie", ri = 4, rank = "Member" },
+        D = { name = "Delta", ri = 5 }, E = { name = "Echo", ri = 5, rank = "Initiate" },
+    }
+    local out = ns.Roster.Diff(old, new, { members = {} })
+    local by = {}
+    for _, c in ipairs(out) do by[c.name] = c.ev end
+    eq(by.Alpha, "promote"); eq(by.Bravo, "leave"); eq(by.Charlie, "demote"); eq(by.Echo, "join"); eq(by.Delta, nil)
+    -- Another officer already logged Bravo leaving and Echo joining.
+    out = ns.Roster.Diff(old, new, { members = { B = { inGuild = false }, E = { inGuild = true }, A = { ri = 3 } } })
+    eq(#out, 1); eq(out[1].name, "Charlie")
+    -- A roster that suddenly lost most people is treated as incomplete.
+    local big, few = {}, {}
+    for i = 1, 50 do big["G" .. i] = { name = "N" .. i, ri = 4 } end
+    for i = 1, 10 do few["G" .. i] = { name = "N" .. i, ri = 4 } end
+    eq(ns.Roster.Diff(big, few, { members = {} }), nil)
+    eq(ns.Roster.Diff(big, {}, { members = {} }), nil)
+end)
+
+test("roster: log builds join dates and history once; members can't write it; alts unlink", function()
+    local g = newStore()
+    local j = { ev = "join", who = "Player-1-MEM1", name = "MEM1", ri = 5, rank = "Initiate", idem = "join:Player-1-MEM1:5:2026-12-01" }
+    Log.Insert(g, author(g, "Player-1-CAPT", "ROSTER", j), true)
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "ROSTER", j), true)   -- same change seen twice
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "ROSTER", { ev = "promote", who = "Player-1-MEM1", name = "MEM1",
+        ri = 4, rank = "Member", by = "Officer1", idem = "promote:Player-1-MEM1:4:2026-12-05" }), true)
+    eq(select(2, Log.Insert(g, author(g, "Player-1-MEM2", "ROSTER", { ev = "join", who = "Player-1-MEM2", name = "MEM2",
+        idem = "x" }), true)), "forbidden")
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "ALT_LINK", { alt = "Player-1-MEM2", main = "Player-1-MEM1" }), true)
+    local st = Red.Build(g)
+    local m = st.members["Player-1-MEM1"]
+    eq(#m.history, 2); eq(m.joined, NOW); eq(m.rank, "Member"); eq(m.inGuild, true)
+    eq(#st.rosterLog, 3)
+    eq(st.alts["Player-1-MEM2"], "Player-1-MEM1")
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "ALT_UNLINK", { alt = "Player-1-MEM2" }), true)
+    st = Red.Build(g)
+    eq(st.alts["Player-1-MEM2"], nil)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

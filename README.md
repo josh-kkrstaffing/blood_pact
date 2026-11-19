@@ -13,6 +13,10 @@ Guild DKP, standings, loot charging and recruiting for **World of Warcraft: Fore
 - **Undo.** Officers can void their own last award or charge. Nothing is ever deleted; corrections are recorded.
 - **Recruit tab** (Team Captain and above). Three shared recruiting messages, a copy box, and a one-click /who scan of your zone that lists players without a guild. Click a name to open a whisper; you paste and send it yourself.
 
+## Roster
+
+The Roster tab lists every member with rank, level, join date and when they were last online. The guild log records joins, leaves, kicks, promotions and demotions, and who made the change when the game reports it. Each member shows their alts and rank history. Officers link and unlink alts by name. Changes are written to the same synced log as DKP, so every officer sees the same history. Tracking starts the first time a Team Captain or above runs Blood Pact; join dates from before that aren't known.
+
 ## Raids and attendance
 
 Team Captains and above schedule raids in the Raids tab, with presets for Barrow Deeps (10) and Hyjal Summit (20). Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't. Attendance is taken on every boss kill while a Team Captain or above leads the raid, or with one click. Standings shows each player's attendance over the last 10 raid nights, with alts counted for their main. Raids are scheduled in a US time zone or your PC's time, and everyone sees them in their own PC's time. Each raid is marked progression or farm, which sets the boss-kill DKP that night. New raids go on the in-game calendar when your rank allows it. Everyone who signs up gets reminders on their own screen 30 and 15 minutes before, and leaders can whisper the sign-ups with one click. Sign-ups and attendance sync through the guild like DKP, with no website needed.

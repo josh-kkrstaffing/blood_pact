@@ -97,9 +97,15 @@ function ns.RebuildRoster()
     local byGUID, byName = {}, {}
     local n = GetNumGuildMembers() or 0
     for i = 1, n do
-        local name, _, rankIndex, level, _, _, _, _, isOnline, _, class, _, _, _, _, _, guid = GetGuildRosterInfo(i)
+        local name, rankName, rankIndex, level, _, _, _, _, isOnline, _, class, _, _, _, _, _, guid = GetGuildRosterInfo(i)
         if name and guid then
-            byGUID[guid] = { name = name, rankIndex = rankIndex, level = level, class = class, online = isOnline }
+            local days
+            if not isOnline and GetGuildRosterLastOnline then
+                local y, mo, d, h = GetGuildRosterLastOnline(i)
+                if y then days = y * 365 + mo * 30 + d + ((h or 0) >= 12 and 1 or 0) end
+            end
+            byGUID[guid] = { name = name, rank = rankName, rankIndex = rankIndex, level = level, class = class,
+                online = isOnline, offlineDays = days }
             addAlias(byName, name, guid)
         end
     end

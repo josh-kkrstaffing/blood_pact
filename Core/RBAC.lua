@@ -32,6 +32,7 @@ R.ACTIONS = {
     recruitEdit = "officer",
     recruit     = "captain",
     schedule    = "captain",
+    roster      = "captain",
     signup      = "initiate",
     view        = "initiate",
 }

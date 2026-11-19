@@ -2,6 +2,11 @@
 
 ## 0.3.0
 
+- New Roster tab: every member with rank, level, join date and last online; search by name
+- Guild log: joins, leaves, kicks, promotions and demotions, with who did it when the game says so
+- Rank history and alts for each member; Officers link and unlink alts by name
+- Changes are recorded live from the game's guild messages, and caught up after the fact by comparing the roster; history starts the first time a Team Captain or above runs Blood Pact
+- Window is a little wider to fit the new tab
 - New Raids tab: Team Captains and above schedule raids (Barrow Deeps and Hyjal Summit presets) and cancel them
 - Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't; the latest answer counts
 - Attendance: taken on each boss kill while a Team Captain or above leads, or with one click

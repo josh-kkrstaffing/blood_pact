@@ -41,6 +41,7 @@ function Red.Build(g)
         settings = ns.U.Copy(Red.DEFAULTS), pools = {}, alts = {}, idem = {},
         recruitMsgs = nil, history = {}, lastDecay = nil,
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
+        members = {}, rosterLog = {},
     }
     local signups, attIdem = {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
@@ -62,6 +63,33 @@ function Red.Build(g)
             for key, v in pairs(d) do st.settings[key] = v end
         elseif k == "ALT_LINK" then
             st.alts[d.alt] = d.main
+            st.rosterLog[#st.rosterLog + 1] = e
+        elseif k == "ALT_UNLINK" then
+            st.alts[d.alt] = nil
+            st.rosterLog[#st.rosterLog + 1] = e
+        elseif k == "ROSTER" then
+            -- Several officers may see the same change; the idem key counts it once.
+            if not st.idem[d.idem] then
+                st.idem[d.idem] = e.id
+                local m = st.members[d.who]
+                if not m then
+                    m = { name = d.name, history = {} }
+                    st.members[d.who] = m
+                end
+                m.name = d.name
+                if d.ev == "join" then
+                    m.joined = m.joined or e.t
+                    m.rejoined = (m.left and e.t) or m.rejoined
+                    m.inGuild = true
+                elseif d.ev == "leave" or d.ev == "kick" then
+                    m.inGuild = false
+                    m.left = e.t
+                end
+                if d.ri then m.ri = d.ri end
+                if d.rank then m.rank = d.rank end
+                m.history[#m.history + 1] = e
+                st.rosterLog[#st.rosterLog + 1] = e
+            end
         elseif k == "AWARD" then
             if not (d.idem and st.idem[d.idem]) then
                 if d.idem then st.idem[d.idem] = e.id end
