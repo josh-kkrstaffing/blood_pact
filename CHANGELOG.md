@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- First release through the automated pipeline (lint, tests, CurseForge upload)
+- Loot buttons and award labels fit the window
+
 ## 0.1.1
 
 - Developer support role added

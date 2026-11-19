@@ -1,5 +1,7 @@
 std = "lua51"
 max_line_length = false
+-- unused arguments/loop vars and shadowed locals are style warnings, not bugs
+ignore = { "212", "213", "421", "431", "432", "542" }
 exclude_files = { ".release/" }
 globals = { "BloodPactDB", "BloodPact_OnCompartmentClick", "SlashCmdList", "SLASH_BLOODPACT1", "SLASH_BLOODPACT2" }
 read_globals = {

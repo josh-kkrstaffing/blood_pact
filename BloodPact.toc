@@ -2,7 +2,7 @@
 ## Title: Blood Pact
 ## Notes: Guild DKP, standings, loot and recruiting for WoW Forever. Fan-made; not affiliated with Blizzard Entertainment.
 ## Author: Blood Pact
-## Version: 0.1.1
+## Version: 0.1.2
 ## SavedVariables: BloodPactDB
 ## AddonCompartmentFunc: BloodPact_OnCompartmentClick
 ## X-License: MIT
