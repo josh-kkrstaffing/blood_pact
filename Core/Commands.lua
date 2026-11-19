@@ -11,6 +11,7 @@ local function help()
     ns.Print("/bp prof - read your professions now, share them, and show what the game reported")
     ns.Print("/bp recipes - with a profession window open: record and share its recipes now")
     ns.Print("/bp pvp - read your PvP rank now, share it, and show what the game reported")
+    ns.Print("/bp mail - at a mailbox: list the crafting orders you can mail")
 end
 
 SLASH_BLOODPACT1 = "/bp"
@@ -34,6 +35,8 @@ SlashCmdList.BLOODPACT = function(input)
         ns.PvP.Diagnose()
     elseif cmd == "recipes" or cmd == "recipe" then
         ns.Recipes.Scan(false)
+    elseif cmd == "mail" then
+        ns.Mail.Show(false)
     elseif cmd == "about" or cmd == "discord" then
         for _, line in ipairs(ns.AboutLines()) do ns.Print(line) end
         ns.UI.ShowAbout()

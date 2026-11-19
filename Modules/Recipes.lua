@@ -151,6 +151,21 @@ function R.Reagents(id)
     return list
 end
 
+-- The item a recipe makes, or nil when it makes none (an enchant put straight
+-- on someone's gear) or the game won't say. Cached.
+local outputs = {}
+function R.Output(id)
+    if outputs[id] ~= nil then return outputs[id] or nil end
+    local api = C_TradeSkillUI
+    local item
+    if api and api.GetRecipeSchematic then
+        local ok, s = pcall(api.GetRecipeSchematic, id, false)
+        if ok and type(s) == "table" and type(s.outputItemID) == "number" and s.outputItemID > 0 then item = s.outputItemID end
+    end
+    outputs[id] = item or false
+    return item
+end
+
 -- A recipe's name from its id, on this player's own game. Cached.
 local names = {}
 function R.Name(id)

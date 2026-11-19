@@ -778,6 +778,9 @@ end, function(p)
                 parts[#parts + 1] = "You haven't shared this recipe, so you can't take it."
             end
             if Orders.IsLate(sel, now) then parts[#parts + 1] = "Past the promised time." end
+            if sel.crafter == me and (sel.status == "accepted" or sel.status == "ready") then
+                parts[#parts + 1] = "At a mailbox, Blood Pact fills in the mail for this order; you press Send."
+            end
             local cost = Orders.IsActive(sel) and Orders.CostText(sel.rid, sel.q)
             if cost then parts[#parts + 1] = "Est. materials " .. cost .. "." end
             p.oDetail:SetText(table.concat(parts, " "))

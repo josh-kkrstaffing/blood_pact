@@ -32,6 +32,7 @@ load("Modules/PvP.lua")
 load("Modules/Loot.lua")
 load("Modules/Recipes.lua")
 load("Modules/Orders.lua")
+load("Modules/Mail.lua")
 load("Modules/Professions.lua")
 ns.Listen = function() end
 load("Modules/Roster.lua")
@@ -1080,6 +1081,56 @@ test("orders: guild recipe lists, Wanted orders matched to crafters, cost estima
     local total, missing, all = O.Estimate({ { item = 10, n = 1 }, { item = 11, n = 3 }, { item = 12, n = 2 } }, 2, priceOf)
     eq(total, (150 + 6000) * 2); eq(missing, 1); eq(all, 3)
     eq(select(1, O.Estimate(nil, 1, priceOf)), 0)
+end)
+
+test("mail: which stacks to attach, and what the letter says", function()
+    local M = ns.Mail
+    local function bags(...)
+        local list = {}
+        for i, n in ipairs({ ... }) do list[i] = { bag = 0, slot = i, count = n } end
+        return list
+    end
+    local function counts(picks)
+        local out = {}
+        for i, s in ipairs(picks) do out[i] = s.count end
+        return table.concat(out, ",")
+    end
+    local picks, total = M.Plan(bags(1, 1, 1, 1), 3)
+    eq(total, 3); eq(#picks, 3)                                   -- single items, only as many as owed
+    picks, total = M.Plan(bags(20, 5), 5)
+    eq(total, 5); eq(counts(picks), "5")                          -- the exact stack, not the big one
+    picks, total = M.Plan(bags(5, 4, 4), 8)
+    eq(total, 8); eq(counts(picks), "4,4")                        -- exact beats biggest-first
+    picks, total = M.Plan(bags(20, 5), 7)
+    eq(total, 5); eq(counts(picks), "5")                          -- never over: 2 are left for a hand split
+    picks, total = M.Plan(bags(20), 7)
+    eq(total, 0); eq(#picks, 0)                                   -- a stack is never split
+    picks, total = M.Plan(bags(10, 5, 5), 20)
+    eq(total, 20); eq(#picks, 3)
+    picks, total = M.Plan(bags(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), 15)
+    eq(total, 12); eq(#picks, 12)                                 -- one mail carries 12 attachments
+    picks, total = M.Plan(bags(5, 1, 1, 1), 6, 2)
+    eq(total, 6); eq(#picks, 2)                                   -- fewest slots first
+    eq(select(2, M.Plan({}, 4)), 0); eq(select(2, M.Plan(bags(3), 0)), 0)
+
+    local st = { orders = {
+        a = { id = "a", crafter = "X", status = "accepted", t = 5, due = 90, q = 1 },
+        b = { id = "b", crafter = "X", status = "ready", t = 1, due = 50, q = 2 },
+        c = { id = "c", crafter = "Y", status = "accepted", t = 2, due = 10, q = 1 },   -- someone else's
+        d = { id = "d", crafter = "X", status = "delivered", t = 3, due = 20, q = 1 },  -- finished
+        e = { id = "e", to = "X", status = "open", t = 4, q = 1 },                      -- not accepted yet
+    } }
+    local rows = M.Orders(st, "X")
+    eq(#rows, 2); eq(rows[1].id, "b"); eq(rows[2].id, "a")        -- soonest due first
+    eq(#M.Orders(nil, "X"), 0)
+
+    eq(M.Subject("Runed Copper Rod", 1), "Runed Copper Rod")      -- the item is the subject
+    eq(M.Subject("Elixir of Minor Defense", 5), "Elixir of Minor Defense x5")
+    eq(#M.Subject(("long "):rep(40), 3), M.SUBJECT_MAX)
+    local body = M.Body("Runed Copper Rod", 3, 3, "Binky Bee")
+    eq(body, "Blood Pact order: here is your Runed Copper Rod x3, made by Binky Bee. When you have it, type /bp, open Professions > Orders and press \"I received it\".")
+    eq(M.Body("Rod", 12, 15, "Bee"):find("That is 12 of the 15 still owed; the rest will follow.", 1, true) ~= nil, true)
+    eq(#M.Body(("long "):rep(200), 1, 1, "Bee") <= M.BODY_MAX, true)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

@@ -5,8 +5,9 @@
 -- ready, and the member who asked confirms delivery.
 -- Orders travel only on the guild's addon channel. The one whisper (to an
 -- online crafter, when an order is placed for them) goes only to a guild
--- member and only from the player's own click. Trading or mailing the item
--- is always done by the players themselves.
+-- member and only from the player's own click. Handing the item over is done
+-- by the players themselves: by trade, or by mail with Modules/Mail.lua
+-- filling in the form and the player pressing Send.
 local _, ns = ...
 local O = {}
 ns.Orders = O

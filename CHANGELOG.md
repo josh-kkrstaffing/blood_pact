@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.17.0
+
+- Mailing a crafting order: open a mailbox and Blood Pact lists the orders you've accepted, with how many of the item are in your bags
+- Press "Fill in the mail" and the game's Send Mail form is filled in for you: the guild member who ordered, the item as the subject, a short message, and the items attached from your bags
+- You check it and press Send yourself; the game takes the postage then. Blood Pact never sends mail on its own
+- When the full amount has been mailed, the order is marked ready with the note "In your mailbox", and the member who ordered confirms when they have it
+- Only whole stacks are attached and never more than is owed; a stack that is too big is left for you to split by hand. Bound items are skipped. One mail carries up to 12 stacks, so a bigger order takes a second mail
+- `/bp mail` opens the list at a mailbox
+
 ## 0.16.2
 
 - Raids: the sign-up counts stay on one line and no longer overlap "You haven't answered yet"; the note about the readiness % moved to a heading above the sign-up list

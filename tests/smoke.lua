@@ -178,7 +178,13 @@ end })
 local G = _G
 G.date, G.time = os.date, os.time
 G.tinsert, G.wipe = table.insert, function(t) for k in pairs(t) do t[k] = nil end return t end
-G.hooksecurefunc = function() end
+-- Hooks on game functions, kept per player so one player's hook never sees another's call.
+local hooks = {}
+G.hooksecurefunc = function(name, fn)
+    if type(name) ~= "string" then return end
+    hooks[name] = hooks[name] or {}
+    table.insert(hooks[name], { ctx = ctx, fn = fn })
+end
 G.geterrorhandler = function() return function(err) fail("handler", err) end end
 G.print = function(...)
     local parts = {}
@@ -259,6 +265,7 @@ G.C_TradeSkillUI = {
     GetAllRecipeIDs = function() return tradeWindow() and { 7418, 7420, 7421, 13380, 25124 } or {} end,
     -- 7418 needs one of item 10940 and two of 10938; an optional slot is ignored.
     GetRecipeSchematic = function(id)
+        if id == 7421 then return { outputItemID = 6218, reagentSlotSchematics = {} } end   -- makes an item
         if id ~= 7418 then return nil end
         return { reagentSlotSchematics = {
             { reagentType = 1, required = true, quantityRequired = 1, reagents = { { itemID = 10940 } } },
@@ -331,7 +338,65 @@ G.GetGuildRosterLastOnline = function() return 0, 0, 3, 5 end
 G.GetInventoryItemLink = function(_, slot)
     return slot == 5 and "|cffa335ee|Hitem:1::::::::60:::::|h[Robe of the Void]|h|r" or nil
 end
-G.C_Container = { GetContainerNumSlots = function() return 2 end, GetContainerItemLink = function() return nil end }
+-- Bags and the mailbox. Each player has their own bags, cursor and half-written mail.
+local BAGS, MAILS = {}, {}
+local function mailOf() MAILS[ctx.guid] = MAILS[ctx.guid] or { items = {}, tab = 1 }; return MAILS[ctx.guid] end
+local function bagSlot(bag, slot) local b = BAGS[ctx.guid]; return b and b[bag] and b[bag][slot] or nil end
+G.C_Container = { GetContainerNumSlots = function() return 2 end, GetContainerItemLink = function() return nil end,
+    GetContainerItemInfo = function(bag, slot)
+        local it = bagSlot(bag, slot)
+        return it and { itemID = it.id, stackCount = it.n, isBound = it.bound or false, isLocked = it.locked or false } or nil
+    end,
+    PickupContainerItem = function(bag, slot)
+        local it = bagSlot(bag, slot)
+        if it and not it.locked then mailOf().cursor = it end
+    end }
+G.NUM_TOTAL_EQUIPPED_BAG_SLOTS = 5
+G.ATTACHMENTS_MAX_SEND = 12
+G.ClearCursor = function() mailOf().cursor = nil end
+G.ClickSendMailItemButton = function(i)
+    local m = mailOf()
+    assert(m.tab == 2, "items can only be attached on the Send Mail tab")
+    if m.cursor and not m.items[i] then
+        assert(not m.cursor.bound, "a bound item can't be mailed")
+        m.items[i], m.cursor.locked, m.cursor = m.cursor, true, nil
+    end
+end
+G.GetSendMailItem = function(i)
+    local it = mailOf().items[i]
+    if it then return "Item " .. it.id, it.id, 134400, it.n, 1 end
+end
+G.GetSendMailPrice = function()
+    local n = 0
+    for _ in pairs(mailOf().items) do n = n + 1 end
+    return 30 * n
+end
+G.MailFrame = widget("Frame")
+G.MailFrameTab_OnClick = function(_, tab) mailOf().tab = tab end
+G.SendMailNameEditBox, G.SendMailSubjectEditBox, G.SendMailBodyEditBox = widget("EditBox"), widget("EditBox"), widget("EditBox")
+-- The player presses the game's Send button: the game sends what is in the
+-- form, the attached items leave the bags, and the form empties.
+local function pressSend(c)
+    local prev = ctx
+    ctx = c
+    local m = mailOf()
+    local to, subject, body = G.SendMailNameEditBox:GetText(), G.SendMailSubjectEditBox:GetText(), G.SendMailBodyEditBox:GetText()
+    local sent = { to = to, subject = subject, body = body, items = 0 }
+    for _, h in ipairs(hooks.SendMail or {}) do
+        if h.ctx == c then inCtx(c, "SendMail hook", h.fn, to, subject, body) end
+    end
+    for _, it in pairs(m.items) do
+        sent.items = sent.items + it.n
+        for _, bag in pairs(BAGS[c.guid] or {}) do
+            for slot, have in pairs(bag) do if have == it then bag[slot] = nil end end
+        end
+    end
+    m.items = {}
+    G.SendMailNameEditBox:SetText(""); G.SendMailSubjectEditBox:SetText(""); G.SendMailBodyEditBox:SetText("")
+    ctx = prev
+    fire(c, "MAIL_SEND_SUCCESS")
+    return sent
+end
 G.C_GuildInfo = { GuildRoster = function()
     local c = ctx
     addTimer(0.1, function() fire(c, "GUILD_ROSTER_UPDATE") end)
@@ -755,6 +820,91 @@ run(member, "back on the board", function()
     check(st.orders[wantedId].status == "open" and #member.ns.Orders.Rows(st, MEMBER, "wanted") == 1, "a handed-back order returns to the Wanted board")
     check(member.ns.Orders.Update(wantedId, "accept", 2) == nil, "you can't take your own Wanted order")
 end)
+
+-- Mailing an order: the Member orders three Runed Copper Rods from the GM.
+local rodId
+run(member, "order rods", function() rodId = assert(member.ns.Orders.Create(7421, "Enchanting", 3, "crafter", "", gm.guid)).id end)
+advance(10)
+slash(gm, "mail")
+check(said(gm, "Open a mailbox first."), "/bp mail explains itself away from a mailbox")
+run(gm, "accept rods", function() assert(gm.ns.Orders.Update(rodId, "accept", 24)) end)
+advance(10)
+-- In the GM's bags: stacks of 2 and 1, a stack of 5 (too many), and a bound one.
+BAGS[gm.guid] = { [0] = { { id = 6218, n = 2 }, { id = 6218, n = 1 } }, [1] = { { id = 6218, n = 5 }, { id = 6218, n = 1, bound = true } } }
+local function mailPanel(c)
+    for _, w in ipairs(c.widgets) do
+        if w._.kind == "FontString" and w._.text == "Blood Pact: orders to mail" then return w._.parent end
+    end
+end
+run(gm, "not at a mailbox", function()
+    check(gm.ns.Mail.Prepare(rodId) == nil, "nothing is filled in away from a mailbox")
+    check(mailPanel(gm) == nil, "the mail panel doesn't exist until a mailbox is opened")
+end)
+fire(gm, "MAIL_SHOW")
+run(gm, "mail panel", function()
+    local ns = gm.ns
+    local f = mailPanel(gm)
+    check(f ~= nil and f:IsShown(), "opening a mailbox with an accepted order shows the panel")
+    local rows = ns.Mail.Rows()
+    local rod, bracer
+    for _, r in ipairs(rows) do
+        if r.id == rodId then rod = r else bracer = r end
+    end
+    check(rod and rod.to == "Pip" and rod.left == 3 and rod.have == 8 and rod.why == nil,
+        "the order lists what is in the bags, leaving bound items out")
+    check(bracer == nil, "finished and handed-back orders aren't offered")
+    f.go:GetScript("OnClick")(f.go, "LeftButton")
+end)
+run(gm, "mail filled in", function()
+    local m = MAILS[gm.guid]
+    local n, count = 0, 0
+    for _, it in pairs(m.items) do n = n + 1; count = count + it.n end
+    check(m.tab == 2 and G.SendMailNameEditBox:GetText() == "Pip", "the mail is addressed to the guild member who ordered")
+    check(G.SendMailSubjectEditBox:GetText() == "Runed Copper Rod x3", "the item is the subject")
+    check(G.SendMailBodyEditBox:GetText():find("here is your Runed Copper Rod x3, made by Binky Bee", 1, true) ~= nil, "the message is written")
+    check(n == 2 and count == 3, "exactly what is owed is attached, from whole stacks")
+    local status
+    for _, w in ipairs(gm.widgets) do
+        if w._.text:find("Filled in: 3 Runed Copper Rod for Pip.", 1, true) then status = w._.text end
+    end
+    check(status and status:find("Postage 60c. Check it, then press Send.", 1, true) ~= nil, "the panel shows the postage and leaves Send to the player")
+    check(gm.ns.Reducer.State().orders[rodId].status == "accepted", "filling in the mail changes nothing in the guild's log")
+    local again, why = gm.ns.Mail.Prepare(rodId)
+    check(again == nil and why:find("already has items attached", 1, true) ~= nil, "a half-written mail isn't filled in twice")
+end)
+-- The player changes the recipient and sends: that mail isn't counted for the order.
+G.SendMailNameEditBox:SetText("Grim Tusk")
+local keep = MAILS[gm.guid].items
+MAILS[gm.guid].items = {}
+pressSend(gm)
+advance(10)
+run(gm, "other mail", function()
+    check(gm.ns.Reducer.State().orders[rodId].status == "accepted" and gm.ns.Mail.Rows()[1].left == 3,
+        "a mail sent to someone else doesn't count toward the order")
+end)
+for _, it in pairs(keep) do it.locked = false end
+-- Fill it in again and press Send as written.
+run(gm, "fill again", function() assert(gm.ns.Mail.Prepare(rodId)) end)
+local sent = pressSend(gm)
+advance(10)
+check(sent.to == "Pip" and sent.items == 3, "the player's own Send click mails the three rods")
+check(said(gm, "Mailed 3 Runed Copper Rod to Pip. The order is marked ready; they confirm when they have it."), "the crafter is told the order is marked ready")
+check(said(member, "Your order is ready: Runed Copper Rod x3 from Binky Bee."), "the requester is told their order is on its way")
+run(member, "mailed order", function()
+    local o = member.ns.Reducer.State().orders[rodId]
+    check(o.status == "ready" and o.note == "In your mailbox", "the order shows as ready with a note saying it's in the mail")
+    assert(member.ns.Orders.Update(rodId, "deliver"))
+end)
+advance(10)
+run(gm, "after delivery", function()
+    local f = mailPanel(gm)
+    check(#gm.ns.Mail.Rows() == 0 and f.empty:IsShown(), "a delivered order leaves the mail panel")
+    local line, why = gm.ns.Mail.Prepare(rodId)
+    check(line == nil and why ~= nil, "a delivered order can't be mailed again")
+end)
+pressEverything(gm)
+fire(gm, "MAIL_CLOSED")
+run(gm, "mailbox closed", function() check(not mailPanel(gm):IsShown(), "closing the mailbox closes the panel") end)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
