@@ -8,8 +8,7 @@ local NOW = 1763503200
 ns.Now = function() return NOW end
 local ME = "Player-1-OFFICER1"
 ns.MyGUID = function() return ME end
-local store
-ns.G = function() return store end
+ns.G = function() return nil end   -- tests pass stores explicitly
 
 local function load(path)
     local chunk = assert(loadfile(path))

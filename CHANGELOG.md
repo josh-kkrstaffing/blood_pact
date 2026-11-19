@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Release pipeline fix (lint warning in tests)
+
 ## 0.1.2
 
 - First release through the automated pipeline (lint, tests, CurseForge upload)
