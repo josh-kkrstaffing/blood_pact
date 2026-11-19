@@ -1,0 +1,11 @@
+package-as: BloodPact
+
+ignore:
+  - tests
+  - .github
+  - .luacheckrc
+  - LAUNCH.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
