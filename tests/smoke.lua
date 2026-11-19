@@ -567,7 +567,15 @@ end)
 check(calendarAdds >= 1, "the raid goes on the in-game calendar")
 
 -- 7. Summon board: the member asks, the warlock is alerted and invites.
+local chatAtAsk = #guildChat
 run(member, "ask", function() assert(member.ns.Summon.Request("Blackrock Spire")) end)
+check(#guildChat == chatAtAsk, "asking any warlock sends no whisper")
+run(member, "ask one", function()
+    check(member.ns.Summon.Request("Blackrock Spire", gm.guid) == "whispered", "asking one warlock reports that it whispered them")
+end)
+check(#guildChat == chatAtAsk + 1 and guildChat[#guildChat]:find("WHISPER:Binky Bee:Could I get a warlock summon to Blackrock Spire?", 1, true) == 1,
+    "Ask selected whispers the chosen warlock, so they see it without the addon")
+run(member, "ask again", function() assert(member.ns.Summon.Request("Blackrock Spire")) end)
 advance(3)
 check(said(gm, "asks for a summon"), "the warlock is alerted to a summon request")
 run(gm, "start", function()

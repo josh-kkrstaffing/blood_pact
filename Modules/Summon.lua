@@ -208,6 +208,14 @@ function S.Request(note, toGUID)
         S.requests[ns.MyGUID()] = nil
         return nil, "Not connected to the guild yet. Try again in a moment."
     end
+    -- Asking one warlock: also whisper them, from this click, so they see it
+    -- even without Blood Pact. Guild members only; never in test mode.
+    local m = toGUID and ns.roster.byGUID[toGUID]
+    if m and m.online and toGUID ~= ns.MyGUID() and not ns.mock then
+        local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
+        local msg = "Could I get a warlock summon" .. (note ~= "" and (" to " .. note:sub(1, 60)) or "") .. "? I'm in " .. myZone() .. ". (sent with Blood Pact)"
+        if send and pcall(send, msg, "WHISPER", nil, ns.U.ShortName(m.name)) then return "whispered" end
+    end
     return true
 end
 
@@ -326,7 +334,15 @@ ns.UI.AddTab("summon", "Summon", "view", function(p)
     p.askOne = W.Button(p, "Ask selected", 132, 22, function()
         local w = p.locks.selected
         if not w then ns.UI.Say("Pick a warlock in the list first.") return end
-        ns.UI.Try("Asked " .. U.Safe(U.ShortName(w.name), 30) .. ".", S.Request, p.note:GetText(), w.guid)
+        local who = U.Safe(U.ShortName(w.name), 30)
+        local res, why = S.Request(p.note:GetText(), w.guid)
+        if res == "whispered" then
+            ns.UI.Say("Whispered " .. who .. " and put your request on the board.")
+        elseif res then
+            ns.UI.Say("Your request for " .. who .. " is on the board. The game didn't send the whisper, so whisper them yourself.")
+        else
+            ns.UI.Say(why or "That didn't work.")
+        end
     end)
     p.askOne:SetPoint("TOPLEFT", 568, -66)
     p.cancel = W.Button(p, "Cancel my request", 132, 22, function()
@@ -409,7 +425,8 @@ end, function(p)
     elseif mine and mine.by then
         p.status:SetText("|cff40ff40" .. U.Safe(nameOf(mine.by), 30) .. " is inviting you. Accept the group invite.|r")
     elseif mine then
-        p.status:SetText("Your request is out. Warlocks with the addon were alerted.")
+        p.status:SetText(mine.to and ("Your request is out. " .. U.Safe(nameOf(mine.to), 30) .. " was whispered.")
+            or "Your request is out. Warlocks running Blood Pact were alerted; use Post in guild chat to reach the rest.")
     else
         p.status:SetText("Green warlocks have " .. S.HELPERS .. " or more guildmates in their zone to click the portal.")
     end

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.16.1
+
+- Summon: "Ask selected" now whispers the chosen warlock, so they see it even without Blood Pact (before, it only reached warlocks running the addon)
+- Summon: the status line says who was whispered, and that "Ask any warlock" reaches only warlocks running Blood Pact
+
 ## 0.16.0
 
 - Orders > New order: pick a profession, see every recipe the guild has shared with how many crafters know it (and how many are online), and place an order without finding a crafter first
