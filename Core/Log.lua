@@ -64,6 +64,7 @@ L.KINDS = {
     RAID = { "schedule", function(d)
         return str(d.title, 1, 40) and str(d.raid, 1, 30) and isInt(d.at, 1e9, 1e11)
             and isInt(d.size, 5, 40) and optNote(d.n)
+            and (d.tz == nil or str(d.tz, 1, 8)) and (d.prog == nil or type(d.prog) == "boolean")
     end },
     RAID_CANCEL = { "schedule", function(d)
         return str(d.ev, 1, 80)

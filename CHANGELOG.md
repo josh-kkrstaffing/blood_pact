@@ -8,6 +8,12 @@
 - Standings shows attendance over the last 10 raid nights; alts count for their main
 - Past raids show who signed up and was there
 - Mock mode: /bp mock signups and /bp mock attend
+- Schedule in Eastern, Central, Mountain, Arizona, Pacific or your PC's time; everyone sees the raid in their own PC's time, with the scheduled zone beside it
+- Progression or farm checkbox per raid; boss kills that night pay the matching DKP
+- New raids are added to the in-game calendar as a guild sign-up event when your rank allows it, and your Blood Pact sign-up is copied to the calendar
+- Reminders on your own screen 30 and 15 minutes before raids you signed up for
+- Whisper sign-ups button for Team Captains and above (one click, never automatic)
+- Login message confirms the addon loaded; /bp explains if the window can't open
 
 ## 0.2.1
 

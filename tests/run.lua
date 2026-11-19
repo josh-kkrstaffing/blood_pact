@@ -15,6 +15,7 @@ local function load(path)
     chunk("BloodPact", ns)
 end
 load("Core/Util.lua")
+load("Core/Time.lua")
 load("Core/RBAC.lua")
 load("Core/Log.lua")
 load("Core/Reducer.lua")
@@ -344,6 +345,55 @@ test("/bp and /bloodpact both open the window", function()
     handler("")
     handler("   ")
     eq(opened, 2)
+end)
+
+test("time zones: Central 8 PM in winter and summer, DST switch days", function()
+    local T = ns.Time
+    local u = T.FromZone("CT", 2026, 12, 9, 20, 0)
+    eq(os.date("!%Y-%m-%d %H:%M", u), "2026-12-10 02:00")
+    eq(T.Format("ET", u), "9:00 PM Eastern")
+    eq(T.Format("PT", u), "6:00 PM Pacific")
+    eq(T.Format("AZ", u), "7:00 PM Arizona")
+    eq(os.date("!%H:%M", T.FromZone("CT", 2026, 7, 1, 20, 0)), "01:00")
+    eq(os.date("!%H:%M", T.FromZone("ET", 2026, 3, 8, 3, 0)), "07:00")   -- DST began Mar 8
+    eq(os.date("!%H:%M", T.FromZone("ET", 2026, 3, 7, 3, 0)), "08:00")
+    eq(os.date("!%H:%M", T.FromZone("ET", 2026, 11, 1, 12, 0)), "17:00") -- DST ended Nov 1
+    eq(ns.Raids.ParseWhen("2026-12-09", "20:00", "CT"), u)
+    eq(ns.Raids.ParseWhen("2026-12-09", "25:00", "CT"), nil)
+end)
+
+test("raid: time zone and progression travel with the raid", function()
+    local g = newStore()
+    local r = author(g, "Player-1-CAPT", "RAID", { title = "Prog", raid = "Hyjal Summit", at = NOW + 3600, size = 20, tz = "CT", prog = true })
+    eq(Log.Insert(g, r, true), "new")
+    local bad = author(g, "Player-1-CAPT", "RAID", { title = "x", raid = "y", at = NOW + 3600, size = 20, prog = "yes" })
+    eq(select(2, Log.Insert(g, bad, true)), "payload")
+    local st = Red.Build(g)
+    eq(st.raids[r.id].tz, "CT"); eq(st.raids[r.id].prog, true)
+    eq(ns.Raids.Current(st, NOW + 1800).id, r.id)       -- 30 min before start
+    eq(ns.Raids.Current(st, NOW + 3600 * 5).id, r.id)   -- 4 hours in
+    eq(ns.Raids.Current(st, NOW - 3600), nil)           -- 2 hours before
+end)
+
+test("reminders: 30 and 15 minutes before, once each, only if signed up", function()
+    local g = newStore()
+    local r = author(g, "Player-1-CAPT", "RAID", { title = "BD", raid = "Barrow Deeps", at = NOW + 3600, size = 10 })
+    Log.Insert(g, r, true)
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "SIGNUP", { ev = r.id, st = "yes", role = "dps" }),
+        author(g, "Player-1-MEM2", "SIGNUP", { ev = r.id, st = "no" }),
+    })
+    local st = Red.Build(g)
+    local done = {}
+    eq(#ns.Raids.DueReminders(st, "Player-1-MEM1", NOW, done), 0)            -- an hour out
+    local due = ns.Raids.DueReminders(st, "Player-1-MEM1", NOW + 1800, done)  -- 30 min out
+    eq(#due, 1); eq(due[1].mark, 30)
+    done[due[1].key] = true
+    eq(#ns.Raids.DueReminders(st, "Player-1-MEM1", NOW + 1860, done), 0)     -- not twice
+    due = ns.Raids.DueReminders(st, "Player-1-MEM1", NOW + 2700, done)        -- 15 min out
+    eq(#due, 1); eq(due[1].mark, 15)
+    eq(#ns.Raids.DueReminders(st, "Player-1-MEM2", NOW + 1800, {}), 0)        -- said no
+    eq(#ns.Raids.DueReminders(st, "Player-1-VET", NOW + 1800, {}), 0)         -- never signed up
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

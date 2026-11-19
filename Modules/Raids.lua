@@ -18,30 +18,33 @@ R.STATUS_LABEL = { yes = "Coming", maybe = "Maybe", no = "Can't" }
 
 function R.RaidDay(unix) return date("!%Y-%m-%d", unix) end
 
--- "2026-12-09" + "20:00" (your local time) -> server unix time.
-function R.ParseWhen(day, clock)
+-- "2026-12-09" + "20:00" in a zone (ET/CT/MT/AZ/PT, or "LOCAL" for your PC
+-- clock) -> server unix time.
+function R.ParseWhen(day, clock, zone)
     local y, mo, d = tostring(day or ""):match("^%s*(%d%d%d%d)%-(%d%d?)%-(%d%d?)%s*$")
     local h, mi = tostring(clock or ""):match("^%s*(%d%d?):(%d%d)%s*$")
     if not y or not h then return nil end
     y, mo, d, h, mi = tonumber(y), tonumber(mo), tonumber(d), tonumber(h), tonumber(mi)
     if mo < 1 or mo > 12 or d < 1 or d > 31 or h > 23 or mi > 59 then return nil end
+    if zone and zone ~= "LOCAL" then return ns.Time.FromZone(zone, y, mo, d, h, mi) end
     local t = time({ year = y, month = mo, day = d, hour = h, min = mi, sec = 0 })
     -- Local clock -> server clock, in case the PC clock is off.
     return t and (t + (ns.Now() - time())) or nil
 end
 
-function R.Create(title, raid, day, clock, size, note)
+function R.Create(title, raid, day, clock, size, note, zone, prog)
     if not RBAC.ICan("schedule") then return nil, "Only Team Captains and above can schedule raids." end
     title = tostring(title or ""):match("^%s*(.-)%s*$")
     if title == "" then title = raid end
     if not raid or raid == "" then return nil, "Pick Barrow Deeps or Hyjal Summit, or type a raid." end
-    local at = R.ParseWhen(day, clock)
-    if not at then return nil, "Date as YYYY-MM-DD and time as HH:MM (24-hour, your time)." end
+    local at = R.ParseWhen(day, clock, zone)
+    if not at then return nil, "Date as YYYY-MM-DD and time as HH:MM (24-hour)." end
     if at < ns.Now() - 3600 then return nil, "That time has already passed." end
     size = tonumber(size)
     if not size or size < 5 or size > 40 or size ~= math.floor(size) then return nil, "Raid size 5 to 40." end
     return Log.New("RAID", { title = title:sub(1, 40), raid = raid:sub(1, 30), at = at, size = size,
-        n = note and note ~= "" and note:sub(1, Log.MAX_NOTE) or nil })
+        n = note and note ~= "" and note:sub(1, Log.MAX_NOTE) or nil,
+        tz = zone ~= "LOCAL" and zone or nil, prog = prog and true or false })
 end
 
 function R.Cancel(id)
@@ -111,6 +114,47 @@ function R.Summary(st, r)
     return c, rows
 end
 
+-- The raid happening now: started up to 6 hours ago, or starting within the hour.
+function R.Current(st, now)
+    local best
+    for _, r in pairs(st and st.raids or {}) do
+        if not r.cancelled and r.at - 3600 <= now and now <= r.at + 6 * 3600 then
+            if not best or math.abs(r.at - now) < math.abs(best.at - now) then best = r end
+        end
+    end
+    return best
+end
+
+-- Reminders that are due for you: 30 and 15 minutes before raids you said
+-- yes or maybe to. Pure: done = { [raidId..":30"] = true, ... }.
+function R.DueReminders(st, me, now, done)
+    local out = {}
+    for _, r in pairs(st and st.raids or {}) do
+        local s = r.signups[me]
+        if not r.cancelled and s and s.st ~= "no" then
+            local left = r.at - now
+            for _, mark in ipairs({ 30, 15 }) do
+                local key = r.id .. ":" .. mark
+                if left <= mark * 60 and left > (mark - 15) * 60 and not done[key] then
+                    out[#out + 1] = { raid = r, mark = mark, key = key }
+                    break
+                end
+            end
+        end
+    end
+    return out
+end
+
+-- Text for a raid time: your PC time, plus the time zone it was scheduled in.
+function R.When(r, fmt)
+    local mine = date(fmt or "%a %b %d  %I:%M %p", r.at)
+    if r.tz then
+        local theirs = ns.Time.Format(r.tz, r.at)
+        if theirs then mine = mine .. "  (" .. theirs .. ")" end
+    end
+    return mine
+end
+
 ---------------------------------------------------------------------------
 -- Raids tab (everyone; scheduling for Team Captain and above)
 ---------------------------------------------------------------------------
@@ -125,15 +169,14 @@ local function charStore()
     return ns.db.chars[guid]
 end
 
-local function when(at) return date("%a %b %d  %I:%M %p", at) end
 
 ns.UI.AddTab("raids", "Raids", "view", function(p)
-    local h = W.Text(p, "Raids (times in your local time)", "GameFontNormal")
+    local h = W.Text(p, "Raids (shown in your PC's time)", "GameFontNormal")
     h:SetPoint("TOPLEFT", 0, 0)
     p.list = W.List(p, 300, 180, 18, function(row, r)
         local past = r.at < ns.Now() - 6 * 3600
         local c = R.Summary(Red.State(), r)
-        p.list.Col(row, 1, 4, 130):SetText((past and "|cff808080" or "") .. when(r.at))
+        p.list.Col(row, 1, 4, 130):SetText((past and "|cff808080" or "") .. date("%a %b %d  %I:%M %p", r.at))
         p.list.Col(row, 2, 136, 110):SetText(U.Safe(r.title, 30))
         p.list.Col(row, 3, 248, 50):SetText(c.yes .. "/" .. r.size)
     end, function(r) selected = r.id; ns.UI.Refresh() end)
@@ -159,8 +202,10 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             if not selected then return end
             if b[3] then charStore().role = b[3] end
             local role = b[3] or charStore().role
-            ns.UI.Try("Signed up: " .. R.STATUS_LABEL[b[2]] .. (b[2] == "yes" and (" as " .. R.ROLE_LABEL[role]) or "") .. ".",
+            local ok = ns.UI.Try("Signed up: " .. R.STATUS_LABEL[b[2]] .. (b[2] == "yes" and (" as " .. R.ROLE_LABEL[role]) or "") .. ".",
                 R.SignUp, selected, b[2], role)
+            local r = ok and Red.State().raids[selected]
+            if r and ns.Calendar then ns.Calendar.Respond(r, b[2]) end
         end)
         btn:SetPoint("TOPLEFT", 330 + (i - 1) * 64, -66)
         p.signButtons[i] = btn
@@ -204,11 +249,35 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
     s.sizeBox:SetPoint("TOPLEFT", 262, -48)
     s.create = W.Button(s, "Create raid", 100, 22, function()
         local e = ns.UI.Try("Raid scheduled.", R.Create, s.titleBox:GetText(), s.raid,
-            s.dayBox:GetText(), s.timeBox:GetText(), s.sizeBox:GetText())
-        if e then selected = e.id; s.titleBox:SetText(""); ns.UI.Refresh() end
+            s.dayBox:GetText(), s.timeBox:GetText(), s.sizeBox:GetText(), nil,
+            charStore().tz or "LOCAL", s.prog:GetChecked())
+        if e then
+            selected = e.id
+            s.titleBox:SetText("")
+            s.prog:SetChecked(false)
+            ns.UI.Refresh()
+            if ns.Calendar then ns.Calendar.Add(Red.State().raids[e.id] or { title = e.d.title, raid = e.d.raid, at = e.d.at, prog = e.d.prog }) end
+        end
     end)
     s.create:SetPoint("TOPLEFT", 310, -48)
-    W.Text(s, "Date YYYY-MM-DD, time HH:MM in 24-hour, your local time.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 0, -76)
+    local zones = { { key = "LOCAL", label = "My PC time" } }
+    for _, z in ipairs(ns.Time.ZONES) do zones[#zones + 1] = z end
+    local function zoneIndex()
+        local saved = charStore().tz or "LOCAL"
+        for i, z in ipairs(zones) do if z.key == saved then return i end end
+        return 1
+    end
+    s.zone = W.Button(s, "", 110, 22, function()
+        local i = zoneIndex() % #zones + 1
+        charStore().tz = zones[i].key
+        s.zone:SetText(zones[i].label)
+    end)
+    s.zone:SetPoint("TOPLEFT", 416, -48)
+    s.zone:SetScript("OnShow", function() s.zone:SetText(zones[zoneIndex()].label) end)
+    s.zone:SetText(zones[zoneIndex()].label)
+    s.prog = W.Check(s, "Progression (boss kills pay progression DKP)")
+    s.prog:SetPoint("TOPLEFT", 0, -72)
+    W.Text(s, "Date YYYY-MM-DD, time HH:MM 24-hour. Click the zone button to change it.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 300, -78)
     s.attend = W.Button(s, "Take attendance now", 160, 22, function()
         local e, n = R.TakeAttendance("manual")
         if e then ns.UI.Say(("Attendance taken: %d guild members."):format(n)) else ns.UI.Say(n or "That didn't work.") end
@@ -219,7 +288,14 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         if ns.UI.Try("Raid cancelled.", R.Cancel, selected) then selected = nil end
     end)
     s.cancel:SetPoint("TOPLEFT", 166, -100)
-    W.Text(s, "Boss kills record attendance on their own while you lead.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 334, -105)
+    s.whisper = W.Button(s, "Whisper sign-ups", 140, 22, function()
+        local r = Red.State() and Red.State().raids[selected]
+        if not r then return end
+        local n, why = R.WhisperSignups(r)
+        ns.UI.Say(n and ("Whispered %d raiders."):format(n) or why)
+    end)
+    s.whisper:SetPoint("TOPLEFT", 332, -100)
+    W.Text(s, "Boss kills take attendance on their own while you lead.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 0, -126)
 end, function(p)
     local st = Red.State()
     local list = R.List(st, ns.Now())
@@ -245,9 +321,68 @@ end, function(p)
     end
     local c, rows = R.Summary(st, found)
     p.title:SetText(U.Safe(found.title, 40))
-    p.info:SetText(U.Safe(found.raid, 30) .. " (" .. found.size .. ")  -  " .. when(found.at)
+    p.info:SetText(U.Safe(found.raid, 30) .. " (" .. found.size .. ")  -  " .. (found.prog and "|cffff8040Progression|r" or "Farm")
+        .. "\n" .. R.When(found)
         .. (found.n and ("\n" .. U.Safe(found.n, 120)) or ""))
     p.counts:SetText(("Coming %d/%d   Tanks %d  Healers %d  DPS %d   Maybe %d   Can't %d"):format(
         c.yes, found.size, c.tank, c.healer, c.dps, c.maybe, c.no))
     p.people:SetItems(rows)
 end)
+
+---------------------------------------------------------------------------
+-- Reminders on your own screen, and the leader's whisper button
+---------------------------------------------------------------------------
+local function remindersDone()
+    local c = charStore()
+    c.reminded = c.reminded or {}
+    return c.reminded
+end
+
+local function alert(msg)
+    ns.Print(msg)
+    if RaidNotice_AddMessage and RaidWarningFrame then
+        RaidNotice_AddMessage(RaidWarningFrame, msg, ChatTypeInfo and ChatTypeInfo.RAID_WARNING or { r = 1, g = 0.3, b = 0.1 })
+    end
+    if PlaySound and SOUNDKIT and SOUNDKIT.RAID_WARNING then PlaySound(SOUNDKIT.RAID_WARNING) end
+end
+
+function R.CheckReminders()
+    local st = Red.State()
+    if not st then return end
+    local done = remindersDone()
+    for _, due in ipairs(R.DueReminders(st, ns.MyGUID(), ns.Now(), done)) do
+        done[due.key] = true
+        local r = due.raid
+        if due.mark == 30 then
+            alert(("%s starts in 30 minutes (%s). Get ready and be there by %s."):format(
+                U.Safe(r.title, 40), date("%I:%M %p", r.at), date("%I:%M %p", r.at - 900)))
+        else
+            alert(("%s starts in 15 minutes. Head to the raid now."):format(U.Safe(r.title, 40)))
+        end
+    end
+end
+
+ns.On("PLAYER_LOGIN", function()
+    if C_Timer and C_Timer.NewTicker then C_Timer.NewTicker(30, R.CheckReminders) end
+end)
+
+-- One click by a Team Captain or above: whisper everyone who said yes or maybe
+-- and is online. Only ever sent from that click, never on a timer.
+function R.WhisperSignups(r)
+    if not RBAC.ICan("schedule") then return nil, "Only Team Captains and above can do this." end
+    local mins = math.floor((r.at - ns.Now()) / 60 + 0.5)
+    local msg = mins > 0
+        and ("Blood Pact: %s starts in %d minutes. Get ready, and please be there 15 minutes early."):format(r.title, mins)
+        or ("Blood Pact: %s is starting. Please head to the raid now."):format(r.title)
+    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
+    local sent = 0
+    for guid, s in pairs(r.signups) do
+        local m = ns.roster.byGUID[guid]
+        if s.st ~= "no" and guid ~= ns.MyGUID() and m and m.online and sent < 40 then
+            local ok = pcall(send, msg, "WHISPER", nil, m.name)
+            if ok then sent = sent + 1 end
+        end
+    end
+    if sent == 0 then return nil, "Nobody who signed up is online." end
+    return sent
+end

@@ -62,7 +62,12 @@ function D.OnBossKill(encounterID, encounterName, difficultyID)
     if not ns.mock and not UnitIsGroupLeader("player") then return end
     local st = Red.State()
     if not st then return end
-    local amount = ns.db.ui.progression and st.settings.bossProg or st.settings.bossFarm
+    -- A scheduled raid tonight decides progression vs farm; otherwise the
+    -- checkbox on the Raid & Loot tab does.
+    local current = ns.Raids and ns.Raids.Current(st, ns.Now())
+    local prog = ns.db.ui.progression
+    if current then prog = current.prog end
+    local amount = prog and st.settings.bossProg or st.settings.bossFarm
     local idem = ("boss:%s:%s:%s"):format(tostring(encounterID), tostring(difficultyID or 0), date("%Y-%m-%d"))
     local e = D.Award(D.GroupGUIDs(), amount, "boss", cut(encounterName, 60), idem)
     if e then ns.Print(("Awarded %d DKP to the raid for the kill."):format(amount)) end

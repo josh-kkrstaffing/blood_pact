@@ -10,6 +10,7 @@
 ## X-Curse-Project-ID: 1815593
 
 Core\Util.lua
+Core\Time.lua
 Core\Init.lua
 Core\RBAC.lua
 Core\Log.lua
@@ -24,4 +25,5 @@ Modules\Recruit.lua
 Modules\BiSData.lua
 Modules\BiS.lua
 Modules\Raids.lua
+Modules\Calendar.lua
 Core\Commands.lua

@@ -94,7 +94,7 @@ function Red.Build(g)
             st.recruitMsgs = d.msgs
         elseif k == "RAID" then
             st.raids[e.id] = { id = e.id, title = d.title, raid = d.raid, at = d.at, size = d.size,
-                n = d.n, author = e.a, signups = {} }
+                n = d.n, tz = d.tz, prog = d.prog or false, author = e.a, signups = {} }
         elseif k == "RAID_CANCEL" then
             if st.raids[d.ev] then st.raids[d.ev].cancelled = true end
         elseif k == "SIGNUP" then

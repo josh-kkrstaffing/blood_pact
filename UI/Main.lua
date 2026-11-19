@@ -259,7 +259,7 @@ end, function(p)
     p.onTime:SetText(("On-time bonus (+%d)"):format(s.onTime))
     p.fullRaid:SetText(("Full-raid bonus (+%d)"):format(s.fullRaid))
     p.prog:SetChecked(ns.db.ui.progression)
-    p.prog.label:SetText(("Progression night: boss kills pay %d instead of %d"):format(s.bossProg, s.bossFarm))
+    p.prog.label:SetText(("Progression night: boss kills pay %d instead of %d (a scheduled raid's setting wins)"):format(s.bossProg, s.bossFarm))
     p.auto:SetChecked(ns.db.ui.autoBossAward)
     for _, b in ipairs(p.tierButtons) do
         b:SetText(("%s %d"):format(b.label, ns.Reducer.Price(b.tier) or 0))
