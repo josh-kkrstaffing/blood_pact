@@ -18,6 +18,6 @@
 ## 3. Automate later releases (optional)
 
 1. Put this folder in a GitHub repository.
-2. Copy the CurseForge project ID into the `X-Curse-Project-ID` line of `BloodPact.toc` and remove the leading `# `.
+2. The CurseForge project ID (1815593) is already in `BloodPact.toc`.
 3. Create an API token in the CurseForge Author Console and save it as the repository secret `CF_API_KEY`.
 4. Bump the version in `BloodPact.toc` and `CHANGELOG.md`, then push a tag such as `v0.1.1`. Lint and tests run first; the release uploads only if both pass.

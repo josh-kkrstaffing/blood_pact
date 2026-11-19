@@ -6,8 +6,7 @@
 ## SavedVariables: BloodPactDB
 ## AddonCompartmentFunc: BloodPact_OnCompartmentClick
 ## X-License: MIT
-# After creating the CurseForge project, uncomment and fill in the next line for automated uploads:
-# ## X-Curse-Project-ID: 000000
+## X-Curse-Project-ID: 1815593
 
 Core\Util.lua
 Core\Init.lua
