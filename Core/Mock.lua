@@ -113,10 +113,10 @@ function M.Command(arg)
         fakeEvent(1, "ROSTER", { ev = "promote", who = fakeGUID(5), name = ns.NameForGUID(fakeGUID(5)) or "Vet", ri = 3, rank = "Veteran", by = "Grimtusk", idem = "mp:" .. day, live = true }, true)
         fakeEvent(1, "ALT_LINK", { alt = fakeGUID(19), main = fakeGUID(4) }, true)
         -- A few fake guildmates share their professions.
-        fakeEvent(1, "PROF", { p1 = "Blacksmithing", l1 = 300, p2 = "Mining", l2 = 300, fa = 300, ck = 225, fi = 150 }, true)
-        fakeEvent(2, "PROF", { p1 = "Enchanting", l1 = 290, p2 = "Tailoring", l2 = 300, fa = 225, ck = 300, fi = 75 }, true)
-        fakeEvent(6, "PROF", { p1 = "Herbalism", l1 = 240, fa = 150, ck = 1 }, true)
-        fakeEvent(10, "PROF", { p1 = "Alchemy", l1 = 275, p2 = "Herbalism", l2 = 300, fa = 300, ck = 300, fi = 300 }, true)
+        fakeEvent(1, "PROF", { p1 = "Blacksmithing", l1 = 300, x1 = 300, p2 = "Mining", l2 = 300, x2 = 300, fa = 300, xfa = 300, ck = 225, xck = 300, fi = 150, xfi = 225 }, true)
+        fakeEvent(2, "PROF", { p1 = "Enchanting", l1 = 290, x1 = 300, p2 = "Tailoring", l2 = 300, x2 = 300, fa = 225, xfa = 225, ck = 300, xck = 300, fi = 75, xfi = 75 }, true)
+        fakeEvent(6, "PROF", { p1 = "Herbalism", l1 = 240, x1 = 300, fa = 150, xfa = 150, ck = 1, xck = 75 }, true)
+        fakeEvent(10, "PROF", { p1 = "Alchemy", l1 = 275, x1 = 300, p2 = "Herbalism", l2 = 300, x2 = 300, fa = 300, ck = 300, fi = 300 }, true)
         ns.Print("Grimtusk logged a join, a promotion and an alt link. See Roster > Guild log and Officer tasks.")
     elseif arg == "summon" then
         -- A fake guildmate asks for a summon, and one in your zone offers to click.

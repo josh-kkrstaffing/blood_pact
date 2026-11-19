@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetValueStep" }) do
+    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord" }) do
     M[name] = noop
 end
 function M:SetSize(w, h) self._.w, self._.h = w, h end
@@ -209,7 +209,7 @@ G.UnitLevel = function() return ctx.level end
 -- Skills, served through a different game API for each player so that all
 -- three ways of reading them are exercised.
 local SKILLS = {
-    ["Player-1-GM"] = { api = "modern", list = { { "Tailoring", 300, true }, { "Enchanting", 280, true }, { "Fishing", 40 }, { "Cooking", 225 }, { "First Aid", 300 } } },
+    ["Player-1-GM"] = { api = "modern", list = { { "Tailoring", 300, true }, { "Enchanting", 280, true }, { "Fishing", 40, false, 75 }, { "Cooking", 225 }, { "First Aid", 300 } } },
     ["Player-1-OFFICER"] = { api = "classic", list = { { "Blacksmithing", 300, true }, { "Mining", 290, true }, { "First Aid", 150 }, { "Cooking", 1 } } },
     ["Player-1-MEMBER"] = { api = "ids", list = { { "Skinning", 201, true }, { "Fishing", 75 } } },
 }
@@ -220,7 +220,7 @@ G.GetProfessions = function()
 end
 G.GetProfessionInfo = function(i)
     local e = SKILLS[ctx.guid].list[i]
-    if e then return e[1], nil, e[2], 300 end
+    if e then return e[1], nil, e[2], e[4] or 300 end
 end
 G.GetNumSkillLines = function()
     local s = SKILLS[ctx.guid]
@@ -230,17 +230,19 @@ G.GetSkillLineInfo = function(i)
     local list = SKILLS[ctx.guid].list
     if i == 1 then return "Class Skills", true end
     if i == 2 then return "Professions", true end
-    if i <= 4 then return list[i - 2][1], false, false, list[i - 2][2] end
+    if i <= 4 then return list[i - 2][1], false, false, list[i - 2][2], 0, 0, 300 end
     if i == 5 then return "Secondary Skills", true end
     local e = list[i - 3]
-    if e then return e[1], false, false, e[2] end
+    if e then return e[1], false, false, e[2], 0, 0, e[4] or 225 end
 end
+G.RAID_CLASS_COLORS = { WARLOCK = { r = 0.53, g = 0.53, b = 0.93 }, WARRIOR = { r = 0.78, g = 0.61, b = 0.43 },
+    ROGUE = { r = 1, g = 0.96, b = 0.41 } }   -- no MAGE: a class without a color must still draw
 G.C_TradeSkillUI = { GetProfessionInfoBySkillLineID = function(id)
     local s = SKILLS[ctx.guid]
     local names = { [393] = "Skinning", [356] = "Fishing" }
     if s and s.api == "ids" then
         for _, e in ipairs(s.list) do
-            if names[id] == e[1] then return { skillLevel = e[2], professionName = e[1] } end
+            if names[id] == e[1] then return { skillLevel = e[2], maxSkillLevel = 225, professionName = e[1] } end
         end
     end
     return { skillLevel = 0 }
@@ -551,6 +553,21 @@ run(gm, "professions", function()
         and off.fa == 150 and off.ck == 1 and off.fi == nil, "professions read from the skills list sync to the guild")
     check(mem and mem.p1 == "Skinning" and mem.l1 == 201 and mem.p2 == nil and mem.fi == 75,
         "professions read by skill id sync to the guild")
+    check(mine.x1 == 300 and mine.xfi == 75 and off.x2 == 300 and off.xfa == 225 and mem.x1 == 225,
+        "skill caps come along from all three ways of reading")
+    local P = gm.ns.Professions
+    local st = gm.ns.Reducer.State()
+    local groups, shared = P.Groups(gm.ns.roster.byGUID, st.profs, {})
+    local fishing = P.Crafters(gm.ns.roster.byGUID, st.profs, "Fishing", {})
+    check(shared == 3 and #groups == 12 and #fishing == 2 and fishing[1].name == "Pip" and fishing[2].name == "Binky Bee"
+        and fishing[2].class == "WARLOCK", "the Professions tab groups the guild by profession, best first")
+end)
+slash(gm, "prof")
+slash(member, "prof")
+run(gm, "prof command", function()
+    check(said(gm, "Your professions: Enchanting 280/300, Tailoring 300/300, Cooking 225/300, First Aid 300/300, Fishing 40/75"),
+        "/bp prof shows what the game reported")
+    check(said(gm, "Already shared"), "/bp prof says when nothing changed")
 end)
 
 -- 8. Every tab again with real data, as each role.

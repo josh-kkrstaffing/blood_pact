@@ -9,7 +9,7 @@ local tabs, order = {}, {}
 local frame, roleText, statusText, activeKey
 
 -- Left to right. Everyday tabs first, officer tools after, Settings last.
-local TAB_ORDER = { standings = 1, raids = 2, roster = 3, bis = 4, summon = 5, raid = 6, recruit = 7, settings = 8 }
+local TAB_ORDER = { standings = 1, raids = 2, roster = 3, profs = 4, bis = 5, summon = 6, raid = 7, recruit = 8, settings = 9 }
 
 function UI.AddTab(key, label, action, build, refresh)
     order[#order + 1] = key

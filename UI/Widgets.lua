@@ -1,6 +1,7 @@
 -- Blood Pact: widgets in Blood Pact's own flat style: dark panels, 1-pixel
 -- borders, a blood-red accent and the game's built-in fonts. No images, fonts
--- or art are bundled with the addon; every texture is a flat color.
+-- or art are bundled with the addon: textures are flat colors, and the few
+-- icons shown (professions) are the game's own, referenced by path.
 local _, ns = ...
 local W = {}
 ns.W = W

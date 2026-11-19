@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0
+
+- Professions is now its own tab, organized by profession: pick one on the left, see who has it on the right, best first
+- Press Level to flip between highest first and lowest first
+- Filters: search by player, online only, show or hide alts; members who haven't shared are left off the list
+- Each profession shows the game's own icon; each crafter shows a skill bar against their current cap, a class-colored name and an online dot
+- `/bp prof` reads your professions now, shares them, and prints what the game reported (use it if your own row is missing)
+- A fourth way of reading professions, for clients that list them only by skill line
+- The five-column grid in the Roster is gone; a member's professions still show in their Roster details
+
 ## 0.8.0
 
 - Roster > Professions: every member's two professions with their skill levels, plus First Aid, Cooking and Fishing

@@ -760,6 +760,12 @@ test("professions: two professions plus First Aid, Cooking and Fishing, with rea
     })
     eq(rec.p1, "Enchanting"); eq(rec.l1, 275); eq(rec.p2, "Tailoring"); eq(rec.l2, 300)
     eq(rec.fa, 225); eq(rec.ck, 150); eq(rec.fi, 1)
+    -- Caps come along; the same profession listed twice keeps its best level; a cap below the level is dropped.
+    local caps = P.Classify({ { name = "Mining", level = 75, max = 75 }, { name = "Mining", level = 240, max = 300 },
+        { name = "Cooking", level = 150, max = 225 }, { name = "Fishing", level = 90, max = 75 } })
+    eq(caps.p1, "Mining"); eq(caps.l1, 240); eq(caps.x1, 300); eq(caps.p2, nil)
+    eq(caps.ck, 150); eq(caps.xck, 225); eq(caps.fi, 90); eq(caps.xfi, nil)
+    eq(#P.Skills(caps), 3); eq(P.Skills(caps)[2].name, "Cooking"); eq(P.Skills(caps)[2].max, 225)
     local one = P.Classify({ { name = "Herbalism", level = 240 }, { name = "Cooking", level = 12 } })   -- known by name
     eq(one.p1, "Herbalism"); eq(one.p2, nil); eq(one.ck, 12); eq(one.fa, nil)
     eq(P.Same(rec, P.Classify({ { name = "Enchanting", level = 275 }, { name = "Tailoring", level = 300 },
@@ -768,24 +774,47 @@ test("professions: two professions plus First Aid, Cooking and Fishing, with rea
     eq(P.Label("Tailoring", 300), "Tailoring 300"); eq(P.Label(nil), "-")
 end)
 
-test("professions: each player's own report syncs; rows filter and sort", function()
+test("professions: each player's own report syncs; the guild is listed by profession", function()
     local P = ns.Professions
     local g = newStore()
     insertAll(g, {
         author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 275, p2 = "Herbalism", l2 = 300, fa = 300, ck = 300, fi = 10 }),
-        author(g, "Player-1-MEM2", "PROF", { p1 = "Tailoring", l1 = 300, fa = 150 }),
-        author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 300, p2 = "Herbalism", l2 = 300, fa = 300, ck = 300, fi = 10 }),
+        author(g, "Player-1-MEM2", "PROF", { p1 = "Tailoring", l1 = 300, x1 = 300, fa = 150, xfa = 225 }),
+        author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 300, x1 = 300, p2 = "Herbalism", l2 = 300, fa = 300, ck = 300, fi = 10 }),
+        author(g, "Player-1-OFFICER1", "PROF", { p1 = "Alchemy", l1 = 120, x1 = 150, ck = 40, xck = 75 }),
     })
     eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 9999 }), true)), "payload")
+    eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 10, x1 = "lots" }), true)), "payload")
     local st = Red.Build(g)
     eq(st.profs["Player-1-MEM1"].l1, 300)                 -- the newer report stands
-    local roster = { ["Player-1-MEM1"] = { name = "Zed" }, ["Player-1-MEM2"] = { name = "Amy" }, ["Player-1-VET"] = { name = "Bob" } }
-    local rows = P.Rows(roster, st.profs, "", "name")
-    eq(#rows, 3); eq(rows[1].name, "Amy"); eq(rows[2].name, "Zed"); eq(rows[3].name, "Bob")   -- not shared yet: last
-    rows = P.Rows(roster, st.profs, "", "ck")
-    eq(rows[1].name, "Zed")                               -- highest Cooking first
-    rows = P.Rows(roster, st.profs, "tailor", "name")
-    eq(#rows, 1); eq(rows[1].name, "Amy")                 -- search by profession
+    eq(st.profs["Player-1-MEM2"].xfa, 225)                -- the cap travels with the level
+    local roster = {
+        ["Player-1-MEM1"] = { name = "Zed", class = "MAGE", online = true }, ["Player-1-MEM2"] = { name = "Amy", online = false },
+        ["Player-1-OFFICER1"] = { name = "Cal", online = true }, ["Player-1-VET"] = { name = "Bob", online = true },
+    }
+    local groups, shared = P.Groups(roster, st.profs, {})
+    eq(shared, 3)                                         -- Bob hasn't shared
+    eq(groups[1].name, "Alchemy"); eq(groups[1].count, 2)
+    eq(groups[#groups].name, "Fishing"); eq(groups[#groups].count, 1); eq(groups[#groups].secondary, true)
+    eq(groups[#groups - 2].name, "Cooking"); eq(groups[#groups - 2].count, 2)
+    local seen = {}
+    for _, grp in ipairs(groups) do seen[grp.name] = grp.count end
+    eq(seen.Mining, 0); eq(seen.Tailoring, 1); eq(#groups, 12)   -- every standard profession is listed
+
+    local rows = P.Crafters(roster, st.profs, "Alchemy", {})
+    eq(#rows, 2); eq(rows[1].name, "Zed"); eq(rows[1].level, 300); eq(rows[1].max, 300); eq(rows[1].class, "MAGE")
+    eq(rows[2].name, "Cal"); eq(rows[2].max, 150)
+    rows = P.Crafters(roster, st.profs, "Alchemy", { asc = true })
+    eq(rows[1].name, "Cal")                               -- lowest first
+    rows = P.Crafters(roster, st.profs, "First Aid", {})
+    eq(#rows, 2); eq(rows[1].name, "Zed"); eq(rows[2].name, "Amy"); eq(rows[2].max, 225)
+    eq(#P.Crafters(roster, st.profs, "First Aid", { online = true }), 1)
+    eq(#P.Crafters(roster, st.profs, "First Aid", { filter = "am" }), 1)
+    eq(#P.Crafters(roster, st.profs, "First Aid", { hideAlts = true, alts = { ["Player-1-MEM2"] = "Player-1-MEM1" } }), 1)
+    eq(P.Crafters(roster, st.profs, "First Aid", { alts = { ["Player-1-MEM2"] = "Player-1-MEM1" } })[2].alt, true)
+    eq(P.Groups(roster, st.profs, { online = true })[1].count, 2)
+    eq(select(2, P.Groups(roster, st.profs, { online = true })), 2)
+    eq(#P.Crafters(roster, st.profs, "Mining", {}), 0)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

@@ -104,6 +104,7 @@ L.KINDS = {
         local function lv(n) return n == nil or isInt(n, 0, 1000) end
         return (d.p1 == nil or str(d.p1, 1, 24)) and (d.p2 == nil or str(d.p2, 1, 24))
             and lv(d.l1) and lv(d.l2) and lv(d.fa) and lv(d.ck) and lv(d.fi)
+            and lv(d.x1) and lv(d.x2) and lv(d.xfa) and lv(d.xck) and lv(d.xfi)       -- skill caps
     end },
     TASK = { "roster", function(d)
         return str(d.id, 1, 96) and L.TASK_STATES[d.st] ~= nil

@@ -200,44 +200,20 @@ end
 ns.UI.AddTab("roster", "Roster", "view", function(p)
     p.membersBtn = W.Button(p, "Members", 90, 22, function() view = "members"; ns.UI.Refresh() end)
     p.membersBtn:SetPoint("TOPLEFT", 0, 0)
-    p.profBtn = W.Button(p, "Professions", 100, 22, function() view = "profs"; ns.UI.Refresh() end)
-    p.profBtn:SetPoint("TOPLEFT", 94, 0)
     p.logBtn = W.Button(p, "Guild log", 90, 22, function() view = "log"; ns.UI.Refresh() end)
-    p.logBtn:SetPoint("TOPLEFT", 198, 0)
+    p.logBtn:SetPoint("TOPLEFT", 94, 0)
     p.tasksBtn = W.Button(p, "Officer tasks", 110, 22, function() view = "tasks"; ns.UI.Refresh() end)
-    p.tasksBtn:SetPoint("TOPLEFT", 292, 0)
+    p.tasksBtn:SetPoint("TOPLEFT", 188, 0)
     p.searchLabel = W.Text(p, "Search", "GameFontHighlightSmall")
-    p.searchLabel:SetPoint("TOPLEFT", 414, -5)
-    p.search = W.Edit(p, 110, 30)
-    p.search:SetPoint("TOPLEFT", 458, -1)
+    p.searchLabel:SetPoint("TOPLEFT", 310, -5)
+    p.search = W.Edit(p, 120, 30)
+    p.search:SetPoint("TOPLEFT", 354, -1)
     p.search:SetScript("OnTextChanged", function(self)
         filter = (self:GetText() or ""):lower()
-        if view == "members" or view == "profs" then ns.UI.Refresh() end
+        if view == "members" then ns.UI.Refresh() end
     end)
-
-    -- Professions view: click a column to sort by it.
-    p.profSort = "name"
-    p.profHead = {}
-    for _, h in ipairs({ { "Name", "name", 4, 150 }, { "Profession 1", "p1", 158, 140 }, { "Profession 2", "p2", 302, 140 },
-        { "First Aid", "fa", 446, 72 }, { "Cooking", "ck", 522, 72 }, { "Fishing", "fi", 598, 72 } }) do
-        local b = W.Button(p, h[1], h[4], 18, function() p.profSort = h[2]; ns.UI.Refresh() end)
-        b:SetPoint("TOPLEFT", h[3], -24)
-        b.key = h[2]
-        p.profHead[#p.profHead + 1] = b
-    end
-    p.profs = W.List(p, 690, 300, 16, function(row, r)
-        local rec = r.rec
-        local main = Red.State() and Red.State().alts[r.guid]
-        p.profs.Col(row, 1, 4, 150):SetText(U.Safe(r.name, 40) .. (main and " |cff808080(alt)|r" or ""))
-        p.profs.Col(row, 2, 158, 140):SetText(rec and U.Safe(ns.Professions.Label(rec.p1, rec.l1), 32) or "|cff808080not shared yet|r")
-        p.profs.Col(row, 3, 302, 140):SetText(rec and U.Safe(ns.Professions.Label(rec.p2, rec.l2), 32) or "")
-        p.profs.Col(row, 4, 446, 72):SetText(rec and tostring(rec.fa or "-") or "")
-        p.profs.Col(row, 5, 522, 72):SetText(rec and tostring(rec.ck or "-") or "")
-        p.profs.Col(row, 6, 598, 72):SetText(rec and tostring(rec.fi or "-") or "")
-    end)
-    p.profs:Stretch(0, -46, 0, 0)
     p.count = W.Text(p, "", "GameFontDisableSmall")
-    p.count:SetPoint("TOPLEFT", 578, -5)
+    p.count:SetPoint("TOPLEFT", 490, -5)
 
     -- Members view
     p.head = {}
@@ -313,24 +289,18 @@ end, function(p)
     local st = Red.State()
     local canTasks = RBAC.ICan("roster")
     if view == "tasks" and not canTasks then view = "members" end
-    local members, tasks, profs = view == "members", view == "tasks", view == "profs"
+    local members, tasks = view == "members", view == "tasks"
     p.membersBtn:SetEnabled(not members)
-    p.profBtn:SetEnabled(not profs)
-    p.profs.scroll:SetShown(profs)
-    for _, b in ipairs(p.profHead) do
-        b:SetShown(profs)
-        b:SetEnabled(b.key ~= p.profSort)
-    end
     p.logBtn:SetEnabled(view ~= "log")
     p.tasksBtn:SetShown(canTasks)
     p.tasksBtn:SetEnabled(not tasks)
     p.tasks.scroll:SetShown(tasks)
     p.tw:SetShown(tasks)
-    p.searchLabel:SetShown(members or profs)
+    p.searchLabel:SetShown(members)
     for _, fs in ipairs(p.head) do fs:SetShown(members) end
     p.list.scroll:SetShown(members)
     p.detail:SetShown(members)
-    p.search:SetShown(members or profs)
+    p.search:SetShown(members)
     p.log.scroll:SetShown(view == "log")
     local officer = RBAC.ICan("altlink")
     for _, w in ipairs({ p.altBox, p.link, p.altHint, p.unlink }) do w:SetShown(members and officer) end
@@ -346,14 +316,6 @@ end, function(p)
         p.claim:SetEnabled(sel ~= nil)
         p.done:SetEnabled(sel ~= nil)
         p.cmd:SetText(sel and sel.cmd or "")
-        return
-    end
-    if profs then
-        local rows = ns.Professions.Rows(ns.roster.byGUID, st and st.profs or {}, filter, p.profSort)
-        local shared = 0
-        for _, r in ipairs(rows) do if r.rec then shared = shared + 1 end end
-        p.profs:SetItems(rows)
-        p.count:SetText(shared .. " of " .. #rows .. " shared")
         return
     end
     if not members then

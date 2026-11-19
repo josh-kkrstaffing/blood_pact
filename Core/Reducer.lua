@@ -132,7 +132,8 @@ function Red.Build(g)
             -- Each player reports their own; the latest one stands.
             st.gear[e.a] = { spec = d.spec, pre = d.pre, worn = d.worn, raid = d.raid, t = e.t }
         elseif k == "PROF" then
-            st.profs[e.a] = { p1 = d.p1, l1 = d.l1, p2 = d.p2, l2 = d.l2, fa = d.fa, ck = d.ck, fi = d.fi, t = e.t }
+            st.profs[e.a] = { p1 = d.p1, l1 = d.l1, x1 = d.x1, p2 = d.p2, l2 = d.l2, x2 = d.x2,
+                fa = d.fa, xfa = d.xfa, ck = d.ck, xck = d.xck, fi = d.fi, xfi = d.xfi, t = e.t }
         elseif k == "TASK" then
             st.tasks[d.id] = { st = d.st, by = e.a, t = e.t }
         elseif k == "RECRUIT_MSGS" then
