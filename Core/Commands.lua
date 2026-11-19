@@ -2,10 +2,10 @@
 local _, ns = ...
 
 local function help()
-    ns.Print("/bp - open or close the window")
+    ns.Print("/bp or /bloodpact - open or close the window")
     ns.Print("/bp whoami - show your character GUID and role")
     ns.Print("/bp sync - announce your data to the guild now")
-    ns.Print("/bp mock on|off|boss|award|forge|reset - solo test mode")
+    ns.Print("/bp mock on|off|boss|award|forge|signups|attend|reset - solo test mode")
     ns.Print("/bp status - sync and message queue details")
 end
 

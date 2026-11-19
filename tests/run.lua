@@ -333,5 +333,18 @@ test("raid: member can't take attendance; sign-up shows who was there", function
     eq(by["Player-1-MEM1"].showed, nil)
 end)
 
+test("/bp and /bloodpact both open the window", function()
+    rawset(_G, "SlashCmdList", {})
+    local opened = 0
+    ns.UI.Toggle = function() opened = opened + 1 end
+    load("Core/Commands.lua")
+    eq(rawget(_G, "SLASH_BLOODPACT1"), "/bp")
+    eq(rawget(_G, "SLASH_BLOODPACT2"), "/bloodpact")
+    local handler = rawget(_G, "SlashCmdList").BLOODPACT
+    handler("")
+    handler("   ")
+    eq(opened, 2)
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

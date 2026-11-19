@@ -110,8 +110,18 @@ local function build()
 end
 
 function UI.Toggle()
-    if not ns.db then return end
-    if not frame then build() end
+    if not ns.db then
+        ns.Print("Blood Pact is still loading. Try again in a moment.")
+        return
+    end
+    if not frame then
+        local ok, err = pcall(build)
+        if not ok then
+            frame = nil
+            ns.Print("The window couldn't open: " .. tostring(err))
+            return
+        end
+    end
     frame:SetShown(not frame:IsShown())
 end
 

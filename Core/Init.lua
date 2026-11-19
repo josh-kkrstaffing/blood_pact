@@ -119,6 +119,7 @@ function ns.NameForGUID(guid)
 end
 
 ns.On("PLAYER_LOGIN", function()
+    ns.Print("v" .. ns.VERSION .. " loaded. Type /bp or /bloodpact to open.")
     if C_GuildInfo and C_GuildInfo.GuildRoster then C_GuildInfo.GuildRoster() end
 end)
 ns.On("GUILD_ROSTER_UPDATE", function() ns.RebuildRoster() end)
