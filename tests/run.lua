@@ -202,16 +202,28 @@ test("version vector advances only over contiguous sequences", function()
     eq(g.vv["Player-1-OFFICER1"], 2)
 end)
 
-test("bis data: every slot has a BiS at score 1 and scores fall", function()
-    local list = ns.BiSData.WARLOCK.Demonology
-    eq(#list.slots, 17)
-    for _, s in ipairs(list.slots) do
-        eq(s.items[1].score, 1, s.slot)
-        for i = 2, #s.items do
-            assert(s.items[i].score <= s.items[i - 1].score, s.slot .. " scores not in order")
-            assert(s.items[i].how ~= "", s.slot .. " missing how-to-get")
+test("bis data: 28 specs in 9 classes; every slot has a BiS at score 1 and scores fall", function()
+    local classes, specs = 0, 0
+    for class, lists in pairs(ns.BiSData) do
+        classes = classes + 1
+        for key, list in pairs(lists) do
+            specs = specs + 1
+            assert(#list.slots >= 16 and #list.slots <= 17, class .. " " .. key .. " has " .. #list.slots .. " slots")
+            assert(type(list.label) == "string" and (list.guides or 0) >= 1, key .. " label/guides")
+            for _, s in ipairs(list.slots) do
+                eq(s.items[1].score, 1, class .. " " .. key .. " " .. s.slot)
+                for i = 1, #s.items do
+                    local it = s.items[i]
+                    assert(type(it.name) == "string" and it.name ~= "" and not it.name:find("%(A%)"), s.slot .. " bad name")
+                    assert(type(it.how) == "string" and it.how ~= "", s.slot .. " missing how-to-get")
+                    assert(i == 1 or it.score <= s.items[i - 1].score, key .. " " .. s.slot .. " scores not in order")
+                    assert(it.score > 0 and it.score <= 1, s.slot .. " score out of range")
+                end
+            end
         end
     end
+    eq(classes, 9); eq(specs, 28)
+    eq(#ns.BiSData.WARLOCK.Demonology.slots, 17)
 end)
 
 test("bis: name from item link", function()
@@ -681,6 +693,60 @@ test("summon: request, claim, close and expiry", function()
     eq(#S.Open(1006), 0)
     S.Apply({ t = "SR", z = "Tanaris" }, "ASK", roster, "L", 2000)
     eq(#S.Open(2000 + S.TTL + 1), 0)                                                  -- expired
+end)
+
+test("bis: a two-hander covers the off hand; an Alliance twin counts", function()
+    local list = { slots = {
+        { slot = "Legs", items = { { name = "Outrider's Silk Leggings", ally = "Sentinel's Silk Leggings", how = "x", score = 1 } } },
+        { slot = "Main hand", items = { { name = "Sword", how = "x", score = 1 }, { name = "Big Staff", how = "x", score = 0.6, two = true } } },
+        { slot = "Off hand", items = { { name = "Orb", how = "x", score = 1 }, { name = "Book", how = "x", score = 0.25 } } },
+    } }
+    local rows, owned, worn = ns.BiS.Evaluate(list, { ["Big Staff"] = "equipped", ["Sentinel's Silk Leggings"] = "bags", ["Book"] = "bags" })
+    local by = {}
+    for _, r in ipairs(rows) do by[r.slot] = r end
+    eq(by.Legs.score, 1); eq(by.Legs.where, "bags")
+    eq(by["Main hand"].score, 0.6)
+    eq(by["Off hand"].score, 0.6)                       -- the staff, not the 25% book
+    eq(by["Off hand"].have.name, "Big Staff")
+    assert(math.abs(owned - (1 + 0.6 + 0.6) / 3) < 1e-9)
+    assert(math.abs(worn - (0 + 0.6 + 0.6) / 3) < 1e-9)
+    -- With a one-hander, the off hand stands on its own.
+    rows = ns.BiS.Evaluate(list, { Sword = "equipped", Book = "equipped" })
+    by = {}
+    for _, r in ipairs(rows) do by[r.slot] = r end
+    eq(by["Off hand"].score, 0.25)
+end)
+
+test("bis: the list follows the talent tree with the most points", function()
+    local S = ns.BiS.SpecFromTrees
+    eq(S(ns.BiSData.WARLOCK, { { name = "Affliction", points = 5 }, { name = "Demonology", points = 40 }, { name = "Destruction", points = 6 } }), "Demonology")
+    eq(S(ns.BiSData.DRUID, { { name = "Balance", points = 0 }, { name = "Feral", points = 31 }, { name = "Restoration", points = 20 } }), "Feral (Cat)")
+    eq(S(ns.BiSData.WARRIOR, { { name = "Arms", points = 0 }, { name = "Fury", points = 0 } }), nil)   -- no points spent
+    eq(S(ns.BiSData.MAGE, {}), nil)
+end)
+
+test("readiness: each player reports their own score; sign-ups sort by it", function()
+    local g = newStore()
+    local r = author(g, "Player-1-CAPT", "RAID", { title = "BD", raid = "Barrow Deeps", at = NOW + 3600, size = 10 })
+    Log.Insert(g, r, true)
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "SIGNUP", { ev = r.id, st = "yes", role = "dps" }),
+        author(g, "Player-1-MEM2", "SIGNUP", { ev = r.id, st = "yes", role = "dps" }),
+        author(g, "Player-1-VET", "SIGNUP", { ev = r.id, st = "yes", role = "tank" }),
+        author(g, "Player-1-INIT", "SIGNUP", { ev = r.id, st = "maybe" }),
+        author(g, "Player-1-MEM1", "GEAR", { spec = "Fury", pre = 12, worn = 10 }),
+        author(g, "Player-1-MEM2", "GEAR", { spec = "Fire", pre = 80, worn = 71 }),
+        author(g, "Player-1-INIT", "GEAR", { spec = "Holy", pre = 95, worn = 95 }),
+        author(g, "Player-1-MEM1", "GEAR", { spec = "Fury", pre = 35, worn = 30 }),     -- a newer report replaces the old
+    })
+    eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "GEAR", { spec = "Fury", pre = 140, worn = 0 }), true)), "payload")
+    local st = Red.Build(g)
+    eq(st.gear["Player-1-MEM1"].pre, 35); eq(st.gear["Player-1-VET"], nil)
+    local _, rows = ns.Raids.Summary(st, st.raids[r.id])
+    eq(rows[1].guid, "Player-1-MEM2")       -- coming, 80%
+    eq(rows[2].guid, "Player-1-MEM1")       -- coming, 35%
+    eq(rows[3].guid, "Player-1-VET")        -- coming, no score yet: last among those coming
+    eq(rows[4].guid, "Player-1-INIT")       -- maybe, even at 95%
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

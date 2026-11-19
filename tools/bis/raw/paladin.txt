@@ -1,0 +1,117 @@
+@fb|Paladin|Holy
+Head|Living Crown|Gnomish Turban of Psychic Might|Crafted: Leatherworking
+Neck|Jeweled Amulet of Cainwyn|Lady Maye's Pendant|World drop (BoE)
+Shoulder|Shimmering Dawnbringer Shoulders|Theramore Shoulderguards|Vendor (needs Blacksmithing 290)
+Back|Hide of the Wild|Cloak of the Cosmos|Crafted: Leatherworking
+Chest|Breastplate of Salvation|Forest's Embrace|Crafted: Blacksmithing
+Wrist|Loomguard Armbraces|Morlune's Bracer|Scholomance, Kirtonos the Herald
+Hands|Theramore Handwraps|Hands of the Exalted Herald|Theramore (A)/Darkspear (H), Exalted
+Waist|Knowledge of the Timbermaw|Eyestalk Cord|Meilosh, Felwood (needs Tailoring 290)
+Legs|Martyr's Legplates|Padre's Trousers|Crafted: Blacksmithing
+Feet|Incandescent Mooncloth Boots|Ogreseer Tower Boots|Meilosh, Felwood (needs Tailoring 290)
+Ring 1|Fordring's Seal|-|Quest: In Dreams
+Ring 2|Mindtear Band|Warden's Signet of Resolve|World drop (BoE)
+Trinket 1|Burst of Knowledge|-|Blackrock Depths, Ambassador Flamelash
+Trinket 2|Second Wind|Alchemist's Stone|Blackrock Depths, Golem Lord Argelmach
+Two-hand|Hammer of the Grand Crusader|Rock Sentinel Slicer|Stratholme, Balnazzar
+Main-hand|The Hammer of Grace|Hand of Edward the Odd|Blackrock Depths, trash
+Off-hand|Lei of the Lifegiver|Penelope's Rose|Stormpike (A)/Frostwolf (H), Exalted
+Libram|Libram of Economy|Libram of Infusion|Pix Xizzix, Stranglethorn Vale
+@fb|Paladin|Protection
+Head|Enriched Thorium Helm|Stalwart Helm|Crafted: Blacksmithing
+Neck|Orb of the Darkmoon|Lady Maye's Pendant|Quest: 1200 Tickets - Orb of the Darkmoon
+Shoulder|Stockade Pauldrons|Theramore Mantle|World drop (BoE)
+Back|Frostwolf Advisor's Cloak|Hide of the Wild|Stormpike (A)/Frostwolf (H), Honored
+Chest|Enriched Thorium Breastplate|Breastplate of the Chromatic Flight|Crafted: Blacksmithing
+Wrist|Warder's Wristguards|Vigorsteel Vambraces|Crafted: Blacksmithing
+Hands|Warder's Gloves|Heavy Thorium Gauntlets|Crafted: Blacksmithing
+Waist|Warder's Waistguard|Redeemer's Waistcord|Crafted: Blacksmithing
+Legs|Sentinel's Lamellar Legguards|Enriched Thorium Leggings|Silverwing (A)/Warsong (H), Exalted
+Feet|Depleted Thorium Sabatons|Warder's Sabatons|Crafted: Blacksmithing
+Ring 1|Mindtear Band|-|World drop (BoE)
+Ring 2|Warden's Signet of Brilliance|Warden's Signet of Vigilance|The Watchers, Exalted
+Trinket 1|The Lion Horn of Stormwind|-|World drop (BoE)
+Trinket 2|Weakness Analyzer|Cleansed Vilebranch Icon (A)|Pix Xizzix, Stranglethorn Vale
+Main-hand|Sageblade|Hand of Edward the Odd|Crafted: Blacksmithing
+Off-hand|Evergreen Shield|Force Reactive Disk|Crafted: Blacksmithing
+Libram|Libram of Fervor|Steadfast Libram|World drop (BoE)
+@fb|Paladin|Retribution
+Head|Lionheart Helm|Skyfury Helm|Crafted: Blacksmithing
+Neck|Nacreous Shell Necklace|Mark of Fordring|Stratholme, Cannon Master Willey
+Shoulder|Theramore Epaulets|Highlander's Lamellar Spaulders|Theramore (A)/Darkspear (H), Exalted
+Back|Howler's Furs|Heliotrope Cloak|Pix Xizzix, Stranglethorn Vale
+Chest|Timbermaw Tunic|Onyxia Scale Breastplate|Crafted: Leatherworking
+Wrist|Battleborn Armbraces|Forest Stalker's Bracers|Blackrock Spire, Warchief Rend Blackhand
+Hands|Trueaim Gauntlets|Theramore Gauntlets|Blackrock Spire, Shadow Hunter Vosh'gajin
+Waist|Radiant Girdle of the Dawn|Highlander's Lamellar Girdle|Vendor (needs Blacksmithing 290)
+Legs|Sentinel's Chain Leggings|Titanic Leggings|Silverwing (A)/Warsong (H), Exalted
+Feet|Bloodmail Boots|Windreaver Greaves|Scholomance, trash
+Ring 1|Mindtear Band|-|World drop (BoE)
+Ring 2|Don Julio's Band|Channeler's Ring|Stormpike (A)/Frostwolf (H), Exalted
+Trinket 1|Chained Essence of Eranikus|-|Quest: The Essence of Eranikus
+Trinket 2|Cleansed Vilebranch Medallion (A)|Smolderweb's Eye|Quest: Saving Sharpbeak
+Two-hand|Nightfall|Forest Defender's Axe|Crafted: Blacksmithing
+Libram|Libram of Fervor|Libram of Law|World drop (BoE)
+@fs|Paladin|Holy
+Head|Living Crown|Sanctified Leather Helm|Mooncloth Circlet|Leatherworking (300)
+Neck|Animated Chain Necklace|Amulet of the Dawn|Orb of the Darkmoon|Stratholme: Ramstein the Gorger (15%)
+Shoulders|Dawnbringer Shoulders|Theramore Mantle|Darkspear Mantle|Blacksmithing (265)
+Back|Hide of the Wild|Cloak of the Cosmos|Battle Healer's Cloak|Leatherworking (300)
+Chest|Robes of the Exalted|Forest's Embrace|Breastplate of Salvation|Stratholme: Baron Rivendare (14%)
+Wrists|Bracers of Prosperity|Dryad's Wrist Bindings|Bracers of Hope|Dire Maul: King Gordok (25%)
+Hands|Desert Bloom Gloves|Harmonious Gauntlets|Hands of the Exalted Herald|Quest: Armaments of War
+Waist|Eyestalk Cord|Whipvine Cord|Wisdom of the Timbermaw|Dire Maul: Immol'thar (20%)
+Legs|Martyr's Legplates|Padre's Trousers|Ironfeather Leggings|Blacksmithing (300)
+Feet|Swarmtender's Footpads|Broodwatcher's Treaders|Faith Healer's Boots|Tailoring (295)
+Rings|Warden's Signet of Resolve|Fordring's Seal|Watcher's Signet of Resolve|Exalted with The Watchers
+Trinkets|Briarwood Reed|Royal Seal of Eldre'Thalas|Second Wind|Upper Blackrock Spire: Jed Runewatcher (33%)
+Main hand|Mind Carver|Mastersmith's Hammer|Energetic Rod|Dire Maul: Prince Tortheldrin (20%)
+Off hand|Lei of the Lifegiver|Brightly Glowing Stone|Earthcalm Orb|Exalted with Frostwolf Clan
+@fs|Paladin|Protection
+Head|Enriched Thorium Helm|Stalwart Helm|Enchanted Thorium Helm|Blacksmithing (300)
+Neck|Amulet of the Dawn|Orb of the Darkmoon|Amulet of the Darkmoon|Quest: Epic Armaments of Battle
+Shoulders|Highlander's Plate Spaulders|Defiler's Plate Spaulders|Highlander's Lamellar Spaulders|Exalted with The Defilers
+Back|Shifting Cloak|Stoneskin Gargoyle Cape|The Emperor's New Cape|Leatherworking (300)
+Chest|Breastplate of Heroism|Enriched Thorium Breastplate|Enchanted Thorium Breastplate|Quest: Saving the Best for Last
+Wrists|Warder's Wristguards|Bracers of Heroism|Berserker Bracers|Blacksmithing (225)
+Hands|Heavy Thorium Gauntlets|Warder's Gloves|Sentinel's Gloves|Blacksmithing (300)
+Waist|Warder's Waistguard|Belt of Heroism|Sentinel's Waistguard|Blacksmithing (250)
+Legs|Sentinel's Lamellar Legguards|Enriched Thorium Leggings|Azerothium Legplates|Warsong Outriders vendor
+Feet|Depleted Thorium Sabatons|Boots of Heroism|Warder's Sabatons|Blacksmithing (300)
+Rings|Warden's Signet of Vigilance|Watcher's Signet of Vigilance|Tracker's Signet of Vigilance|Exalted with The Watchers
+Trinkets|Vigilance Charm|Stormpike Insignia Rank 6|Frostwolf Insignia Rank 6|Dire Maul: Immol'thar (20%)
+Main hand|Greenhammer|Ironwood Blade|Sageblade|Blacksmithing (300)
+Off hand|Evergreen Shield|The Immovable Object|Draconian Deflector|Blacksmithing (300)
+Ranged|Steadfast Libram|-|-|Enchanting (300)
+@fs|Paladin|Retribution
+Head|Lionheart Helm|Stalwart Helm|Fury Visor|Blacksmithing (300)
+Neck|Mark of Fordring|Beads of Ogre Might|Medallion of the Dawn|Quest: In Dreams
+Shoulders|Truestrike Shoulders|Highlander's Lamellar Spaulders|Defiler's Lamellar Spaulders|Upper Blackrock Spire: Pyroguard Emberseer
+Back|Deathguard's Cloak|Cloak of the Honor Guard|Cape of the Black Baron|Exalted with The Defilers
+Chest|Timbermaw Tunic|Cadaverous Armor|Dawn Armor|Leatherworking (300)
+Wrists|Deeprock Bracers|Berserker Bracers|-|Quest: Stalwart's Battlegear
+Hands|Theramore Gauntlets|Raider Gauntlets|-|Exalted with Darkspear Raiders
+Waist|Belt of Preserved Heads|Might of the Timbermaw|Highlander's Plate Girdle|Quest: A Collection of Heads
+Legs|Titanic Leggings|Sentinel's Lamellar Legguards|Outrider's Plate Legguards|Blacksmithing (300)
+Feet|Boots of Heroism|Bloodmail Boots|Depleted Thorium Sabatons|Quest: Anthion's Parting Words
+Rings|Warden's Signet of Ferocity|Don Julio's Band|Band of Earthen Might|Exalted with The Watchers
+Trinkets|Blackhand's Breadth|Briarwood Reed|Hand of Justice|Quest: For The Horde!
+Two-hand|Forest Defender's Axe|Fist of Cenarius|The Unstoppable Force|Blacksmithing (300)
+@cc|Paladin|Holy
+Head|Whitesoul Helm|Bad Hat|Devout Crown|Blacksmithing (plans: Vilebranch Aman'zasi Guard, Hinterlands)
+Neck|Animated Chain Necklace|Black Horn Necklace|-|Stratholme: Ramstein the Gorger
+Shoulder|Dawnbringer Shoulders|Darkspear Mantle|Wildheart Spaulders|Blacksmithing (plans: Argent Dawn, Revered)
+Back|Wisdom of Ursol|Drape of Recovery|Shroud of the Exile|Quest: The Twin Bears (Timbermaw Hold, Friendly)
+Chest|Red Dragonscale Breastplate|Crownroar Chestplate|Forest's Embrace|Leatherworking (pattern: General Drakkisath)
+Wrist|Loomguard Armbraces|Prefect's Wristguards|Devout Bracers|Scholomance: Kirtonos the Herald
+Hands|Harmonious Gauntlets|Prefect's Gloves|Hands of the Exalted Herald|Dire Maul North: King Gordok
+Waist|Whipvine Cord|Wisdom of the Timbermaw|Prefect's Waistguard|Dire Maul East: Alzzin the Wildshaper
+Legs|Martyr's Legplates|Padre's Trousers|Senior Designer's Pantaloons|Blacksmithing (plans: Gordok Brute, Dire Maul North)
+Feet|Verdant Footpads|Boots of the Full Moon|Prefect's Sabatons|Stratholme: Stonespine
+Ring 1|Fordring's Seal|Blessed Band of Light|Blood of the Martyr|Quest: In Dreams
+Ring 2|Rosewine Circle|Blessed Band of Light|Blood of the Martyr|Lower Blackrock Spire: Urok Doomhowl
+Trinket 1|Royal Seal of Eldre'Thalas|Sanctified Orb|Second Wind|Quest: The Light and How To Swing It (Dire Maul)
+Trinket 2|Burst of Knowledge|Sanctified Orb|Second Wind|Blackrock Depths: Ambassador Flamelash
+Main hand|Masterwork Crimson Hammer|The Hammer of Grace|Hammer of the Grand Crusader|Stratholme: Crimson Hammersmith
+Off hand|Penelope's Rose|Lei of the Lifegiver|-|Quest: Kirtonos the Herald (Scholomance)
+Libram|Libram of Holy Alacrity|Libram of Divinity|-|Enchanting (Merchant's Favor, Honored) or Pix Xizzix

@@ -350,6 +350,9 @@ end, function(p)
         table.sort(alts)
         lines[#lines + 1] = "Alts: " .. (#alts > 0 and table.concat(alts, ", ") or "none")
     end
+    local gear = st and st.gear[sel.guid]
+    lines[#lines + 1] = gear and ("Pre-raid BiS: %d%% owned, %d%% worn (%s)"):format(gear.pre, gear.worn, U.Safe(gear.spec, 24))
+        or "Pre-raid BiS: no score yet"
     lines[#lines + 1] = " "
     lines[#lines + 1] = "Rank history:"
     local hist = known and known.history or {}

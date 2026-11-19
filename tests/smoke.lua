@@ -70,7 +70,8 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "SetTextInsets", "ClearFocus", "SetFocus", "HighlightText", "SetMultiLine", "SetCheckedTexture", "RegisterForClicks",
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
-    "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine" }) do
+    "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
+    "SetOrientation", "SetThumbTexture", "SetValueStep" }) do
     M[name] = noop
 end
 function M:SetSize(w, h) self._.w, self._.h = w, h end
@@ -115,6 +116,12 @@ function M:CreateFontString() return widget("FontString", self) end
 function M:HasFocus() return false end
 function M:SetChecked(v) self._.checked = v and true or false end
 function M:GetChecked() return self._.checked end
+function M:SetMinMaxValues(lo, hi) self._.lo, self._.hi = lo, hi end
+function M:GetValue() return self._.value or 0 end
+function M:SetValue(v)
+    self._.value = v
+    if self._.scripts.OnValueChanged then self._.scripts.OnValueChanged(self, v) end
+end
 function M:GetVerticalScroll() return self._.scroll end
 function M:SetVerticalScroll(v) self._.scroll = v end
 function M:GetPoint() return "CENTER", nil, "CENTER", 0, 0 end
@@ -199,6 +206,14 @@ G.UnitGUID = function() return ctx.guid end
 G.UnitName = function() return ctx.name end
 G.UnitClass = function() return ctx.class, ctx.class end
 G.UnitLevel = function() return ctx.level end
+-- Talents in the older form: name, icon, points spent.
+local TALENTS = { WARLOCK = { { "Affliction", 5 }, { "Demonology", 40 }, { "Destruction", 6 } },
+    WARRIOR = { { "Arms", 31 }, { "Fury", 20 }, { "Protection", 0 } }, ROGUE = { { "Assassination", 0 }, { "Combat", 0 }, { "Subtlety", 0 } } }
+G.GetNumTalentTabs = function() return 3 end
+G.GetTalentTabInfo = function(i)
+    local t = (TALENTS[ctx.class] or {})[i]
+    if t then return t[1], nil, t[2] end
+end
 G.UnitIsGroupLeader = function() return false end
 G.UnitIsGroupAssistant = function() return false end
 G.IsInGuild = function() return true end
@@ -324,9 +339,15 @@ local function pressEverything(c)
                 inCtx(c, "click #" .. i .. " '" .. w._.text .. "' pass " .. pass, click, w, "LeftButton")
                 if not c.ns.UI.IsOpen() then inCtx(c, "reopen", c.slash, "") end   -- that was the close button
             end
-            for _, s in ipairs({ "OnEnter", "OnLeave", "OnSizeChanged", "OnVerticalScroll", "OnShow", "OnTextChanged",
+            for _, s in ipairs({ "OnEnter", "OnLeave", "OnSizeChanged", "OnShow", "OnTextChanged",
                 "OnEditFocusGained", "OnEditFocusLost" }) do
                 if w._.scripts[s] then inCtx(c, s .. " #" .. i, w._.scripts[s], w, 100, 100) end
+            end
+            for _, s in ipairs({ "OnMouseWheel", "OnValueChanged" }) do
+                if w._.scripts[s] then
+                    inCtx(c, s .. " #" .. i, w._.scripts[s], w, -1)
+                    inCtx(c, s .. " #" .. i, w._.scripts[s], w, 1)
+                end
             end
         end
     end
@@ -432,6 +453,16 @@ run(member, "sign up", function()
     if id then assert(member.ns.Raids.SignUp(id, "yes", "dps")) end
 end)
 advance(5)
+run(gm, "spec from talents", function()
+    local key, _, how = gm.ns.BiS.CurrentSpec()
+    check(key == "Demonology" and how == "talents", "the BiS list follows the talent build")
+    local mine = gm.ns.BiS.MyScore()
+    check(mine and mine.pre > 0 and mine.pre < 100, "a readiness score is computed from worn gear")
+end)
+run(gm, "readiness arrives", function()
+    local gear = gm.ns.Reducer.State().gear[MEMBER]
+    check(gear ~= nil and gear.spec == "Assassination" and gear.pre == 0, "signing up shares the member's readiness score")
+end)
 run(gm, "sign-up arrives", function()
     local st = gm.ns.Reducer.State()
     local _, r = next(st.raids)

@@ -1,0 +1,99 @@
+@fb|Hunter|Beast Mastery,Marksmanship
+Head|Black Dragonscale Helm|Outlaw's Collar|Crafted: Leatherworking
+Neck|Mark of Fordring|Beads of Ogre Might|Quest: In Dreams
+Shoulder|Theramore Epaulets|Highlander's Leather Shoulders|Theramore (A)/Darkspear (H), Exalted
+Back|Howler's Furs|Cape of the Black Baron|Pix Xizzix, Stranglethorn Vale
+Chest|Dawn Armor|Obsidian Mail Tunic|Crafted: Leatherworking
+Wrist|Marksman Bands|Forest Stalker's Bracers|Dire Maul, trash
+Hands|Trueaim Gauntlets|Theramore Gloves|Blackrock Spire, Shadow Hunter Vosh'gajin
+Waist|Marksman's Girdle|Sash of the Grand Hunt|Blackrock Spire, Urok Doomhowl
+Legs|Sentinel's Chain Leggings|Plaguehound Leggings|Silverwing (A)/Warsong (H), Exalted
+Feet|Windreaver Greaves|Bloodmail Boots|Scholomance, Kirtonos the Herald
+Ring 1|Don Julio's Band|-|Stormpike (A)/Frostwolf (H), Exalted
+Ring 2|Cutthroat's Signet|Warden's Signet of Ferocity|Pix Xizzix, Stranglethorn Vale
+Trinket 1|Rune of the Guard Captain|-|Quest: Job Opening: Guard Captain of Revantusk Village (Horde)
+Trinket 2|Cleansed Vilebranch Medallion (A)|Blackhand's Breadth|Quest: Saving Sharpbeak
+Two-hand|Legionite Glaive|Beastslayer's Trident (A)|Crafted: Blacksmithing
+Main-hand|Shadowblade|Heartseeker|World drop (BoE)
+Off-hand|Shadowblade|Heartseeker|World drop (BoE)
+Ranged|Core Marksman Rifle|Bloodseeker|Crafted: Engineering
+@fb|Hunter|Survival
+Head|Black Dragonscale Helm|Outlaw's Collar|Crafted: Leatherworking
+Neck|Beads of Ogre Might|Mark of Fordring|Quest: Falrin's Vendetta
+Shoulder|Theramore Epaulets|Highlander's Leather Shoulders|Theramore (A)/Darkspear (H), Exalted
+Back|Howler's Furs|Cape of the Black Baron|Pix Xizzix, Stranglethorn Vale
+Chest|Dawn Armor|Obsidian Mail Tunic|Crafted: Leatherworking
+Wrist|Marksman Bands|Forest Stalker's Bracers|Dire Maul, trash
+Hands|Trueaim Gauntlets|Theramore Gloves|Blackrock Spire, Shadow Hunter Vosh'gajin
+Waist|Marksman's Girdle|Sash of the Grand Hunt|Blackrock Spire, Urok Doomhowl
+Legs|Sentinel's Chain Leggings|Plaguehound Leggings|Silverwing (A)/Warsong (H), Exalted
+Feet|Windreaver Greaves|Bloodmail Boots|Scholomance, Kirtonos the Herald
+Ring 1|Don Julio's Band|-|Stormpike (A)/Frostwolf (H), Exalted
+Ring 2|Cutthroat's Signet|Warden's Signet of Ferocity|Pix Xizzix, Stranglethorn Vale
+Trinket 1|Rune of the Guard Captain|-|Quest: Job Opening: Guard Captain of Revantusk Village (Horde)
+Trinket 2|Cleansed Vilebranch Medallion (A)|Blackhand's Breadth|Quest: Saving Sharpbeak
+Two-hand|Nightfall|Arcanite Reaper|Crafted: Blacksmithing
+Main-hand|Teebu's Blazing Longsword|Ironwood Blade|World drop (BoE)
+Off-hand|Ironwood Blade|Frostbite|Crafted: Blacksmithing
+Ranged|Core Marksman Rifle|Blackcrow|Crafted: Engineering
+@fs|Hunter|Beast Mastery
+Head|Black Dragonscale Helm|Darkmantle Cap|Outlaw's Collar|Leatherworking (300)
+Neck|Pendant of Celerity|Amulet of the Darkmoon|Maelstrom's Tendril|Upper Blackrock Spire: Lord Valthalak (18%)
+Shoulders|Theramore Pauldrons|Theramore Epaulets|Darkspear Pauldrons|Darkspear Raiders, Exalted
+Back|Earthweave Cloak|Shifting Cloak|Shadow Prowler's Cloak|Quest: Volunteer's Battlegear
+Chest|Dawn Armor|Darkmantle Tunic|Beastmaster's Tunic|Leatherworking (300)
+Wrists|Forest Stalker's Bracers|Swift Flight Bracers|-|Warsong Outriders vendor
+Hands|Theramore Gloves|Raider Gloves|Voone's Vice Grips|Darkspear Raiders, Exalted
+Waist|Marksman's Girdle|Belt of Preserved Heads|Warpwood Binding|Blackrock Spire: Urok Doomhowl (25%)
+Legs|Outrider's Chain Leggings|Sentinel's Chain Leggings|Outrider's Leather Pants|Kelm Hargunth (Warsong Outriders vendor)
+Feet|Darkmantle Boots|Beastmaster's Boots|Shadowcraft Boots|Quest: Anthion's Parting Words
+Rings|Don Julio's Band|Band of Earthen Might|Legionnaire's Band|Frostwolf Clan, Exalted
+Trinkets|Royal Seal of Eldre'Thalas|Blackhand's Breadth|Frozen Heart of the Mountain|Quest: The Greatest Race of Hunters
+Two-hand|Legionite Glaive|Thorium Poleaxe|Ice Barbed Spear|Blacksmithing (300)
+Ranged|Hyper Deluxe Sniper Rifle Mk XVII|The Purifier|Outrider's Bow|Engineering (300)
+@fs|Hunter|Marksmanship
+Head|Black Dragonscale Helm|Darkmantle Cap|Outlaw's Collar|Leatherworking (300)
+Neck|Pendant of Celerity|Amulet of the Darkmoon|Maelstrom's Tendril|Upper Blackrock Spire: Lord Valthalak (18%)
+Shoulders|Theramore Pauldrons|Theramore Epaulets|Darkspear Pauldrons|Darkspear Raiders, Exalted
+Back|Earthweave Cloak|Shifting Cloak|Shadow Prowler's Cloak|Quest: Volunteer's Battlegear
+Chest|Dawn Armor|Darkmantle Tunic|Beastmaster's Tunic|Leatherworking (300)
+Wrists|Forest Stalker's Bracers|Swift Flight Bracers|Beastmaster's Bindings|Warsong Outriders vendor
+Hands|Theramore Gloves|Raider Gloves|Voone's Vice Grips|Darkspear Raiders, Exalted
+Waist|Marksman's Girdle|Warpwood Binding|Belt of Preserved Heads|Blackrock Spire: Urok Doomhowl (25%)
+Legs|Outrider's Chain Leggings|Sentinel's Chain Leggings|Outrider's Leather Pants|Kelm Hargunth (Warsong Outriders vendor)
+Feet|Darkmantle Boots|Beastmaster's Boots|Shadowcraft Boots|Quest: Anthion's Parting Words
+Rings|Don Julio's Band|Band of Earthen Might|Legionnaire's Band|Frostwolf Clan, Exalted
+Trinkets|Royal Seal of Eldre'Thalas|Blackhand's Breadth|Frozen Heart of the Mountain|Quest: The Greatest Race of Hunters
+Two-hand|Legionite Glaive|Thorium Poleaxe|Ice Barbed Spear|Blacksmithing (300)
+Ranged|Hyper Deluxe Sniper Rifle Mk XVII|The Purifier|Outrider's Bow|Engineering (300)
+@fs|Hunter|Survival
+Head|Darkmantle Cap|Outlaw's Collar|Black Dragonscale Helm|Quest: Saving the Best for Last
+Neck|Pendant of Celerity|Amulet of the Darkmoon|Maelstrom's Tendril|Upper Blackrock Spire: Lord Valthalak (18%)
+Shoulders|Theramore Pauldrons|Theramore Epaulets|Darkspear Pauldrons|Darkspear Raiders, Exalted
+Back|Earthweave Cloak|Cape of the Black Baron|Shadow Prowler's Cloak|Quest: Volunteer's Battlegear
+Chest|Dawn Armor|Darkmantle Tunic|Beastmaster's Tunic|Leatherworking (300)
+Wrists|Forest Stalker's Bracers|Bracers of the Eclipse|-|Warsong Outriders vendor
+Hands|Theramore Gloves|Raider Gloves|Voone's Vice Grips|Darkspear Raiders, Exalted
+Waist|Marksman's Girdle|Warpwood Binding|Belt of Preserved Heads|Blackrock Spire: Urok Doomhowl (25%)
+Legs|Outrider's Chain Leggings|Sentinel's Chain Leggings|Outrider's Leather Pants|Kelm Hargunth (Warsong Outriders vendor)
+Feet|Darkmantle Boots|Beastmaster's Boots|Shadowcraft Boots|Quest: Anthion's Parting Words
+Rings|Don Julio's Band|Warden's Signet of Ferocity|Watcher's Signet of Ferocity|Frostwolf Clan, Exalted
+Trinkets|Blackhand's Breadth|Royal Seal of Eldre'Thalas|Frozen Heart of the Mountain|Quest: For The Horde!
+Two-hand|Legionite Glaive|Barbarous Blade|Forest Defender's Axe|Blacksmithing (300)
+Ranged|Hyper Deluxe Sniper Rifle Mk XVII|The Purifier|Outrider's Bow|Engineering (300)
+@cc|Hunter|Beast Mastery,Marksmanship,Survival
+Head|Mask of the Unforgiven|Beastmaster's Cap|Dinofrill Casque|Stratholme: The Unforgiven
+Neck|Mark of Fordring|Beads of Ogre Might|Horn of Ve'han|Quest: In Dreams
+Shoulder|Darkspear Epaulets|Truestrike Shoulders|Hermit's Pauldron|Exalted with Darkspear Raiders
+Back|Cape of the Black Baron|Howler's Furs|Deathguard's Cloak|Stratholme: Baron Rivendare
+Chest|Beastmaster's Tunic|Furbolg Rib Protector|Shadowcraft Tunic|Tier 0.5 quest chain
+Wrist|Bracers of the Eclipse|Slashclaw Bracers|Forest Stalker's Bracers|Dire Maul: Prince Tortheldrin
+Hands|Devilsaur Gauntlets|Voone's Vice Grips|Raider Gloves|Leatherworking (BoE)
+Waist|Marksman's Girdle|Ranger's Belt|Defiler's Chain Girdle|Lower Blackrock Spire: Urok Doomhowl
+Legs|Outrider's Chain Leggings|Plaguehound Leggings|Devilsaur Leggings|Exalted with Warsong Outriders
+Feet|Windreaver Greaves|Beastmaster's Boots|Shadowcraft Boots|Scholomance: Kirtonos the Herald
+Ring 1|Don Julio's Band|Tarnished Elven Ring|-|Exalted with Frostwolf Clan
+Ring 2|Cutthroat's Signet|Tarnished Elven Ring|-|Vendor: Pix Xizzix (Undermine Trader)
+Trinket 1|Blackhand's Breadth|Smolderweb's Eye|-|Quest: For The Horde!
+Trinket 2|Behemoth Bones|Weakness Analyzer|-|Blackmaw Hold: Blackmaw Behemoth
+Ranged|Deep Jungle Rifle|Stoneshatter|Bloodseeker|The Shaper's Terrace: Thunderhoof

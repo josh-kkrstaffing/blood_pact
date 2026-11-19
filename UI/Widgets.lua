@@ -218,12 +218,29 @@ end
 -- same as a 20-member one. Set list.key (a field name such as "guid") to keep
 -- the selection when the items are rebuilt.
 function W.List(parent, width, height, rowHeight, render, onClick)
-    local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
+    local scroll = CreateFrame("ScrollFrame", nil, parent)
     scroll:SetSize(width, height)
+    scroll:EnableMouseWheel(true)
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(width, rowHeight)
     scroll:SetScrollChild(content)
     local rows, list = {}, { scroll = scroll, items = {}, selected = nil, key = nil }
+
+    -- A thin flat scrollbar in Blood Pact's own style: wheel, drag or click.
+    local bar = CreateFrame("Slider", nil, scroll)
+    bar:SetOrientation("VERTICAL")
+    bar:SetWidth(6)
+    bar:SetPoint("TOPLEFT", scroll, "TOPRIGHT", 8, 0)
+    bar:SetPoint("BOTTOMLEFT", scroll, "BOTTOMRIGHT", 8, 0)
+    W.Fill(bar, { 1, 1, 1, 0.04 })
+    local thumb = crisp(bar:CreateTexture(nil, "OVERLAY"))
+    thumb:SetColorTexture(W.C.muted[1], W.C.muted[2], W.C.muted[3], 0.85)
+    thumb:SetSize(6, 28)
+    bar:SetThumbTexture(thumb)
+    bar:SetMinMaxValues(0, 0)
+    bar:SetValueStep(1)
+    bar:SetValue(0)
+    bar:Hide()
 
     local function makeRow()
         local row = CreateFrame("Button", nil, content)
@@ -290,16 +307,34 @@ function W.List(parent, width, height, rowHeight, render, onClick)
             self.selected = found
         end
         content:SetHeight(math.max(1, #items) * rowHeight)
-        local maxScroll = math.max(0, #items * rowHeight - (scroll:GetHeight() or height))
-        if (scroll:GetVerticalScroll() or 0) > maxScroll then scroll:SetVerticalScroll(maxScroll) end
-        update()
+        self.ScrollTo(scroll:GetVerticalScroll() or 0)
     end
 
-    scroll:HookScript("OnVerticalScroll", update)
-    scroll:HookScript("OnSizeChanged", function(self)
+    -- Move to an offset (clamped), keep the bar in step, redraw the rows in view.
+    local syncing = false
+    function list.ScrollTo(offset)
+        local viewHeight = scroll:GetHeight() or height
+        if viewHeight < rowHeight then viewHeight = height end
+        local maxScroll = math.max(0, #list.items * rowHeight - viewHeight)
+        offset = math.max(0, math.min(maxScroll, offset or 0))
+        scroll:SetVerticalScroll(offset)
+        syncing = true
+        bar:SetMinMaxValues(0, maxScroll)
+        bar:SetValue(offset)
+        syncing = false
+        bar:SetShown(maxScroll > 0)
+        update()
+    end
+    bar:SetScript("OnValueChanged", function(_, value)
+        if not syncing then list.ScrollTo(value) end
+    end)
+    scroll:SetScript("OnMouseWheel", function(_, delta)
+        list.ScrollTo((scroll:GetVerticalScroll() or 0) - (delta or 0) * rowHeight * 3)
+    end)
+    scroll:SetScript("OnSizeChanged", function(self)
         local w = self:GetWidth()
         if w and w > 0 then content:SetWidth(w) end
-        update()
+        list.ScrollTo(scroll:GetVerticalScroll() or 0)
     end)
 
     -- Add a text column to every row at x offset with width.

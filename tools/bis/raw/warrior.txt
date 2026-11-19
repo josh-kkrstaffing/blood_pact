@@ -1,0 +1,118 @@
+@fb|Warrior|Fury
+Head|Lionheart Helm|Fury Visor|Crafted: Blacksmithing
+Neck|Mark of Fordring|Amulet of the Darkmoon|Quest: In Dreams
+Shoulder|Theramore Epaulets|Highlander's Plate Spaulders|Theramore Expeditionary Force (A) / Darkspear Raiders (H), Exalted
+Back|Howler's Furs|Cape of the Black Baron|Pix Xizzix (Undermine Trader), Stranglethorn Vale
+Chest|Dawn Armor|Savage Gladiator Chain|Crafted: Leatherworking
+Wrist|Battleborn Armbraces|Forest Stalker's Bracers|Blackrock Spire, Warchief Rend Blackhand
+Hands|Trueaim Gauntlets|Theramore Gloves|Blackrock Spire, Shadow Hunter Vosh'gajin
+Waist|Radiant Girdle of the Dawn|Valiant's Waistguard|Vendor (needs Blacksmithing 290)
+Legs|Sentinel's Chain Leggings|Titanic Leggings|Silverwing Sentinels (A) / Warsong Outriders (H), Exalted
+Feet|Windreaver Greaves|Bloodmail Boots|Scholomance, Kirtonos the Herald
+Ring 1|Don Julio's Band|-|Stormpike Guard (A) / Frostwolf Clan (H), Exalted
+Ring 2|Warden's Signet of Ferocity|Cutthroat's Signet|The Watchers, Exalted
+Trinket 1|Chained Essence of Eranikus|-|Quest: The Essence of Eranikus
+Trinket 2|Blackhand's Breadth|Hand of Justice|Quest: For The Horde! (H) / General Drakkisath's Demise (A)
+Main-hand|Persuader|Hammer of Bestial Fury|Crafted: Blacksmithing
+Off-hand|Persuader|Ironwood Blade|Crafted: Blacksmithing
+Ranged|Precisely Calibrated Boomstick|Satyr's Bow|World drop (BoE)
+@fb|Warrior|Arms
+Head|Lionheart Helm|Fury Visor|Crafted: Blacksmithing
+Neck|Mark of Fordring|Amulet of the Darkmoon|Quest: In Dreams
+Shoulder|Theramore Epaulets|Highlander's Plate Spaulders|Theramore Expeditionary Force (A) / Darkspear Raiders (H), Exalted
+Back|Howler's Furs|Cape of the Black Baron|Pix Xizzix (Undermine Trader), Stranglethorn Vale
+Chest|Timbermaw Tunic|Savage Gladiator Chain|Crafted: Leatherworking
+Wrist|Battleborn Armbraces|Forest Stalker's Bracers|Blackrock Spire, Warchief Rend Blackhand
+Hands|Trueaim Gauntlets|Theramore Gauntlets|Blackrock Spire, Shadow Hunter Vosh'gajin
+Waist|Radiant Girdle of the Dawn|Valiant's Waistguard|Vendor (needs Blacksmithing 290)
+Legs|Titanic Leggings|Sentinel's Chain Leggings|Crafted: Blacksmithing
+Feet|Windreaver Greaves|Bloodmail Boots|Scholomance, Kirtonos the Herald
+Ring 1|Don Julio's Band|-|Stormpike Guard (A) / Frostwolf Clan (H), Exalted
+Ring 2|Warden's Signet of Ferocity|Watcher's Signet of Ferocity|The Watchers, Exalted
+Trinket 1|Chained Essence of Eranikus|-|Quest: The Essence of Eranikus
+Trinket 2|Darkmoon Card: Maelstrom|Hand of Justice|Quest: Darkmoon Elementals Deck
+Two-hand|Nightfall|Forest Defender's Axe|Crafted: Blacksmithing
+Ranged|Satyr's Bow|Blackcrow|Dire Maul, Zevrim Thornhoof
+@fb|Warrior|Protection
+Head|Enchanted Thorium Helm|Helm of Valor|Crafted: Blacksmithing
+Neck|Amulet of the Darkmoon|Blazefury Medallion|Quest: 1200 Tickets - Amulet of the Darkmoon
+Shoulder|Theramore Spaulders|Highlander's Plate Spaulders|Theramore Expeditionary Force (A) / Darkspear Raiders (H), Exalted
+Back|Stalwart Cloak|Shifting Cloak|Pix Xizzix (Undermine Trader), Stranglethorn Vale
+Chest|Breastplate of the Chromatic Flight|Ornate Adamantium Breastplate|Quest: Breastplate of the Chromatic Flight
+Wrist|Vigorsteel Vambraces|Berserker Bracers|Scholomance, Darkmaster Gandling
+Hands|Heavy Thorium Gauntlets|Radiant Gloves of the Dawn|Crafted: Blacksmithing
+Waist|Valiant's Waistguard|Radiant Girdle of the Dawn|Pix Xizzix (Undermine Trader), Stranglethorn Vale
+Legs|Sentinel's Plate Legguards|Azerothium Legplates|Silverwing Sentinels (A) / Warsong Outriders (H), Exalted
+Feet|Depleted Thorium Sabatons|Ribsteel Footguards|Crafted: Blacksmithing
+Ring 1|Warden's Signet of Vigilance|-|The Watchers, Exalted
+Ring 2|Watcher's Signet of Vigilance|Ring of the Unliving|The Watchers, Revered
+Trinket 1|The Lion Horn of Stormwind|-|World drop (BoE)
+Trinket 2|Defender's Grip Stabilizer|Vigilance Charm|Pix Xizzix (Undermine Trader), Stranglethorn Vale
+Main-hand|Hammer of Bestial Fury|Greenhammer|World drop (BoE)
+Off-hand|Evergreen Shield|Force Reactive Disk|Crafted: Blacksmithing
+Ranged|Outrider's Bow|Carapace Spine Crossbow|Silverwing Sentinels (A) / Warsong Outriders (H), Revered
+@cc|Warrior|Fury
+Head|Mask of the Unforgiven|Helm of Valor|Lionheart Helm|The Unforgiven, Stratholme
+Neck|Mark of Fordring|Beads of Ogre Might|-|Quest In Dreams, Eastern Plaguelands
+Shoulder|Truestrike Shoulders|Spaulders of Valor|-|Pyroguard Emberseer, Upper Blackrock Spire
+Back|Howler's Furs|Deathguard's Cloak|-|Pix Xizzix, 75 Tarnished Undermine Real
+Chest|Timbermaw Tunic|Breastplate of Heroism|Savage Gladiator Chain|Leatherworking 300, BoE
+Wrist|Battleborn Armbraces|Berserker Bracers|Vambraces of the Sadist|Warchief Rend Blackhand, Upper Blackrock Spire
+Hands|Raider Gauntlets|Devilsaur Gauntlets|-|Exalted with Darkspear Raiders
+Waist|Brigam Girdle|Valiant's Waistguard|-|General Drakkisath, Upper Blackrock Spire
+Legs|Outrider's Plate Legguards|Legplates of Reinforced Crystal|Devilsaur Leggings|Exalted with Warsong Outriders
+Feet|Boots of Heroism|Battlechaser's Greaves|-|Quest Anthion's Parting Words
+Ring 1|Don Julio's Band|Cutthroat's Signet|-|Exalted with Frostwolf Clan
+Ring 2|Blackstone Ring|Cutthroat's Signet|Thrall's Resolve|Princess Theradras, Maraudon
+Trinket 1|Behemoth Bones|Hand of Justice|Counterattack Lodestone|Blackmaw Behemoth, Blackmaw Hold
+Trinket 2|Blackhand's Breadth|Adaptive Combat Assistant|-|Quest For The Horde!
+Main-hand|Dal'Rend's Sacred Charge|Ironfoe|Felstriker|Warchief Rend Blackhand, Upper Blackrock Spire
+Off-hand|Dal'Rend's Tribal Guardian|Hedgecutter|Stormstrike Hammer|Warchief Rend Blackhand, Upper Blackrock Spire
+Ranged|Satyr's Bow|Riphook|Bloodseeker|Zevrim Thornhoof, Dire Maul
+@fs|Warrior|Arms
+Head|Lionheart Helm|Fury Visor|Darkmantle Cap|Blacksmithing (300)
+Neck|Mark of Fordring|Medallion of the Dawn|Beads of Ogre Might|Quest: In Dreams
+Shoulders|Truestrike Shoulders|Highlander's Plate Spaulders|Defiler's Plate Spaulders|Pyroguard Emberseer (20%)
+Back|Deathguard's Cloak|Cloak of the Honor Guard|Cape of the Black Baron|Exalted with The Defilers
+Chest|Timbermaw Tunic|Cadaverous Armor|Dawn Armor|Leatherworking (300)
+Wrists|Deeprock Bracers|Berserker Bracers|-|Quest: Stalwart's Battlegear
+Hands|Theramore Gauntlets|Raider Gauntlets|Gauntlets of Heroism|Exalted with Theramore Expeditionary Force
+Waist|Belt of Preserved Heads|Might of the Timbermaw|Highlander's Plate Girdle|Quest: A Collection of Heads
+Legs|Titanic Leggings|Outrider's Plate Legguards|Sentinel's Plate Legguards|Blacksmithing (300)
+Feet|Boots of Heroism|Bloodmail Boots|Scalegut Treaders|Quest: Anthion's Parting Words
+Ring|Don Julio's Band|Warden's Signet of Ferocity|Band of Earthen Might|Exalted with Frostwolf Clan
+Trinket|Blackhand's Breadth|Hand of Justice|Frozen Heart of the Mountain|Quest: For The Horde!
+Two-hand|Forest Defender's Axe|Fist of Cenarius|The Unstoppable Force|Blacksmithing (300)
+Ranged|Gorewood Bow|Bloodseeker|Blackcrow|Quest: The Scarlet Oracle, Demetria
+@fs|Warrior|Fury
+Head|Lionheart Helm|Fury Visor|Darkmantle Cap|Blacksmithing (300)
+Neck|Mark of Fordring|Medallion of the Dawn|Beads of Ogre Might|Quest: In Dreams
+Shoulders|Truestrike Shoulders|Highlander's Plate Spaulders|Defiler's Plate Spaulders|Pyroguard Emberseer (20%)
+Back|Deathguard's Cloak|Cloak of the Honor Guard|Cape of the Black Baron|Exalted with The Defilers
+Chest|Timbermaw Tunic|Cadaverous Armor|Dawn Armor|Leatherworking (300)
+Wrists|Deeprock Bracers|Berserker Bracers|Battleborn Armbraces|Quest: Stalwart's Battlegear
+Hands|Theramore Gauntlets|Raider Gauntlets|Gauntlets of Heroism|Exalted with Darkspear Raiders
+Waist|Belt of Preserved Heads|Highlander's Plate Girdle|Highlander's Chain Girdle|Quest: A Collection of Heads
+Legs|Titanic Leggings|Outrider's Plate Legguards|Sentinel's Plate Legguards|Blacksmithing (300)
+Feet|Boots of Heroism|Bloodmail Boots|Scalegut Treaders|Quest: Anthion's Parting Words
+Rings|Don Julio's Band|Warden's Signet of Ferocity|Band of Earthen Might|Exalted with Frostwolf Clan
+Trinkets|Blackhand's Breadth|Hand of Justice|Frozen Heart of the Mountain|Quest: For The Horde!
+Main hand|Ironwood Blade|Greenhammer|Persuader|Blacksmithing (300)
+Off hand|Dal'Rend's Tribal Guardian|Distracting Dagger|Gargoyle Shredder Talons|Warchief Rend Blackhand (20%)
+Ranged|Gorewood Bow|Bloodseeker|Blackcrow|Quest: The Scarlet Oracle, Demetria
+@fs|Warrior|Protection
+Head|Helm of Heroism|Enchanted Thorium Helm|Helm of the Executioner|Quest: Saving the Best for Last
+Neck|Rage of Mugamba|Strength of Mugamba|Amulet of the Darkmoon|Quest: The Rage of Mount Mugamba
+Shoulders|Highlander's Plate Spaulders|Defiler's Plate Spaulders|Theramore Spaulders|Exalted with The Defilers
+Back|Shifting Cloak|Stoneskin Gargoyle Cape|Cloak of Revanchion|Leatherworking (300)
+Chest|Breastplate of Heroism|Enchanted Thorium Breastplate|Breastplate of Valor|Quest: Saving the Best for Last
+Wrists|Berserker Bracers|Bracers of Heroism|Deeprock Bracers|Warsong Outriders vendor
+Hands|Heavy Thorium Gauntlets|Theramore Gauntlets|Raider Gauntlets|Blacksmithing (300)
+Waist|Belt of Heroism|Sentinel's Waistguard|Brigam Girdle|Quest: Just Compensation
+Legs|Outrider's Plate Legguards|Sentinel's Plate Legguards|Azerothium Legplates|Sold by Kelm Hargunth (Warsong Outriders)
+Feet|Boots of Heroism|Crystal Encrusted Greaves|Depleted Thorium Sabatons|Quest: Anthion's Parting Words
+Rings|Warden's Signet of Vigilance|Watcher's Signet of Vigilance|Tracker's Signet of Vigilance|Exalted with The Watchers
+Trinkets|Vigilance Charm|Stormpike Insignia Rank 6|Frostwolf Insignia Rank 6|Dire Maul: Immol'thar (20%)
+Main hand|Greenhammer|Ironwood Blade|Sageblade|Blacksmithing (300)
+Off hand|The Immovable Object|Evergreen Shield|Draconian Deflector|Exalted with Frostwolf Clan
+Ranged|Outrider's Bow|Outrunner's Bow|Gorewood Bow|Sold by Kelm Hargunth (Warsong Outriders)

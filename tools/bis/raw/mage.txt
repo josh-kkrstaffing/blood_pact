@@ -1,0 +1,74 @@
+@fb|Mage|Arcane
+Head|Spellweaver's Turban|Crimson Felt Hat|Blackrock Spire, General Drakkisath
+Neck|Nacreous Shell Necklace|Lady Maye's Pendant|Stratholme, Cannon Master Willey
+Shoulder|Rugged Mantle of the Timbermaw|Mantle of the Timbermaw|Meilosh, Felwood (needs Tailoring 290)
+Back|Arcanoweave Cloak|Hide of the Wild|Pix Xizzix, Stranglethorn Vale
+Chest|Robe of the Archmage|Alanna's Embrace|Crafted: Tailoring
+Wrist|Dryad's Wrist Bindings|Sublime Wristguards|Warsong Outriders, Exalted
+Hands|Gloves of Spell Mastery|Hands of Power|Crafted: Tailoring
+Waist|Knowledge of the Timbermaw|Belt of the Archmage|Meilosh, Felwood (needs Tailoring 290)
+Legs|Sentinel's Silk Leggings|Skyshroud Leggings|Silverwing (A) / Warsong Outriders (H), Exalted
+Feet|Kayser's Boots of Precision|Dragonrider Boots|Blackrock Spire, War Master Voone
+Ring 1|Mindtear Band|-|World drop (BoE)
+Ring 2|Channeler's Ring|Warden's Signet of Brilliance|Pix Xizzix, Stranglethorn Vale
+Trinket 1|Eye of the Beast|-|Quest: For The Horde!
+Trinket 2|Cleansed Vilebranch Icon (A)|Weakness Analyzer|Quest: Saving Sharpbeak
+Two-hand|Ironbark Staff|Crackling Staff|The Defilers, Exalted
+Main-hand|Sageblade|Sageclaw|Crafted: Blacksmithing
+Off-hand|Therazane's Touch|Tome of the Lost|Frostwolf Clan, Exalted
+Wand|Bonecreeper Stylus|Brilliant Wand|Scholomance, Darkmaster Gandling
+@fb|Mage|Fire~Arcane
+Head|Spellweaver's Turban|Eye of Flame|Blackrock Spire, General Drakkisath
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Stratholme, Cannon Master Willey
+Chest|Robe of the Archmage|Robes of Dark Summons|Crafted: Tailoring
+Feet|Fire Striders|Kayser's Boots of Precision|Stratholme, Balnazzar
+Two-hand|Elemental Mage Staff|Ironbark Staff|World drop (BoE)
+Off-hand|Tome of Fiery Arcana|Tome of the Lost|Frostwolf Clan, Exalted
+@fb|Mage|Frost~Arcane
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Stratholme, Cannon Master Willey
+Back|Arcanoweave Cloak|Amplifying Cloak|Pix Xizzix, Stranglethorn Vale
+Chest|Robe of the Archmage|Robe of Winter Night|Crafted: Tailoring
+Hands|Hands of Power|Gloves of Spell Mastery|Blackrock Spire, Quartermaster Zigris
+Feet|Rime-encrusted Boots|Riptide Shoes|Crafted: Tailoring
+Two-hand|Elemental Mage Staff|Ironbark Staff|World drop (BoE)
+Off-hand|Tome of the Ice Lord|Tome of the Lost|Frostwolf Clan, Exalted
+Wand|Wand of Biting Cold|Bonecreeper Stylus|Quest: The Legend of Korrak
+@fs|Mage|Arcane
+Head|Spellweaver's Turban|Deathmist Mask|Sorcerer's Crown|Upper Blackrock Spire: General Drakkisath (25%)
+Neck|Nacreous Shell Necklace|Amulet of the Dawn|Orb of the Darkmoon|Stratholme: Cannon Master Willey (20%)
+Shoulders|Mantle of the Timbermaw|Burial Shawl|Theramore Shoulderpads|Tailoring (290)
+Back|Hide of the Wild|Shroud of Arcane Mastery|Deep Woodlands Cloak|Leatherworking (300)
+Chest|Robe of the Archmage|Earthpower Vest|Robe of Everlasting Night|Tailoring (295)
+Wrists|Rockfury Bracers|Dryad's Wrist Bindings|-|Quest: Stalwart's Battlegear
+Hands|Gloves of Spell Mastery|Sorcerer's Gloves|Deathmist Wraps|Tailoring (295)
+Waist|Belt of the Archmage|Highlander's Cloth Girdle|Defiler's Cloth Girdle|Tailoring (295)
+Legs|Outrider's Silk Leggings|Sentinel's Silk Leggings|Skyshroud Leggings|Sold by Kelm Hargunth (Warsong Outriders)
+Feet|Sorcerer's Boots|Dragonrider Boots|Omnicast Boots|Quest: Anthion's Parting Words
+Rings|Rune Band of Wizardry|Warden's Signet of Brilliance|Watcher's Signet of Brilliance|Upper Blackrock Spire: Lord Valthalak (15%)
+Trinkets|Briarwood Reed|Eye of the Beast|Burst of Knowledge|Upper Blackrock Spire: Jed Runewatcher (33%)
+Two-hand|Lord Valthalak's Staff of Command|Staff of Balzaphon|Crackling Staff|Upper Blackrock Spire: Lord Valthalak (15%)
+Main hand|Witchblade|Sageblade|Mind Carver|Scholomance: Darkmaster Gandling (14%)
+Off hand|Tome of Arcane Domination|Therazane's Touch|Tome of the Lost|Exalted with Frostwolf Clan
+Ranged|Bonecreeper Stylus|Brilliant Wand|Ritssyn's Wand of Bad Mojo|Scholomance: Darkmaster Gandling (14%)
+@fs|Mage|Fire~Arcane
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Chains of the Lich|Stratholme: Cannon Master Willey (20%)
+Shoulders|Mantle of the Timbermaw|Argent Shoulders|Burial Shawl|Tailoring (290)
+Back|Hide of the Wild|Shroud of Arcane Mastery|Heliotrope Cloak|Leatherworking (300)
+Chest|Robe of the Archmage|Earthpower Vest|Robes of Fiery Devastation|Tailoring (295)
+Wrists|Rockfury Bracers|Dryad's Wrist Bindings|Sublime Wristguards|Quest: Stalwart's Battlegear
+Hands|Gloves of Spell Mastery|Inferno Gloves|Sorcerer's Gloves|Tailoring (295)
+Legs|Skyshroud Leggings|Outrider's Silk Leggings|Sentinel's Silk Leggings|Lower Blackrock Spire: Highlord Omokk (17%)
+Feet|Fire Striders|Sorcerer's Boots|Omnicast Boots|Stratholme: Balnazzar (20%)
+Rings|Warden's Signet of Brilliance|Rune Band of Wizardry|Watcher's Signet of Brilliance|Exalted with The Watchers
+Off hand|Tome of Fiery Arcana|Therazane's Touch|Tome of the Lost|Exalted with Frostwolf Clan
+Ranged|Pyric Caduceus|Bonecreeper Stylus|Brilliant Wand|Blackrock Depths: Pyromancer Loregrain (27%)
+@fs|Mage|Frost~Arcane
+Head|Spellweaver's Turban|Deathmist Mask|Crimson Felt Hat|Upper Blackrock Spire: General Drakkisath (25%)
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Chains of the Lich|Stratholme: Cannon Master Willey (20%)
+Shoulders|Mantle of the Timbermaw|Boreal Mantle|Argent Shoulders|Tailoring (290)
+Back|Hide of the Wild|Shroud of Arcane Mastery|Spritecaster Cape|Leatherworking (300)
+Chest|Robe of the Archmage|Robe of Winter Night|Earthpower Vest|Tailoring (295)
+Legs|Skyshroud Leggings|Outrider's Silk Leggings|Sentinel's Silk Leggings|Lower Blackrock Spire: Highlord Omokk (17%)
+Feet|Sorcerer's Boots|Omnicast Boots|Dragonrider Boots|Quest: Anthion's Parting Words
+Off hand|Tome of the Ice Lord|Therazane's Touch|Tome of the Lost|Exalted with Frostwolf Clan
+Ranged|Wand of Biting Cold|Bonecreeper Stylus|Brilliant Wand|Quest: The Legend of Korrak

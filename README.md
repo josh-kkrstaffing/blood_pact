@@ -27,9 +27,13 @@ WoW Forever has no summoning stones, so a warlock's Ritual of Summoning is the o
 
 Team Captains and above schedule raids in the Raids tab, with presets for Barrow Deeps (10) and Hyjal Summit (20). Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't. Attendance is taken on every boss kill while a Team Captain or above leads the raid, or with one click. Standings shows each player's attendance over the last 10 raid nights, with alts counted for their main. Raids are scheduled in a US time zone or your PC's time, and everyone sees them in their own PC's time. Each raid is marked progression or farm, which sets the boss-kill DKP that night. New raids go on the in-game calendar when your rank allows it. Everyone who signs up gets reminders on their own screen 30 and 15 minutes before, and leaders can whisper the sign-ups with one click. Sign-ups and attendance sync through the guild like DKP, with no website needed.
 
-## BiS Check
+## BiS Check and readiness
 
-The BiS Check tab compares your gear with Blood Pact's own ranked pre-raid best-in-slot list. We read several public guides, give each guide's top pick 2 points and each alternative 1, and rank items by points. An item's score is its points divided by the BiS item's points. The tab sorts your slots by the biggest upgrade, says where to get each item, and suggests a step-up item. It reads only your own equipped items, bags and bank (open your bank once so banked items count). The first list is Demonology Warlock; item matching is by name, so English clients only for now.
+Blood Pact ships its own ranked pre-raid best-in-slot list for all 28 specs. For each spec we read public guides (FrostyBoost and ForeverSpec for every spec, ConquestCapped where available; seven and six guides for Demonology and Destruction Warlock), give each guide's top pick 2 points and each alternative 1, and rank items by points. An item's score is its points divided by the BiS item's points; ties go to ForeverSpec's order. The lists use Horde versions of faction items and match the Alliance twins too. The raw guide data and the ranking script are in `tools/bis`.
+
+The BiS Check tab picks your list from your talents, sorts your slots by the biggest upgrade, says where to get each item, and suggests a step-up item. It reads only your own equipped items, bags and bank (open your bank once so banked items count). Your readiness score is the share of the list you own. It is shared with the guild as your spec and two percentages, and shown on raid sign-ups and the roster so leaders can see who is prepared. The score is reported by each player's own addon, so it is a guide for leaders, not proof.
+
+There are no raid lists yet: the raid loot tables aren't published. Item matching is by name, so English clients only for now.
 
 ## Default DKP values
 
@@ -60,7 +64,7 @@ Blood Pact never plays the game for you. It does not automate combat, movement, 
 
 ## Privacy
 
-Blood Pact sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild DKP records are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
+Blood Pact sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests and each player's own readiness score) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
 
 ## Commands
 

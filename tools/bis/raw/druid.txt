@@ -1,0 +1,118 @@
+@fb|Druid|Balance
+Head|Spellweaver's Turban|Mask of the Unforgiven|Blackrock Spire, General Drakkisath
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Stratholme, Cannon Master Willey
+Shoulder|Rugged Mantle of the Timbermaw|Mantle of the Timbermaw|Meilosh, Felwood (needs Tailoring 290)
+Back|Arcanoweave Cloak|Amplifying Cloak|Pix Xizzix, Stranglethorn Vale
+Chest|Robes of Dark Summons|Alanna's Embrace|Blackmaw Hold, Impaan the Imprisoner
+Wrist|Dryad's Wrist Bindings|Sublime Wristguards|Warsong Outriders, Exalted
+Hands|Gloves of the Greatfather|Hands of Power|Crafted: Leatherworking
+Waist|Knowledge of the Timbermaw|Belt of the Archmage|Meilosh, Felwood (needs Tailoring 290)
+Legs|Sentinel's Lizardhide Pants|Ironfeather Leggings|Silverwing (A) / Warsong Outriders (H), Exalted
+Feet|Waterspout Boots|Bileblister Boots|Dire Maul, Hydrospawn
+Ring 1|Mindtear Band|-|World drop (BoE)
+Ring 2|Warden's Signet of Brilliance|Watcher's Signet of Brilliance|The Watchers, Exalted
+Trinket 1|Cleansed Vilebranch Icon (A)|-|Quest: Saving Sharpbeak
+Trinket 2|Weakness Analyzer|Eye of the Beast|Pix Xizzix, Stranglethorn Vale
+Two-hand|Ironbark Staff|Crackling Staff|The Defilers, Exalted
+Main-hand|Sageclaw|Hand of Edward the Odd|The Defilers, Exalted
+Off-hand|Therazane's Touch|Spirit of Aquementas|Frostwolf Clan, Exalted
+Idol|Swarming Idol|Idol of the Moon|Pix Xizzix, Stranglethorn Vale
+@fb|Druid|Feral (Cat)
+Head|Outlaw's Collar|Eye of Rend|Crafted: Leatherworking
+Neck|Amulet of the Darkmoon|Mark of Fordring|Quest: 1200 Tickets - Amulet of the Darkmoon
+Shoulder|Theramore Pauldrons|Highlander's Leather Shoulders|Theramore (A) / Darkspear Raiders (H), Exalted
+Back|Cape of the Black Baron|Blackveil Cape|Stratholme, Baron Rivendare
+Chest|Timbermaw Tunic|Defias Enforcer's Chest|Crafted: Leatherworking
+Wrist|Forest Stalker's Bracers|Bracers of the Eclipse|Warsong Outriders, Exalted
+Hands|Theramore Gloves|Timbermaw Brawlers|Theramore (A) / Darkspear Raiders (H), Exalted
+Waist|Ferocity of the Timbermaw|Shifter's Belt|Meilosh, Felwood (needs Leatherworking 290)
+Legs|Sentinel's Leather Pants|Warbear Woolies|Silverwing (A) / Warsong Outriders (H), Exalted
+Feet|Swiftwalker Boots|Shadowcraft Boots|Blackrock Depths, Princess Moira Bronzebeard
+Ring 1|Don Julio's Band|-|Frostwolf Clan, Exalted
+Ring 2|Legionnaire's Band|Ring of the Unliving|Warsong Outriders, Honored
+Trinket 1|Chained Essence of Eranikus|-|Quest: The Essence of Eranikus
+Trinket 2|Blackhand's Breadth|Cleansed Vilebranch Medallion (A)|Quest: For The Horde!
+Two-hand|The Unstoppable Force|Legionite Glaive|Frostwolf Clan, Exalted
+Idol|Idol of the Dream|Idol of Ferocity|Crafted: Enchanting
+@fb|Druid|Feral (Bear)
+Head|Warbear Helm|Outlaw's Collar|Crafted: Leatherworking
+Neck|Amulet of the Darkmoon|Beads of Ogre Might|Quest: 1200 Tickets - Amulet of the Darkmoon
+Shoulder|Highlander's Leather Shoulders|Glowing Mantle of the Dawn|The Defilers, Exalted
+Back|Stalwart Cloak|Cloak of Warding|Pix Xizzix, Stranglethorn Vale
+Chest|Dire Warbear Harness|Songbird Blouse|Meilosh, Felwood (needs Leatherworking 290)
+Wrist|Forest Stalker's Bracers|Blackmist Armguards|Warsong Outriders, Exalted
+Hands|Theramore Gloves|Studded Timbermaw Brawlers|Theramore (A) / Darkspear Raiders (H), Exalted
+Waist|Warden's Leather Waistguard|Ferocity of the Timbermaw|Crafted: Leatherworking
+Legs|Sentinel's Leather Pants|Dire Warbear Woolies|Silverwing (A) / Warsong Outriders (H), Exalted
+Feet|Fine Dawn Treaders|Highlander's Leather Boots|Vendor (needs Leatherworking 290)
+Ring 1|Warden's Signet of Vigilance|-|The Watchers, Exalted
+Ring 2|Thrall's Resolve|Ring of Protection|Quest: The Princess Saved? (Horde)
+Trinket 1|The Lion Horn of Stormwind|-|World drop (BoE)
+Trinket 2|Glimmering Mithril Insignia|Vigilance Charm|Quest: Did You Lose This? (needs Blacksmithing 225)
+Two-hand|Unyielding Maul|The Unstoppable Force|Dire Maul, Mizzle the Crafty
+Idol|Idol of the Ursine Twins|Idol of Brutality|Crafted: Enchanting
+@fb|Druid|Restoration
+Head|Living Crown|Wildheart Cowl|Crafted: Leatherworking
+Neck|Jeweled Amulet of Cainwyn|Dragon's Eye|World drop (BoE)
+Shoulder|Argent Elite Shoulders|Mantle of the Scarlet Crusade|Vendor (needs Tailoring 290)
+Back|Amplifying Cloak|Butcher's Apron|Dire Maul, Magister Kalendris
+Chest|Embrace of the Wind Serpent|Ironfeather Breastplate|The Temple of Atal'Hakkar, Shade of Hakkar
+Wrist|Bleak Howler Armguards|Wyrmthalak's Shackles|Blackrock Spire, Gizrul the Slavener
+Hands|Wildheart Gloves|Hands of the Exalted Herald|Blackrock Spire, trash
+Waist|Caretaker's Cord|Elderwild Waistcord|Pix Xizzix, Stranglethorn Vale
+Legs|Devout Skirt|Elderwild Pants|Stratholme, Baron Rivendare
+Feet|Incandescent Mooncloth Boots|Ogreseer Tower Boots|Meilosh, Felwood (needs Tailoring 290)
+Ring 1|Warden's Signet of Resolve|-|The Watchers, Exalted
+Ring 2|Watcher's Signet of Resolve|Ring of Entropy|The Watchers, Revered
+Trinket 1|Burst of Knowledge|-|Blackrock Depths, Ambassador Flamelash
+Trinket 2|Alchemist's Stone|Second Wind|Crafted: Alchemy (needs Alchemy 275)
+Two-hand|Hammer of the Grand Crusader|Staff of Metanoia|Stratholme, Balnazzar
+Main-hand|Gift of the Elven Magi|Lorespinner|Stratholme, Balnazzar
+Off-hand|Penelope's Rose|Thaurissan's Royal Scepter|Quest: Kirtonos the Herald
+Idol|Idol of Swiftness|Idol of Synthesis|Crafted: Enchanting
+@fs|Druid|Balance
+Head|Spellweaver's Turban|Deathmist Mask|Crimson Felt Hat|Upper Blackrock Spire: General Drakkisath
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Chains of the Lich|Stratholme: Cannon Master Willey
+Shoulders|Mantle of the Timbermaw|Burial Shawl|Argent Shoulders|Tailoring (290)
+Back|Cloak of Earth and Sky|Hide of the Wild|Shroud of Arcane Mastery|Tailoring (300)
+Chest|Earthpower Vest|Deathmist Robe|Robe of Everlasting Night|Quest: Veteran's Battlegear
+Wrists|Rockfury Bracers|Dryad's Wrist Bindings|-|Quest: Stalwart's Battlegear
+Hands|Deathmist Wraps|Sorcerer's Gloves|Gloves of Earthen Power|Quest: Just Compensation
+Waist|Belt of the Archmage|Highlander's Cloth Girdle|Defiler's Cloth Girdle|Tailoring (295)
+Legs|Ironfeather Leggings|Skyshroud Leggings|Outrider's Silk Leggings|Leatherworking (300)
+Feet|Sorcerer's Boots|Waterspout Boots|Omnicast Boots|Quest: Anthion's Parting Words
+Rings|Rune Band of Wizardry|Warden's Signet of Brilliance|Watcher's Signet of Brilliance|Upper Blackrock Spire: Lord Valthalak
+Trinkets|Briarwood Reed|Eye of the Beast|Burst of Knowledge|Upper Blackrock Spire: Jed Runewatcher
+Two-hand|Lord Valthalak's Staff of Command|Staff of Balzaphon|Crackling Staff|Upper Blackrock Spire: Lord Valthalak
+Main hand|Witchblade|Mastersmith's Hammer|Energetic Rod|Scholomance: Darkmaster Gandling
+Off hand|Therazane's Touch|Tome of the Lost|Tome of Arcane Domination|Exalted with Frostwolf Clan
+@fs|Druid|Feral (Cat)
+Head|Darkmantle Cap|Eye of Rend|Outlaw's Collar|Quest: Saving the Best for Last
+Neck|Amulet of the Darkmoon|Mark of Fordring|Beads of Ogre Might|Quest: 1200 Tickets - Amulet of the Darkmoon
+Shoulders|Truestrike Shoulders|Theramore Pauldrons|Darkspear Pauldrons|Upper Blackrock Spire: Pyroguard Emberseer (20%)
+Back|Cape of the Black Baron|Earthweave Cloak|Deathguard's Cloak|Stratholme: Baron Rivendare (14%)
+Chest|Timbermaw Tunic|Dawn Armor|Cadaverous Armor|Leatherworking (300)
+Wrists|Forest Stalker's Bracers|Bracers of Subterfuge|Bracers of the Eclipse|Warsong Outriders vendor
+Hands|Timbermaw Brawlers|Theramore Gloves|Raider Gloves|Leatherworking (295)
+Waist|Belt of Preserved Heads|Might of the Timbermaw|Highlander's Leather Girdle|Quest: A Collection of Heads
+Legs|Warbear Woolies|Darkmantle Pants|Devilsaur Leggings|Leatherworking (260)
+Feet|Dunestalker's Boots|Prowler's Leather Boots|Skulker's Leather Boots|Quest: Armaments of War
+Rings|Warden's Signet of Ferocity|Don Julio's Band|Band of Earthen Might|Exalted with The Watchers
+Trinkets|Blackhand's Breadth|Hand of Justice|Frozen Heart of the Mountain|Quest: For The Horde!
+Two-hand|The Unstoppable Force|Bonecrusher|Fist of Cenarius|Exalted with Frostwolf Clan
+@fs|Druid|Restoration
+Head|Living Crown|Mooncloth Circlet|Sanctified Leather Helm|Leatherworking (300)
+Neck|Animated Chain Necklace|Orb of the Darkmoon|Amulet of the Dawn|Stratholme: Ramstein the Gorger
+Shoulders|Mooncloth Shoulders|Living Shoulders|Wildheart Spaulders|Tailoring (275)
+Back|Hide of the Wild|Cloak of the Cosmos|Battle Healer's Cloak|Leatherworking (300)
+Chest|Robes of the Exalted|Forest's Embrace|Mooncloth Vest|Stratholme: Baron Rivendare
+Wrists|Bracers of Hope|Bracers of Mending|Dryad's Wrist Bindings|Quest: Epic Armaments of Battle - Friend of the Dawn
+Hands|Desert Bloom Gloves|Hands of the Exalted Herald|Gloves of Restoration|Quest: Armaments of War
+Waist|Wisdom of the Timbermaw|Eyestalk Cord|Whipvine Cord|Tailoring (255)
+Legs|Padre's Trousers|Elderwild Pants|Senior Designer's Pantaloons|Dire Maul: Illyanna Ravenoak
+Feet|Swarmtender's Footpads|Faith Healer's Boots|Mooncloth Boots|Tailoring (295)
+Rings|Warden's Signet of Resolve|Watcher's Signet of Resolve|Fordring's Seal|Exalted with The Watchers
+Trinkets|Royal Seal of Eldre'Thalas|Briarwood Reed|Second Wind|Quest: The Emerald Dream...
+Two-hand|Guiding Stave of Wisdom|Staff of Metanoia|Staff of Balzaphon|Blackrock Depths: Emperor Dagran Thaurissan
+Main hand|Witchblade|Mastersmith's Hammer|Energetic Rod|Scholomance: Darkmaster Gandling
+Off hand|Lei of the Lifegiver|Brightly Glowing Stone|Thaurissan's Royal Scepter|Exalted with Frostwolf Clan

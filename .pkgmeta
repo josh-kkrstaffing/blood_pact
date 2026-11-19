@@ -2,6 +2,7 @@ package-as: BloodPact
 
 ignore:
   - tests
+  - tools
   - .github
   - .luacheckrc
   - LAUNCH.md

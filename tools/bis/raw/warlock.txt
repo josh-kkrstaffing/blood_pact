@@ -1,0 +1,36 @@
+@fb|Warlock|Affliction
+Head|Spellweaver's Turban|Crimson Felt Hat|Blackrock Spire, General Drakkisath
+Neck|Orb of the Darkmoon|Dark Advisor's Pendant|Quest: 1200 Tickets - Orb of the Darkmoon
+Shoulder|Rugged Mantle of the Timbermaw|Mantle of the Timbermaw|Meilosh, Felwood (needs Tailoring 290)
+Back|Arcanoweave Cloak|Fel Cape|Pix Xizzix, Stranglethorn Vale
+Chest|Robe of the Void|Robe of Winter Night|Crafted: Tailoring
+Wrist|Dryad's Wrist Bindings|Netherpearl Cuffs|Warsong Outriders, Exalted
+Hands|Felcloth Gloves|Hands of Power|Crafted: Tailoring
+Waist|Knowledge of the Timbermaw|Belt of the Archmage|Meilosh, Felwood (needs Tailoring 290)
+Legs|Sentinel's Silk Leggings|Skyshroud Leggings|Silverwing (A) / Warsong Outriders (H), Exalted
+Feet|Omnicast Boots|Venomspew Footpads|Blackrock Depths, Golem Lord Argelmach
+Ring 1|Mindtear Band|-|World drop (BoE)
+Ring 2|Warden's Signet of Brilliance|Watcher's Signet of Brilliance|The Watchers, Exalted
+Trinket 1|Cleansed Vilebranch Icon (A)|-|Quest: Saving Sharpbeak
+Trinket 2|Weakness Analyzer|Royal Seal of Eldre'Thalas|Pix Xizzix, Stranglethorn Vale
+Two-hand|Ironbark Staff|Crackling Staff|The Defilers, Exalted
+Main-hand|Sageblade|Sageclaw|Crafted: Blacksmithing
+Off-hand|Tome of Shadow Force|Spirit of Aquementas|Frostwolf Clan, Exalted
+Wand|Skul's Ghastly Touch|Bonecreeper Stylus|Stratholme, Skul
+@fs|Warlock|Affliction
+Head|Spellweaver's Turban|Deathmist Mask|Crimson Felt Hat|Upper Blackrock Spire: General Drakkisath (25%)
+Neck|Nacreous Shell Necklace|Orb of the Darkmoon|Dark Advisor's Pendant|Stratholme: Cannon Master Willey (20%)
+Shoulders|Mantle of the Timbermaw|Argent Shoulders|Burial Shawl|Tailoring (290)
+Back|Fel Cape|Hide of the Wild|Shroud of Arcane Mastery|Tailoring (300)
+Chest|Robe of the Void|Robe of Winter Night|Earthpower Vest|Tailoring (295)
+Wrists|Rockfury Bracers|Dryad's Wrist Bindings|-|Quest: Stalwart's Battlegear
+Hands|Felcloth Gloves|Sorcerer's Gloves|Deathmist Wraps|Tailoring (280)
+Waist|Belt of the Archmage|Highlander's Cloth Girdle|Defiler's Cloth Girdle|Tailoring (295)
+Legs|Leggings of Torment|Outrider's Silk Leggings|Sentinel's Silk Leggings|Upper Blackrock Spire: Lord Valthalak (23%)
+Feet|Maleki's Footwraps|Sorcerer's Boots|Omnicast Boots|Stratholme: Maleki the Pallid (20%)
+Rings|Rune Band of Wizardry|Warden's Signet of Brilliance|Watcher's Signet of Brilliance|Upper Blackrock Spire: Lord Valthalak (15%)
+Trinkets|Briarwood Reed|Royal Seal of Eldre'Thalas|Eye of the Beast|Upper Blackrock Spire: Jed Runewatcher (33%)
+Two-hand|Lord Valthalak's Staff of Command|Staff of Balzaphon|Soul Harvester|Upper Blackrock Spire: Lord Valthalak (15%)
+Main hand|Blade of the New Moon|Sageblade|Witchblade|Dire Maul: Immol'thar (20%)
+Off hand|Tome of Shadow Force|Therazane's Touch|Tome of the Lost|Exalted with Frostwolf Clan
+Ranged|Skul's Ghastly Touch|Bonecreeper Stylus|Ritssyn's Wand of Bad Mojo|Stratholme: Skul (33%)

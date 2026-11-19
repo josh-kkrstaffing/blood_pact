@@ -1,0 +1,706 @@
+{
+"Demonology": {
+"rows": [
+[
+"Head",
+"Spellweaver's Turban",
+"Upper Blackrock Spire: General Drakkisath",
+10,
+""
+],
+[
+"Head",
+"Deathmist Mask",
+"Quest: Saving the Best for Last",
+3,
+"One guide marks it Alliance-only; confirm for Horde"
+],
+[
+"Head",
+"Crimson Felt Hat",
+"Stratholme: Magistrate Barthilas",
+2,
+""
+],
+[
+"Neck",
+"Nacreous Shell Necklace",
+"Stratholme: Cannon Master Willey",
+10,
+""
+],
+[
+"Neck",
+"Orb of the Darkmoon",
+"Darkmoon Faire quest (1200 tickets)",
+6,
+""
+],
+[
+"Neck",
+"Dark Advisor's Pendant",
+"Scholomance: Vectus",
+1,
+""
+],
+[
+"Shoulder",
+"Rugged Mantle of the Timbermaw",
+"Vendor: Meilosh, Felwood (Timbermaw Hold)",
+6,
+"Needs Tailoring 290 to wear"
+],
+[
+"Shoulder",
+"Mantle of the Timbermaw",
+"Crafted: Tailoring 290",
+5,
+"Best pick for non-tailors"
+],
+[
+"Shoulder",
+"Argent Shoulders",
+"Crafted: Tailoring 300",
+2,
+""
+],
+[
+"Back",
+"Arcanoweave Cloak",
+"Vendor: Pix Xizzix (Undermine Trader), Stranglethorn Vale",
+8,
+""
+],
+[
+"Back",
+"Fel Cape",
+"Crafted: Tailoring 300",
+4,
+""
+],
+[
+"Back",
+"Hide of the Wild",
+"Crafted: Leatherworking 300",
+3,
+""
+],
+[
+"Chest",
+"Robe of the Void",
+"Crafted: Tailoring 295",
+12,
+""
+],
+[
+"Chest",
+"Robe of Winter Night",
+"Crafted: Tailoring 245",
+2,
+"Tied with Robes of Dark Summons; the stat-scored guide ranks it higher"
+],
+[
+"Chest",
+"Robes of Dark Summons",
+"Crafted: Tailoring",
+2,
+""
+],
+[
+"Wrist",
+"Dryad's Wrist Bindings",
+"Warsong Outriders, Exalted (vendor Kelm Hargunth)",
+7,
+""
+],
+[
+"Wrist",
+"Sublime Wristguards",
+"Dire Maul (one guide says Stratholme)",
+6,
+"Confirm source in game"
+],
+[
+"Wrist",
+"Rockfury Bracers",
+"Quest: Stalwart's Battlegear",
+2,
+""
+],
+[
+"Hands",
+"Gloves of Spell Mastery",
+"Crafted: Tailoring 295",
+6,
+""
+],
+[
+"Hands",
+"Deathmist Wraps",
+"Quest: Just Compensation",
+5,
+""
+],
+[
+"Hands",
+"Hands of Power",
+"Blackrock Spire: Quartermaster Zigris",
+3,
+""
+],
+[
+"Waist",
+"Belt of the Archmage",
+"Crafted: Tailoring 295",
+8,
+""
+],
+[
+"Waist",
+"Knowledge of the Timbermaw",
+"Vendor: Meilosh, Felwood (Timbermaw Hold)",
+6,
+"Needs Tailoring 290 to wear"
+],
+[
+"Waist",
+"Ban'thok Sash",
+"Blackrock Depths: Ok'thor the Breaker",
+4,
+""
+],
+[
+"Legs",
+"Outrider's Silk Leggings",
+"Warsong Outriders, Exalted (vendor Kelm Hargunth)",
+5,
+"Horde version of Sentinel's Silk Leggings"
+],
+[
+"Legs",
+"Skyshroud Leggings",
+"Lower Blackrock Spire: Highlord Omokk",
+4,
+""
+],
+[
+"Legs",
+"Leggings of Torment",
+"Upper Blackrock Spire: Lord Valthalak",
+2,
+""
+],
+[
+"Feet",
+"Omnicast Boots",
+"Blackrock Depths: Golem Lord Argelmach",
+5,
+""
+],
+[
+"Feet",
+"Maleki's Footwraps",
+"Stratholme: Maleki the Pallid",
+2,
+""
+],
+[
+"Feet",
+"Sorcerer's Boots",
+"Quest: Anthion's Parting Words",
+1,
+""
+],
+[
+"Ring 1",
+"Rune Band of Wizardry",
+"Upper Blackrock Spire: Lord Valthalak",
+4,
+""
+],
+[
+"Ring 1",
+"Warden's Signet of Brilliance",
+"The Watchers, Exalted",
+2,
+""
+],
+[
+"Ring 2",
+"Channeler's Ring",
+"Vendor: Pix Xizzix (Undermine Trader), Stranglethorn Vale",
+4,
+""
+],
+[
+"Ring 2",
+"Mindtear Band",
+"World drop (BoE)",
+2,
+""
+],
+[
+"Trinket 1",
+"Eye of the Beast",
+"Quest: For The Horde!",
+3,
+""
+],
+[
+"Trinket 1",
+"Royal Seal of Eldre'Thalas",
+"Quest: Harnessing Shadows (Dire Maul)",
+2,
+""
+],
+[
+"Trinket 2",
+"Briarwood Reed",
+"Upper Blackrock Spire: Jed Runewatcher",
+2,
+"The stat-scored guide doesn't score on-use or proc effects"
+],
+[
+"Trinket 2",
+"Draconic Infused Emblem",
+"Upper Blackrock Spire: General Drakkisath",
+2,
+""
+],
+[
+"Trinket 2",
+"Weakness Analyzer",
+"Vendor: Pix Xizzix (Undermine Trader), Stranglethorn Vale",
+2,
+""
+],
+[
+"Main hand",
+"Sageblade",
+"Crafted: Blacksmithing 300",
+5,
+""
+],
+[
+"Main hand",
+"Blade of the New Moon",
+"Dire Maul: Immol'thar",
+2,
+""
+],
+[
+"Main hand",
+"Witchblade",
+"Scholomance: Darkmaster Gandling",
+1,
+""
+],
+[
+"Off hand",
+"Therazane's Touch",
+"Frostwolf Clan, Exalted",
+3,
+"Tied with Tome of the Lost; the stat-scored guide ranks it higher"
+],
+[
+"Off hand",
+"Tome of the Lost",
+"Upper Blackrock Spire: General Drakkisath",
+3,
+""
+],
+[
+"Off hand",
+"Tome of Shadow Force",
+"Frostwolf Clan, Exalted",
+2,
+""
+],
+[
+"Ranged / Relic",
+"Bonecreeper Stylus",
+"Scholomance: Darkmaster Gandling",
+3,
+""
+],
+[
+"Ranged / Relic",
+"Skul's Ghastly Touch",
+"Stratholme: Skul",
+2,
+""
+],
+[
+"Ranged / Relic",
+"Ritssyn's Wand of Bad Mojo",
+"Stratholme: Baron Rivendare",
+2,
+""
+],
+[
+"Two-hand option",
+"Lord Valthalak's Staff of Command",
+"Upper Blackrock Spire: Lord Valthalak",
+2,
+""
+]
+],
+"guides": [
+"ForeverSpec",
+"timesaver.gg",
+"FrostyBoost",
+"Zockify",
+"2UpSkill",
+"wowtbc.gg",
+"wowforeverbislist.com"
+]
+},
+"Destruction": {
+"rows": [
+[
+"Head",
+"Spellweaver's Turban",
+"Blackrock Spire: General Drakkisath",
+6,
+""
+],
+[
+"Head",
+"Crimson Felt Hat",
+"Stratholme: Magistrate Barthilas",
+4,
+""
+],
+[
+"Head",
+"The Postmaster's Band",
+"Stratholme: Postmaster Malown",
+2,
+""
+],
+[
+"Neck",
+"Nacreous Shell Necklace",
+"Stratholme: Cannon Master Willey",
+6,
+"Tied with Orb of the Darkmoon; the stat-scored guide ranks it first"
+],
+[
+"Neck",
+"Orb of the Darkmoon",
+"Darkmoon Faire quest (1200 tickets)",
+6,
+""
+],
+[
+"Neck",
+"Chains of the Lich",
+"Stratholme: Balzaphon",
+2,
+""
+],
+[
+"Shoulder",
+"Mantle of the Timbermaw",
+"Crafted: Tailoring 290",
+5,
+"The Rugged version needs Tailoring 290 to wear"
+],
+[
+"Shoulder",
+"Burial Shawl",
+"Scholomance: Lady Illucia Barov",
+3,
+""
+],
+[
+"Shoulder",
+"Argent Shoulders",
+"Crafted: Tailoring 300",
+2,
+""
+],
+[
+"Back",
+"Arcanoweave Cloak",
+"Vendor: Pix Xizzix (Undermine Trader), Stranglethorn Vale",
+6,
+""
+],
+[
+"Back",
+"Amplifying Cloak",
+"Dire Maul",
+3,
+""
+],
+[
+"Back",
+"Shroud of the Exile",
+"Quest: In Dreams (Western Plaguelands)",
+3,
+""
+],
+[
+"Chest",
+"Robe of the Void",
+"Crafted: Tailoring 295",
+8,
+""
+],
+[
+"Chest",
+"Robes of Dark Summons",
+"Crafted: Tailoring",
+4,
+""
+],
+[
+"Chest",
+"Robe of Winter Night",
+"Crafted: Tailoring 245",
+2,
+""
+],
+[
+"Wrist",
+"Sublime Wristguards",
+"Stratholme: The Unforgiven",
+5,
+"One guide says Dire Maul; confirm in game"
+],
+[
+"Wrist",
+"Dryad's Wrist Bindings",
+"Warsong Outriders, Exalted",
+3,
+""
+],
+[
+"Wrist",
+"Rockfury Bracers",
+"Quest: Stalwart's Battlegear",
+2,
+""
+],
+[
+"Hands",
+"Gloves of Spell Mastery",
+"Crafted: Tailoring 295",
+4,
+"Tied with Felcloth Gloves; the stat-scored guide ranks it first"
+],
+[
+"Hands",
+"Felcloth Gloves",
+"Crafted: Tailoring",
+4,
+""
+],
+[
+"Hands",
+"Hands of Power",
+"Lower Blackrock Spire",
+2,
+""
+],
+[
+"Waist",
+"Belt of the Archmage",
+"Crafted: Tailoring 295",
+5,
+""
+],
+[
+"Waist",
+"Ban'thok Sash",
+"Blackrock Depths",
+4,
+""
+],
+[
+"Waist",
+"Knowledge of the Timbermaw",
+"Vendor: Meilosh, Felwood (Timbermaw)",
+2,
+"Needs Tailoring 290 to wear"
+],
+[
+"Legs",
+"Outrider's Silk Leggings",
+"Vendor: Kelm Hargunth (Warsong Outriders)",
+4,
+"Horde version of Sentinel's Silk Leggings; tied, the stat-scored guide ranks it first"
+],
+[
+"Legs",
+"Skyshroud Leggings",
+"Lower Blackrock Spire: Highlord Omokk",
+4,
+""
+],
+[
+"Legs",
+"Leggings of Torment",
+"Blackrock Spire: Lord Valthalak",
+2,
+""
+],
+[
+"Feet",
+"Omnicast Boots",
+"Blackrock Depths: Golem Lord Argelmach",
+8,
+""
+],
+[
+"Feet",
+"Dragonrider Boots",
+"",
+3,
+"Source to confirm in game"
+],
+[
+"Feet",
+"Sorcerer's Boots",
+"Quest: Anthion's Parting Words",
+2,
+""
+],
+[
+"Ring 1",
+"Warden's Signet of Brilliance",
+"The Watchers, Exalted",
+5,
+""
+],
+[
+"Ring 1",
+"Watcher's Signet of Brilliance",
+"The Watchers, Revered",
+2,
+""
+],
+[
+"Ring 2",
+"Maiden's Circle",
+"Stratholme: Crimson Battle Mage",
+4,
+""
+],
+[
+"Ring 2",
+"Rune Band of Wizardry",
+"Blackrock Spire: Lord Valthalak",
+2,
+""
+],
+[
+"Trinket 1",
+"Briarwood Reed",
+"Upper Blackrock Spire: Jed Runewatcher",
+4,
+"The stat-scored guide doesn't score on-use or proc effects"
+],
+[
+"Trinket 1",
+"Royal Seal of Eldre'Thalas",
+"Quest: Harnessing Shadows",
+2,
+""
+],
+[
+"Trinket 2",
+"Eye of the Beast",
+"Quest: For The Horde!",
+4,
+""
+],
+[
+"Trinket 2",
+"Weakness Analyzer",
+"Vendor: Pix Xizzix (Undermine Trader), Stranglethorn Vale",
+2,
+""
+],
+[
+"Main hand",
+"Sageblade",
+"Crafted: Blacksmithing",
+7,
+""
+],
+[
+"Main hand",
+"Blade of the New Moon",
+"Dire Maul: Immol'thar",
+2,
+""
+],
+[
+"Main hand",
+"Witchblade",
+"Scholomance: Darkmaster Gandling",
+2,
+""
+],
+[
+"Off hand",
+"Therazane's Touch",
+"Frostwolf Clan, Exalted",
+4,
+""
+],
+[
+"Off hand",
+"Tome of Shadow Force",
+"Frostwolf Clan, Exalted",
+3,
+""
+],
+[
+"Off hand",
+"Spirit of Aquementas",
+"Quest",
+2,
+""
+],
+[
+"Two-hand option",
+"Lord Valthalak's Staff of Command",
+"Blackrock Spire: Lord Valthalak",
+2,
+""
+],
+[
+"Ranged / Relic",
+"Bonecreeper Stylus",
+"Scholomance: Darkmaster Gandling",
+5,
+""
+],
+[
+"Ranged / Relic",
+"Skul's Ghastly Touch",
+"Stratholme: Skul",
+3,
+""
+],
+[
+"Ranged / Relic",
+"Torch of Light",
+"Crafted: Enchanting",
+2,
+""
+]
+],
+"guides": [
+"Mobalytics",
+"Zockify",
+"timesaver.gg",
+"2UpSkill",
+"ForeverSpec",
+"FrostyBoost"
+]
+}
+}

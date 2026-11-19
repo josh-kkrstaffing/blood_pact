@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+- Pre-raid BiS lists for all 28 specs (every class; Feral has cat and bear lists), ranked from FrostyBoost and ForeverSpec for every spec, plus ConquestCapped where its guide could be read
+- The BiS Check picks your list from your talents; you can pick another
+- Readiness score: the share of your spec's list you own (bags and bank count) and the share you wear
+- Raid sign-ups show each player's readiness score and sort by it, so leaders can see who is prepared; the Roster shows it too
+- Your score is shared with the guild when you sign up and when your gear changes (your spec and two percentages, nothing else)
+- Two-handers count for the off hand; Alliance versions of faction items are matched
+- No raid BiS lists yet: Blizzard hasn't published the raid loot and no guide has raid lists
+- New flat scrollbars; the Raid & Loot checkbox text no longer runs into the loot column
+- About a quarter of the alternative items have no source in the guides and say so
+
 ## 0.6.0
 
 New

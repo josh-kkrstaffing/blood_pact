@@ -1,0 +1,80 @@
+# "@site|Class|Spec~Base" = same as Base for that site, with the lines below replacing those slots
+@fb|Rogue|Assassination
+Head|Outlaw's Collar|Mask of the Unforgiven|Crafted: Leatherworking
+Neck|Mark of Fordring|Amulet of the Darkmoon|Quest: In Dreams
+Shoulder|Theramore Pauldrons|Highlander's Leather Shoulders|Theramore (A) / Darkspear Raiders (H), Exalted
+Back|Howler's Furs|Cape of the Black Baron|Pix Xizzix, Stranglethorn Vale
+Chest|Dawn Armor|Shadowcraft Tunic|Crafted: Leatherworking
+Wrist|Forest Stalker's Bracers|Bracers of the Eclipse|Warsong Outriders, Exalted
+Hands|Theramore Gloves|Stormshroud Gloves|Theramore (A) / Darkspear Raiders (H), Exalted
+Waist|Assassin's Waistguard|Ferocity of the Timbermaw|Pix Xizzix, Stranglethorn Vale
+Legs|Sentinel's Leather Pants|Plaguehound Leggings|Silverwing (A) / Warsong Outriders (H), Exalted
+Feet|Apprentice's Protective Treads|Shadowcraft Boots|Gortek the Apprentice
+Ring 1|Don Julio's Band|-|Frostwolf Clan, Exalted
+Ring 2|Warden's Signet of Ferocity|Cutthroat's Signet|The Watchers, Exalted
+Trinket 1|Chained Essence of Eranikus|-|Quest: The Essence of Eranikus
+Trinket 2|Blackhand's Breadth|Rune of the Guard Captain|Quest: For The Horde!
+Main-hand|Heartseeker|Tooth of the Matriarch|Crafted: Blacksmithing
+Off-hand|Heartseeker|Tooth of the Matriarch|Crafted: Blacksmithing
+Ranged|Satyr's Bow|Blackcrow|Dire Maul, Zevrim Thornhoof
+@fb|Rogue|Combat~Assassination
+Neck|Mark of Fordring|Beads of Ogre Might|Quest: In Dreams
+Hands|Theramore Gloves|Devilsaur Gauntlets|Theramore (A) / Darkspear Raiders (H), Exalted
+Feet|Shadowcraft Boots|Fine Dawn Treaders|Scholomance, Rattlegore
+Ring 2|Warden's Signet of Ferocity|Watcher's Signet of Ferocity|The Watchers, Exalted
+Trinket 2|Rune of the Guard Captain|Blackhand's Breadth|Quest: Job Opening: Guard Captain of Revantusk Village (Horde)
+Main-hand|Persuader|Hammer of Bestial Fury|Crafted: Blacksmithing
+Off-hand|Greenhammer|Alcor's Sunrazor|Crafted: Blacksmithing
+@fb|Rogue|Subtlety~Assassination
+Head|Mask of the Unforgiven|Outlaw's Collar|Stratholme, The Unforgiven
+Neck|Beads of Ogre Might|Mark of Fordring|Quest: Falrin's Vendetta
+Shoulder|Theramore Pauldrons|Truestrike Shoulders|Theramore (A) / Darkspear Raiders (H), Exalted
+Feet|Fine Dawn Treaders|Shadowcraft Boots|Vendor (needs Leatherworking 290)
+Ring 2|Warden's Signet of Ferocity|Watcher's Signet of Ferocity|The Watchers, Exalted
+Trinket 2|Rune of the Guard Captain|Blackhand's Breadth|Quest: Job Opening: Guard Captain of Revantusk Village (Horde)
+Main-hand|Felstriker|Heartseeker|Blackrock Spire, Warchief Rend Blackhand
+Off-hand|Greenhammer|Ironwood Blade|Crafted: Blacksmithing
+@fs|Rogue|Assassination
+Head|Darkmantle Cap|Outlaw's Collar|Mask of the Unforgiven|Quest: Saving the Best for Last
+Neck|Mark of Fordring|Medallion of the Dawn|Beads of Ogre Might|Quest: In Dreams
+Shoulders|Truestrike Shoulders|Theramore Pauldrons|Darkspear Pauldrons|Upper Blackrock Spire: Pyroguard Emberseer (20%)
+Back|Cape of the Black Baron|Earthweave Cloak|Deathguard's Cloak|Stratholme: Baron Rivendare (14%)
+Chest|Dawn Armor|Darkmantle Tunic|Timbermaw Tunic|Leatherworking (300)
+Wrists|Forest Stalker's Bracers|Bracers of the Eclipse|-|Warsong Outriders vendor
+Hands|Theramore Gloves|Raider Gloves|Devilsaur Gauntlets|Exalted with Darkspear Raiders
+Waist|Belt of Preserved Heads|Highlander's Leather Girdle|Defiler's Leather Girdle|Quest: A Collection of Heads
+Legs|Devilsaur Leggings|Outrider's Leather Pants|Sentinel's Leather Pants|Leatherworking (290)
+Feet|Pads of the Dread Wolf|Dunestalker's Boots|Shadowcraft Boots|Blackrock Spire: Halycon (14%)
+Rings|Don Julio's Band|Warden's Signet of Ferocity|Watcher's Signet of Ferocity|Exalted with Frostwolf Clan
+Trinkets|Blackhand's Breadth|Royal Seal of Eldre'Thalas|Hand of Justice|Quest: For The Horde!
+Main hand|Greenhammer|Ironwood Blade|Persuader|Blacksmithing (300)
+Off hand|Dal'Rend's Tribal Guardian|Distracting Dagger|Gargoyle Shredder Talons|Upper Blackrock Spire: Warchief Rend Blackhand (20%)
+Ranged|Blackcrow|Satyr's Bow|Gorewood Bow|Blackrock Spire: Shadow Hunter Vosh'gajin (8%)
+@fs|Rogue|Combat~Assassination
+Neck|Mark of Fordring|Beads of Ogre Might|Medallion of the Dawn|Quest: In Dreams
+Chest|Dawn Armor|Darkmantle Tunic|Cadaverous Armor|Leatherworking (300)
+Wrists|Forest Stalker's Bracers|Bracers of the Eclipse|Bracers of Subterfuge|Warsong Outriders vendor
+Rings|Warden's Signet of Ferocity|Don Julio's Band|Watcher's Signet of Ferocity|Exalted with The Watchers
+Trinkets|Royal Seal of Eldre'Thalas|Blackhand's Breadth|Hand of Justice|Quest: Garona: A Study on Stealth and Treachery
+@fs|Rogue|Subtlety~Assassination
+Shoulders|Theramore Pauldrons|Darkspear Pauldrons|Truestrike Shoulders|Exalted with Darkspear Raiders
+Back|Cape of the Black Baron|Deathguard's Cloak|Cloak of the Honor Guard|Stratholme: Baron Rivendare (14%)
+Ranged|Gorewood Bow|Blackcrow|Satyr's Bow|Quest: The Scarlet Oracle, Demetria
+@cc|Rogue|Subtlety
+Main hand|Black Amnesty|Felstriker|The Lobotomizer|Blacksmithing 300 (plans: Thorium Brotherhood, Revered)
+Off hand|Distracting Dagger|Talon of Tor'Rel|Specter's Blade|Dire Maul: Prince Tortheldrin
+Ranged|Satyr's Bow|Deep Jungle Rifle|Blackcrow|Dire Maul: Zevrim Thornhoof
+Head|Mask of the Unforgiven|Eye of Rend|-|Stratholme: The Unforgiven
+Neck|Mark of Fordring|Beads of Ogre Might|Imperial Jewel|Quest: In Dreams
+Shoulder|Truestrike Shoulders|Darkspear Pauldrons|-|Upper Blackrock Spire: Pyroguard Emberseer
+Back|Cape of the Black Baron|Howler's Furs|-|Stratholme: Baron Rivendare
+Chest|Shadowcraft Tunic|Timbermaw Tunic|Darkmantle Tunic|Upper Blackrock Spire: General Drakkisath
+Wrist|Bracers of the Eclipse|Blackmist Armguards|-|Dire Maul: Prince Tortheldrin
+Hands|Devilsaur Gauntlets|Raider Gloves|-|Leatherworking 265 (BoE)
+Waist|Assassin's Waistguard|Might of the Timbermaw|-|Vendor: Pix Xizzix, Booty Bay
+Legs|Devilsaur Leggings|Plaguehound Leggings|-|Leatherworking 290 (BoE)
+Feet|Shadowcraft Boots|Mongoose Boots|Pads of the Dread Wolf|Scholomance: Rattlegore
+Ring 1|Don Julio's Band|Blackstone Ring|-|Frostwolf Clan, Exalted
+Ring 2|Blackstone Ring|Cutthroat's Signet|-|Maraudon: Princess Theradras
+Trinket 1|Royal Seal of Eldre'Thalas|Behemoth Bones|Adaptive Combat Assistant|Quest: Garona (Dire Maul)
+Trinket 2|Blackhand's Breadth|-|-|Quest: For The Horde!

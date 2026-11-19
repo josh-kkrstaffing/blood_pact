@@ -160,12 +160,16 @@ function R.Summary(st, r)
     for guid, s in pairs(r.signups) do
         c[s.st] = c[s.st] + 1
         if s.st == "yes" and s.role then c[s.role] = c[s.role] + 1 end
-        rows[#rows + 1] = { guid = guid, st = s.st, role = s.role,
+        rows[#rows + 1] = { guid = guid, st = s.st, role = s.role, gear = st.gear and st.gear[guid] or nil,
             showed = present and present[guid] or nil, name = ns.NameForGUID and ns.NameForGUID(guid) or guid }
     end
+    -- Coming first; within each answer the best-prepared first, so a leader
+    -- who has to choose sees who put in the work. No score sorts last.
     local order = { yes = 1, maybe = 2, no = 3 }
     table.sort(rows, function(a, b)
         if a.st ~= b.st then return order[a.st] < order[b.st] end
+        local ga, gb = a.gear and a.gear.pre or -1, b.gear and b.gear.pre or -1
+        if ga ~= gb then return ga > gb end
         return tostring(a.name) < tostring(b.name)
     end)
     return c, rows
@@ -272,14 +276,32 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
                 R.SignUp, selected, b[2], role)
             local r = ok and Red.State().raids[selected]
             if r and ns.Calendar then ns.Calendar.Respond(r, b[2]) end
+            -- Signing up shares your current readiness score with the leaders.
+            if ok and b[2] ~= "no" and ns.BiS then ns.BiS.Publish(true) end
         end)
         btn:SetPoint("TOPLEFT", 330 + (i - 1) * 64, -88)
         p.signButtons[i] = btn
     end
-    p.people = W.List(p, 320, 92, 16, function(row, s)
-        p.people.Col(row, 1, 4, 140):SetText(U.Safe(s.name or "?", 40))
-        p.people.Col(row, 2, 146, 80):SetText(R.STATUS_LABEL[s.st] .. (s.role and (" " .. R.ROLE_LABEL[s.role]) or ""))
-        p.people.Col(row, 3, 230, 86):SetText(s.showed and "|cff40ff40was there|r" or "")
+    p.people = W.List(p, 360, 92, 16, function(row, s)
+        p.people.Col(row, 1, 4, 112):SetText(U.Safe(s.name or "?", 40))
+        p.people.Col(row, 2, 118, 78):SetText(R.STATUS_LABEL[s.st] .. (s.role and (" " .. R.ROLE_LABEL[s.role]) or ""))
+        local g = s.gear
+        local color = not g and "808080" or (g.pre >= 75 and "40ff40" or (g.pre >= 40 and "ffd100" or "ff6040"))
+        p.people.Col(row, 3, 198, 104):SetText("|cff" .. color .. (g and (g.pre .. "%  " .. U.Safe(g.spec, 24)) or "no score yet") .. "|r")
+        p.people.Col(row, 4, 304, 54):SetText(s.showed and "|cff40ff40was there|r" or "")
+        row:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:AddLine(U.Safe(s.name or "?", 40))
+            if g then
+                GameTooltip:AddLine(("Pre-raid BiS, %s list"):format(U.Safe(g.spec, 24)), 1, 1, 1)
+                GameTooltip:AddLine(("Owns %d%% of it (bags and bank count); wearing %d%%"):format(g.pre, g.worn), 0.8, 0.8, 0.8)
+                GameTooltip:AddLine("Reported by their own Blood Pact on " .. date("%b %d", g.t), 0.6, 0.6, 0.6)
+            else
+                GameTooltip:AddLine("No readiness score: they haven't run this Blood Pact version yet.", 0.8, 0.8, 0.8, true)
+            end
+            GameTooltip:Show()
+        end)
+        row:SetScript("OnLeave", GameTooltip_Hide)
     end)
     p.people.scroll:SetPoint("TOPLEFT", 330, -116)
 
@@ -394,7 +416,7 @@ end, function(p)
     p.info:SetText(U.Safe(found.raid, 30) .. " (" .. found.size .. ")  -  " .. (found.prog and "|cffff8040Progression|r" or "Farm")
         .. (found.n and ("  -  " .. U.Safe(found.n, 60)) or ""))
     p.when:SetText(R.When(found))
-    p.counts:SetText(("Coming %d/%d   Tanks %d  Healers %d  DPS %d   Maybe %d   Can't %d"):format(
+    p.counts:SetText(("Coming %d/%d   Tanks %d  Healers %d  DPS %d   Maybe %d   Can't %d   (%% = pre-raid BiS owned)"):format(
         c.yes, found.size, c.tank, c.healer, c.dps, c.maybe, c.no))
     local mine = found.signups[ns.MyGUID()]
     if not open then

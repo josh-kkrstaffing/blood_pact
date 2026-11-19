@@ -94,6 +94,11 @@ L.KINDS = {
             and (d.ri == nil or isInt(d.ri, 0, 9)) and str(d.idem, 1, 96)
             and (d.live == nil or type(d.live) == "boolean")
     end },
+    -- A player's own readiness score against the ranked BiS list (whole percents).
+    GEAR = { "signup", function(d)
+        return str(d.spec, 1, 24) and isInt(d.pre, 0, 100) and isInt(d.worn, 0, 100)
+            and (d.raid == nil or isInt(d.raid, 0, 100))
+    end },
     TASK = { "roster", function(d)
         return str(d.id, 1, 96) and L.TASK_STATES[d.st] ~= nil
     end },
