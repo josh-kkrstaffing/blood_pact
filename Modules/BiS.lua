@@ -71,7 +71,8 @@ function BiS.CurrentSpec()
     local c = charStore()
     local key = c and c.bisSpec
     if key and lists[key] then return key, lists[key] end
-    for k, v in pairs(lists) do return k, v end
+    local k = next(lists)
+    if k then return k, lists[k] end
 end
 
 function BiS.SetSpec(key)

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Release pipeline fix (lint warning in the BiS module)
+
 ## 0.2.0
 
 - New BiS Check tab (everyone): compares your equipped gear, bags and bank with Blood Pact's ranked pre-raid list
