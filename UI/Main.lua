@@ -294,19 +294,22 @@ local SETTING_ROWS = {
     { "decayPct", "Decay %" },
     { "priceBis", "Price: best-in-slot" }, { "priceMajor", "Price: major upgrade" },
     { "priceMinor", "Price: minor upgrade" }, { "priceOff", "Price: off spec" },
+    { "inactWatch", "Inactive days: Watch" }, { "inactInactive", "Inactive days: Inactive" },
+    { "inactCleanup", "Inactive days: Cleanup" }, { "promoDays", "Initiate promo: days (0 = off)" },
+    { "promoRaids", "Initiate promo: raids" },
 }
 
 UI.AddTab("settings", "Settings", "settings", function(p)
-    local intro = W.Text(p, "DKP values for this guild. Defaults follow a published example; set your guild's own rules here.", "GameFontHighlightSmall")
+    local intro = W.Text(p, "Rules for this guild. DKP defaults follow a published example and inactivity days start at ForeverGuildManager's 30/60/90; set your own here.", "GameFontHighlightSmall")
     intro:SetPoint("TOPLEFT", 0, 0)
-    intro:SetWidth(640)
+    intro:SetWidth(700)
     p.edits = {}
     for i, r in ipairs(SETTING_ROWS) do
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
         local fs = W.Text(p, r[2], "GameFontHighlight")
-        fs:SetPoint("TOPLEFT", col * 320, -30 - row * 30)
+        fs:SetPoint("TOPLEFT", col * 350, -30 - row * 30)
         local e = W.Edit(p, 60, 5)
-        e:SetPoint("TOPLEFT", col * 320 + 190, -26 - row * 30)
+        e:SetPoint("TOPLEFT", col * 350 + 220, -26 - row * 30)
         p.edits[r[1]] = e
     end
     p.save = W.Button(p, "Save settings", 140, 22, function()
@@ -314,13 +317,13 @@ UI.AddTab("settings", "Settings", "settings", function(p)
         for key, e in pairs(p.edits) do values[key] = e:GetText() end
         UI.Try("Settings saved and shared with the guild.", ns.DKP.SaveSettings, values)
     end)
-    p.save:SetPoint("TOPLEFT", 0, -190)
+    p.save:SetPoint("TOPLEFT", 0, -250)
     p.decay = W.Button(p, "Run decay now", 140, 22, function()
         UI.Try("Decay applied to every balance.", ns.DKP.Decay)
     end)
     p.decay:SetPoint("LEFT", p.save, "RIGHT", 8, 0)
     p.last = W.Text(p, "", "GameFontDisableSmall")
-    p.last:SetPoint("TOPLEFT", 0, -222)
+    p.last:SetPoint("TOPLEFT", 0, -282)
 end, function(p)
     local st = ns.Reducer.State()
     if not st then return end

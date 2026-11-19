@@ -7,6 +7,12 @@
 - Rank history and alts for each member; Officers link and unlink alts by name
 - Changes are recorded live from the game's guild messages, and caught up after the fact by comparing the roster; history starts the first time a Team Captain or above runs Blood Pact
 - Window is a little wider to fit the new tab
+- Activity per player: a main counts as active if any alt was online, or if they signed up or raided; Last on is colored Active, Watch, Inactive or Cleanup
+- Inactivity days start at ForeverGuildManager's published 30/60/90 and the Guild Master can change them in Settings
+- Officer tasks (Team Captain and above): review cleanup candidates, promote Initiates who meet the guild's rule (off until the Guild Master sets it), match an alt's rank to its main, check new members for alts
+- Tasks sync to every officer: claim one so others see it's yours, mark it done for everyone; promotions and removals close their task on their own once the guild log sees them
+- Each task copies the slash command to paste, because WoW Forever only lets officers change ranks and remove members by hand
+- Officers see a chat line at login when tasks are waiting
 - New Raids tab: Team Captains and above schedule raids (Barrow Deeps and Hyjal Summit presets) and cancel them
 - Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't; the latest answer counts
 - Attendance: taken on each boss kill while a Team Captain or above leads, or with one click

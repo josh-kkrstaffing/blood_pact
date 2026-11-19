@@ -173,7 +173,7 @@ local view, selected, filter = "members", nil, ""
 local function day(t) return t and date("%b %d, %Y", t) or "-" end
 
 local function lastOn(m)
-    if m.online then return "|cff40ff40online|r" end
+    if m.online then return "online" end
     if not m.offlineDays then return "-" end
     if m.offlineDays == 0 then return "today" end
     return m.offlineDays .. "d ago"
@@ -186,8 +186,11 @@ function R.Rows(st)
         local main = st and st.alts[guid]
         local nm = m.name or "?"
         if filter == "" or nm:lower():find(filter, 1, true) then
+            local level = "unknown"
+            if st then level = ns.Officer.Level(ns.Officer.ActiveDays(st, ns.roster.byGUID, guid, ns.Now()), st.settings) end
             rows[#rows + 1] = { guid = guid, name = nm, rank = m.rank or "", ri = m.rankIndex or 9, level = m.level or 0,
-                joined = known and known.joined, last = lastOn(m), main = main, offline = m.offlineDays or (m.online and -1 or 9999) }
+                joined = known and known.joined, main = main, activity = level,
+                last = "|cff" .. ns.Officer.LEVEL_COLOR[level] .. lastOn(m) .. "|r" }
         end
     end
     table.sort(rows, function(a, b)
@@ -202,15 +205,18 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
     p.membersBtn:SetPoint("TOPLEFT", 0, 0)
     p.logBtn = W.Button(p, "Guild log", 90, 22, function() view = "log"; ns.UI.Refresh() end)
     p.logBtn:SetPoint("TOPLEFT", 94, 0)
-    W.Text(p, "Search", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 200, -5)
-    p.search = W.Edit(p, 130, 30)
-    p.search:SetPoint("TOPLEFT", 244, -1)
+    p.tasksBtn = W.Button(p, "Officer tasks", 110, 22, function() view = "tasks"; ns.UI.Refresh() end)
+    p.tasksBtn:SetPoint("TOPLEFT", 188, 0)
+    p.searchLabel = W.Text(p, "Search", "GameFontHighlightSmall")
+    p.searchLabel:SetPoint("TOPLEFT", 310, -5)
+    p.search = W.Edit(p, 120, 30)
+    p.search:SetPoint("TOPLEFT", 354, -1)
     p.search:SetScript("OnTextChanged", function(self)
         filter = (self:GetText() or ""):lower()
         if view == "members" then ns.UI.Refresh() end
     end)
     p.count = W.Text(p, "", "GameFontDisableSmall")
-    p.count:SetPoint("TOPLEFT", 390, -5)
+    p.count:SetPoint("TOPLEFT", 490, -5)
 
     -- Members view
     p.head = {}
@@ -254,19 +260,65 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         p.log.Col(row, 2, 136, 560):SetText(U.Safe(R.Describe(e), 120))
     end)
     p.log.scroll:SetPoint("TOPLEFT", 0, -28)
+
+    -- Officer tasks view (Team Captain and above)
+    p.tasks = W.List(p, 710, 250, 18, function(row, task)
+        p.tasks.Col(row, 1, 4, 560):SetText(U.Safe(task.text, 140))
+        p.tasks.Col(row, 2, 570, 136):SetText(task.claimedBy and ("|cffffd100" .. U.Safe(ns.NameForGUID(task.claimedBy) or "an officer", 30) .. "|r") or "")
+    end, function(task) p.taskSel = task.id; ns.UI.Refresh() end)
+    p.tasks.scroll:SetPoint("TOPLEFT", 0, -28)
+    p.tw = CreateFrame("Frame", nil, p)
+    p.tw:SetPoint("TOPLEFT", 0, -286)
+    p.tw:SetSize(710, 60)
+    p.claim = W.Button(p.tw, "Claim", 80, 22, function()
+        if p.taskSel then ns.UI.Try("Claimed. Other officers see it's yours.", ns.Officer.Mark, p.taskSel, "claim") end
+    end)
+    p.claim:SetPoint("TOPLEFT", 0, 0)
+    p.done = W.Button(p.tw, "Done / dismiss", 120, 22, function()
+        if p.taskSel then
+            if ns.UI.Try("Marked done for every officer.", ns.Officer.Mark, p.taskSel, "done") then p.taskSel = nil end
+        end
+    end)
+    p.done:SetPoint("TOPLEFT", 84, 0)
+    W.Text(p.tw, "Command:", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 216, -5)
+    p.cmd = W.Edit(p.tw, 220, 80)
+    p.cmd:SetPoint("TOPLEFT", 280, -1)
+    p.cmd:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+    p.cmdHint = W.Text(p.tw, "Ctrl+C, then paste in chat. The game only lets officers do this by hand.", "GameFontDisableSmall")
+    p.cmdHint:SetPoint("TOPLEFT", 0, -30)
 end, function(p)
     local st = Red.State()
-    local members = view == "members"
+    local canTasks = RBAC.ICan("roster")
+    if view == "tasks" and not canTasks then view = "members" end
+    local members, tasks = view == "members", view == "tasks"
     p.membersBtn:SetEnabled(not members)
-    p.logBtn:SetEnabled(members)
+    p.logBtn:SetEnabled(view ~= "log")
+    p.tasksBtn:SetShown(canTasks)
+    p.tasksBtn:SetEnabled(not tasks)
+    p.tasks.scroll:SetShown(tasks)
+    p.tw:SetShown(tasks)
+    p.searchLabel:SetShown(members)
     for _, fs in ipairs(p.head) do fs:SetShown(members) end
     p.list.scroll:SetShown(members)
     p.detail:SetShown(members)
     p.search:SetShown(members)
-    p.log.scroll:SetShown(not members)
+    p.log.scroll:SetShown(view == "log")
     local officer = RBAC.ICan("altlink")
     for _, w in ipairs({ p.altBox, p.link, p.altHint, p.unlink }) do w:SetShown(members and officer) end
 
+    if tasks then
+        local list = ns.Officer.Current()
+        local sel
+        for _, task in ipairs(list) do if task.id == p.taskSel then sel = task end end
+        p.taskSel = sel and sel.id or nil
+        p.tasks.selected = sel
+        p.tasks:SetItems(list)
+        p.count:SetText(#list == 0 and "Nothing to do." or (#list .. " tasks"))
+        p.claim:SetEnabled(sel ~= nil)
+        p.done:SetEnabled(sel ~= nil)
+        p.cmd:SetText(sel and sel.cmd or "")
+        return
+    end
     if not members then
         local list = {}
         for i = #(st and st.rosterLog or {}), 1, -1 do list[#list + 1] = st.rosterLog[i] end

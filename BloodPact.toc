@@ -26,5 +26,6 @@ Modules\BiSData.lua
 Modules\BiS.lua
 Modules\Raids.lua
 Modules\Calendar.lua
+Modules\Officer.lua
 Modules\Roster.lua
 Core\Commands.lua

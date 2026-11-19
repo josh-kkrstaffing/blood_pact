@@ -26,11 +26,15 @@ function M.Start()
     ns.mock = true
     local byGUID, byName = {}, {}
     local me, myName = ns.MyGUID(), UnitName("player")
-    byGUID[me] = { name = myName, rankIndex = 0 }
+    byGUID[me] = { name = myName, rankIndex = 0, rank = "Guild Master", online = true }
     byName[myName] = me
     for i, f in ipairs(FAKE) do
         local guid = fakeGUID(i)
-        byGUID[guid] = { name = f[1], rankIndex = f[2] }
+        -- A spread of last-online days so the activity colors and cleanup tasks show.
+        local away = ({ [6] = 35, [9] = 70, [12] = 120, [15] = 95 })[i] or (i % 3 == 0 and 2 or nil)
+        local ranks = { [0] = "Guild Master", "Officer", "Team Captain", "Veteran", "Member", "Initiate" }
+        byGUID[guid] = { name = f[1], rankIndex = f[2], rank = ranks[f[2]], level = 60,
+            online = away == nil, offlineDays = away }
         byName[f[1]] = guid
     end
     ns.roster = { byGUID = byGUID, byName = byName, loaded = true }
@@ -102,7 +106,7 @@ function M.Command(arg)
         fakeEvent(1, "ROSTER", { ev = "join", who = fakeGUID(18), name = ns.NameForGUID(fakeGUID(18)) or "Newbie", ri = 5, rank = "Initiate", idem = "mj:" .. day, live = true }, true)
         fakeEvent(1, "ROSTER", { ev = "promote", who = fakeGUID(5), name = ns.NameForGUID(fakeGUID(5)) or "Vet", ri = 3, rank = "Veteran", by = "Grimtusk", idem = "mp:" .. day, live = true }, true)
         fakeEvent(1, "ALT_LINK", { alt = fakeGUID(19), main = fakeGUID(4) }, true)
-        ns.Print("Grimtusk logged a join, a promotion and an alt link. See the Roster tab.")
+        ns.Print("Grimtusk logged a join, a promotion and an alt link. See Roster > Guild log and Officer tasks.")
     elseif arg == "attend" then
         local e, n = ns.Raids.TakeAttendance("mock")
         ns.Print(e and ("Attendance taken for " .. n .. " raiders.") or tostring(n))

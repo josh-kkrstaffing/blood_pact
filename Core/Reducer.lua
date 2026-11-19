@@ -12,6 +12,11 @@ local floor, pairs, ipairs = math.floor, pairs, ipairs
 Red.DEFAULTS = {
     onTime = 10, bossFarm = 5, bossProg = 15, fullRaid = 10, decayPct = 15,
     priceBis = 100, priceMajor = 60, priceMinor = 30, priceOff = 10,
+    -- Inactivity days: Watch / Inactive / Cleanup. Starting values are the
+    -- defaults ForeverGuildManager publishes (30/60/90).
+    inactWatch = 30, inactInactive = 60, inactCleanup = 90,
+    -- Initiate -> Member rule: days in the guild and raids attended. 0 = off.
+    promoDays = 0, promoRaids = 0,
 }
 Red.ATTEND_WINDOW = 10
 Red.TIER_KEY = { bis = "priceBis", major = "priceMajor", minor = "priceMinor", off = "priceOff" }
@@ -41,7 +46,7 @@ function Red.Build(g)
         settings = ns.U.Copy(Red.DEFAULTS), pools = {}, alts = {}, idem = {},
         recruitMsgs = nil, history = {}, lastDecay = nil,
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
-        members = {}, rosterLog = {},
+        members = {}, rosterLog = {}, tasks = {}, lastSeen = {},
     }
     local signups, attIdem = {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
@@ -118,6 +123,8 @@ function Red.Build(g)
             end
             st.lastDecay = e
             st.history[#st.history + 1] = e
+        elseif k == "TASK" then
+            st.tasks[d.id] = { st = d.st, by = e.a, t = e.t }
         elseif k == "RECRUIT_MSGS" then
             st.recruitMsgs = d.msgs
         elseif k == "RAID" then
@@ -127,6 +134,7 @@ function Red.Build(g)
             if st.raids[d.ev] then st.raids[d.ev].cancelled = true end
         elseif k == "SIGNUP" then
             -- Latest sign-up per person per raid wins (events are in Lamport order).
+            if e.t > (st.lastSeen[e.a] or 0) then st.lastSeen[e.a] = e.t end
             signups[d.ev] = signups[d.ev] or {}
             signups[d.ev][e.a] = { st = d.st, role = d.role, n = d.n }
         elseif k == "ATTEND" then
@@ -134,7 +142,10 @@ function Red.Build(g)
                 attIdem[d.idem] = true
                 local day = st.attendDays[d.day] or {}
                 st.attendDays[d.day] = day
-                for _, guid in ipairs(d.who) do day[guid] = true end
+                for _, guid in ipairs(d.who) do
+                    day[guid] = true
+                    if e.t > (st.lastSeen[guid] or 0) then st.lastSeen[guid] = e.t end
+                end
             end
         end
     end

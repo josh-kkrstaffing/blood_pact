@@ -26,6 +26,7 @@ load("Modules/BiSData.lua")
 load("Modules/BiS.lua")
 ns.DKP = { GroupGUIDs = function() return {} end }
 load("Modules/Raids.lua")
+load("Modules/Officer.lua")
 ns.Listen = function() end
 load("Modules/Roster.lua")
 
@@ -450,6 +451,84 @@ test("roster: log builds join dates and history once; members can't write it; al
     Log.Insert(g, author(g, "Player-1-OFFICER1", "ALT_UNLINK", { alt = "Player-1-MEM2" }), true)
     st = Red.Build(g)
     eq(st.alts["Player-1-MEM2"], nil)
+end)
+
+test("activity: best of main and alts, roster or Blood Pact activity; levels follow settings", function()
+    local O = ns.Officer
+    local st = { alts = { ALT = "MAIN" }, lastSeen = {}, settings = Red.DEFAULTS }
+    local roster = { MAIN = { name = "Main", offlineDays = 100 }, ALT = { name = "Alt", offlineDays = 4 } }
+    eq(O.ActiveDays(st, roster, "MAIN", NOW), 4)
+    roster.ALT.offlineDays = 120
+    st.lastSeen.MAIN = NOW - 10 * 86400                 -- signed up for a raid 10 days ago
+    eq(O.ActiveDays(st, roster, "MAIN", NOW), 10)
+    roster.ALT.online = true
+    eq(O.ActiveDays(st, roster, "MAIN", NOW), 0)
+    eq(O.Level(29, Red.DEFAULTS), "active"); eq(O.Level(30, Red.DEFAULTS), "watch")
+    eq(O.Level(60, Red.DEFAULTS), "inactive"); eq(O.Level(90, Red.DEFAULTS), "cleanup")
+    eq(O.Level(nil, Red.DEFAULTS), "unknown")
+end)
+
+test("tasks: cleanup, promotion rule, alt rank, new member; claim and done", function()
+    local O = ns.Officer
+    local g = newStore()
+    local function st()
+        local s = Red.Build(g)
+        return s
+    end
+    -- MEM1 joined 40 days ago as an Initiate and raided 3 times; MEM2 is long gone.
+    Log.Insert(g, Log.Build(g, "Player-1-CAPT", "ROSTER", { ev = "join", who = "Player-1-INIT", name = "Init",
+        ri = 5, idem = "j1" }, NOW - 40 * 86400), true)
+    for i = 1, 3 do
+        Log.Insert(g, author(g, "Player-1-CAPT", "ATTEND", { who = { "Player-1-INIT" }, day = ("2026-11-0%d"):format(i), idem = "a" .. i }), true)
+    end
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "ALT_LINK", { alt = "Player-1-MEM2", main = "Player-1-VET" }), true)
+    local roster = {
+        ["Player-1-INIT"] = { name = "Init", rankIndex = 5, online = true },
+        ["Player-1-MEM1"] = { name = "Gone", rankIndex = 4, offlineDays = 200 },
+        ["Player-1-VET"] = { name = "Vet", rankIndex = 3, rank = "Veteran", online = true },
+        ["Player-1-MEM2"] = { name = "VetAlt", rankIndex = 4, rank = "Member", online = true },
+    }
+    local roleOf = function(guid) return guid == "Player-1-INIT" and "initiate" or "member" end
+    local tasks = O.Tasks(st(), roster, NOW, roleOf)
+    local kinds = {}
+    for _, t in ipairs(tasks) do kinds[t.kind] = t end
+    eq(kinds.cleanup.name, "Gone"); eq(kinds.cleanup.cmd, "/gremove Gone")
+    eq(kinds.altrank.cmd, "/gpromote VetAlt")
+    eq(kinds.promote, nil)                        -- promotion rule is off by default
+    Log.Insert(g, author(g, "Player-1-GM", "SETTINGS", { promoDays = 30, promoRaids = 3 }), true)
+    tasks = O.Tasks(st(), roster, NOW, roleOf)
+    kinds = {}
+    for _, t in ipairs(tasks) do kinds[t.kind] = t end
+    eq(kinds.promote.cmd, "/gpromote Init")
+    eq(tasks[1].kind, "promote")                  -- promotions sort first
+    -- Claim shows who; done hides it for everyone.
+    Log.Insert(g, author(g, "Player-1-CAPT", "TASK", { id = kinds.altrank.id, st = "claim" }), true)
+    Log.Insert(g, author(g, "Player-1-CAPT", "TASK", { id = kinds.promote.id, st = "done" }), true)
+    tasks = O.Tasks(st(), roster, NOW, roleOf)
+    kinds = {}
+    for _, t in ipairs(tasks) do kinds[t.kind] = t end
+    eq(kinds.altrank.claimedBy, "Player-1-CAPT")
+    eq(kinds.promote, nil)
+    -- A dismissed cleanup comes back after another Watch period.
+    Log.Insert(g, author(g, "Player-1-CAPT", "TASK", { id = kinds.cleanup.id, st = "done" }), true)
+    eq(#O.Tasks(st(), roster, NOW, roleOf), 1)
+    local later = O.Tasks(st(), roster, NOW + 31 * 86400, roleOf)
+    local back = false
+    for _, t in ipairs(later) do if t.kind == "cleanup" then back = true end end
+    eq(back, true)
+    -- Members can't touch the queue.
+    eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "TASK", { id = "x", st = "done" }), true)), "forbidden")
+end)
+
+test("new member check shows for a week, not for alts", function()
+    local O = ns.Officer
+    local g = newStore()
+    Log.Insert(g, author(g, "Player-1-CAPT", "ROSTER", { ev = "join", who = "Player-1-MEM1", name = "Fresh", ri = 5, idem = "j" }), true)
+    local roster = { ["Player-1-MEM1"] = { name = "Fresh", rankIndex = 5, online = true } }
+    local any = function() return "member" end
+    local tasks = O.Tasks(Red.Build(g), roster, NOW + 86400, any)
+    eq(#tasks, 1); eq(tasks[1].kind, "newcheck")
+    eq(#O.Tasks(Red.Build(g), roster, NOW + 8 * 86400, any), 0)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

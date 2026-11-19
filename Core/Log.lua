@@ -25,7 +25,9 @@ end
 L.SETTING_KEYS = {
     onTime = true, bossFarm = true, bossProg = true, fullRaid = true, decayPct = true,
     priceBis = true, priceMajor = true, priceMinor = true, priceOff = true,
+    inactWatch = true, inactInactive = true, inactCleanup = true, promoDays = true, promoRaids = true,
 }
+L.TASK_STATES = { claim = true, done = true, open = true }
 L.TIERS = { bis = true, major = true, minor = true, off = true }
 L.SIGNUP_STATUS = { yes = true, maybe = true, no = true }
 L.ROLES = { tank = true, healer = true, dps = true }
@@ -88,6 +90,9 @@ L.KINDS = {
             and (d.by == nil or str(d.by, 1, 48)) and (d.rank == nil or str(d.rank, 1, 32))
             and (d.ri == nil or isInt(d.ri, 0, 9)) and str(d.idem, 1, 96)
             and (d.live == nil or type(d.live) == "boolean")
+    end },
+    TASK = { "roster", function(d)
+        return str(d.id, 1, 96) and L.TASK_STATES[d.st] ~= nil
     end },
     RECRUIT_MSGS = { "recruitEdit", function(d)
         if type(d.msgs) ~= "table" or #d.msgs < 1 or #d.msgs > 3 then return false end
