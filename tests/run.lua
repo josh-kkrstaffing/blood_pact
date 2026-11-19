@@ -859,7 +859,7 @@ test("recipes: each player shares their own; later scans only add; a reset repla
     adds, gone = Rc.Diff({ 7418, 7420, 7421, 13380, 13419, 13419 }, have)
     eq(#adds, 1); eq(adds[1], 13419); eq(gone, false)     -- one new recipe: one id is sent
     adds, gone = Rc.Diff({ 7418, 7420 }, have)
-    eq(gone, true)                                        -- a shared recipe is gone: replace the list
+    eq(#adds, 0); eq(gone, true)                                        -- a shared recipe is gone: replace the list
     eq(#Rc.Diff({ 5, 6 }, nil), 2)
     local parts = Rc.Chunks({ 1, 2, 3, 4, 5 }, 2)
     eq(#parts, 3); eq(#parts[3], 1); eq(parts[2][1], 3)
