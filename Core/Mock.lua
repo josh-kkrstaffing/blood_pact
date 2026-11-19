@@ -85,7 +85,21 @@ function M.Command(arg)
         -- A Member relays an award that claims Grimtusk wrote it. Not confirmed.
         local res = fakeEvent(1, "AWARD", { to = { fakeGUID(16) }, amt = 500, r = "manual", n = "Forged" }, false)
         ns.Print("Pip relayed a forged 500 DKP award: " .. tostring(res) .. " (provisional, not counted).")
+    elseif arg == "signups" then
+        -- Fake guildmates sign up for the next raid you scheduled.
+        local list = ns.Raids.List(ns.Reducer.State(), ns.Now())
+        local r
+        for _, x in ipairs(list) do if x.at >= ns.Now() - 6 * 3600 then r = x; break end end
+        if not r then ns.Print("Schedule a raid in the Raids tab first.") return end
+        local plan = { "tank", "tank", "healer", "healer", "healer", "dps", "dps", "dps", "dps", "dps", "dps" }
+        for i, role in ipairs(plan) do fakeEvent(i, "SIGNUP", { ev = r.id, st = "yes", role = role }, true) end
+        fakeEvent(12, "SIGNUP", { ev = r.id, st = "maybe", role = "dps" }, true)
+        fakeEvent(13, "SIGNUP", { ev = r.id, st = "no" }, true)
+        ns.Print("13 fake guildmates answered the sign-up for " .. r.title .. ".")
+    elseif arg == "attend" then
+        local e, n = ns.Raids.TakeAttendance("mock")
+        ns.Print(e and ("Attendance taken for " .. n .. " raiders.") or tostring(n))
     else
-        ns.Print("Mock commands: on, off, boss, award, forge, reset")
+        ns.Print("Mock commands: on, off, boss, award, forge, signups, attend, reset")
     end
 end

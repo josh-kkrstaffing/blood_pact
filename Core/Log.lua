@@ -27,6 +27,10 @@ L.SETTING_KEYS = {
     priceBis = true, priceMajor = true, priceMinor = true, priceOff = true,
 }
 L.TIERS = { bis = true, major = true, minor = true, off = true }
+L.SIGNUP_STATUS = { yes = true, maybe = true, no = true }
+L.ROLES = { tank = true, healer = true, dps = true }
+
+local function str(s, lo, hi) return type(s) == "string" and #s >= lo and #s <= hi end
 
 -- kind -> { action required, payload validator }
 L.KINDS = {
@@ -56,6 +60,23 @@ L.KINDS = {
     end },
     ALT_LINK = { "altlink", function(d)
         return isGUID(d.alt) and isGUID(d.main) and d.alt ~= d.main
+    end },
+    RAID = { "schedule", function(d)
+        return str(d.title, 1, 40) and str(d.raid, 1, 30) and isInt(d.at, 1e9, 1e11)
+            and isInt(d.size, 5, 40) and optNote(d.n)
+    end },
+    RAID_CANCEL = { "schedule", function(d)
+        return str(d.ev, 1, 80)
+    end },
+    SIGNUP = { "signup", function(d)
+        return str(d.ev, 1, 80) and L.SIGNUP_STATUS[d.st] ~= nil
+            and (d.role == nil or L.ROLES[d.role] ~= nil) and optNote(d.n)
+    end },
+    ATTEND = { "schedule", function(d)
+        if type(d.who) ~= "table" or #d.who < 1 or #d.who > 60 then return false end
+        for _, g in ipairs(d.who) do if not isGUID(g) then return false end end
+        return type(d.day) == "string" and d.day:match("^%d%d%d%d%-%d%d%-%d%d$") ~= nil
+            and str(d.idem, 1, 64)
     end },
     RECRUIT_MSGS = { "recruitEdit", function(d)
         if type(d.msgs) ~= "table" or #d.msgs < 1 or #d.msgs > 3 then return false end

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- New Raids tab: Team Captains and above schedule raids (Barrow Deeps and Hyjal Summit presets) and cancel them
+- Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't; the latest answer counts
+- Attendance: taken on each boss kill while a Team Captain or above leads, or with one click
+- Standings shows attendance over the last 10 raid nights; alts count for their main
+- Past raids show who signed up and was there
+- Mock mode: /bp mock signups and /bp mock attend
+
 ## 0.2.1
 
 - Release pipeline fix (lint warning in the BiS module)

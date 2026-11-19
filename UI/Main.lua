@@ -99,7 +99,7 @@ local function build()
 
     for _, key in ipairs(order) do
         local t = tabs[key]
-        t.button = W.Button(frame, t.label, 110, 22, function() selectTab(key) end)
+        t.button = W.Button(frame, t.label, 100, 22, function() selectTab(key) end)
         t.panel = CreateFrame("Frame", nil, frame)
         t.panel:SetPoint("TOPLEFT", 20, -76)
         t.panel:SetPoint("BOTTOMRIGHT", -20, 36)
@@ -122,7 +122,7 @@ ns.Listen("ROSTER_CHANGED", UI.Refresh)
 -- Standings tab (everyone)
 ---------------------------------------------------------------------------
 UI.AddTab("standings", "Standings", "view", function(p)
-    local header = { { "#", 4, 24 }, { "Name", 34, 240 }, { "DKP", 290, 70 }, { "Earned", 380, 70 }, { "Spent", 470, 70 } }
+    local header = { { "#", 4, 24 }, { "Name", 34, 240 }, { "DKP", 290, 70 }, { "Earned", 380, 70 }, { "Spent", 470, 70 }, { "Attend.", 560, 70 } }
     for _, h in ipairs(header) do
         local fs = W.Text(p, h[1], "GameFontNormalSmall")
         fs:SetPoint("TOPLEFT", h[2], 0)
@@ -133,6 +133,8 @@ UI.AddTab("standings", "Standings", "view", function(p)
         p.list.Col(row, 3, 290, 70):SetText(item.bal)
         p.list.Col(row, 4, 380, 70):SetText(item.earned)
         p.list.Col(row, 5, 470, 70):SetText(item.spent)
+        local here, held = ns.Reducer.Attendance(item.guid)
+        p.list.Col(row, 6, 560, 70):SetText(held > 0 and (here .. "/" .. held) or "-")
     end)
     p.list.scroll:SetPoint("TOPLEFT", 0, -18)
 end, function(p)

@@ -23,6 +23,8 @@ ns.UI = { AddTab = function() end }
 ns.W = {}
 load("Modules/BiSData.lua")
 load("Modules/BiS.lua")
+ns.DKP = { GroupGUIDs = function() return {} end }
+load("Modules/Raids.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
 local passed, failed = 0, 0
@@ -246,6 +248,89 @@ test("bis: an item counts once across shared slots", function()
     local by = {}
     for _, r in ipairs(rows) do by[r.slot] = r end
     eq(by["Ring 1"].score, 1); eq(by["Ring 2"].score, 0)
+end)
+
+-- Raids ---------------------------------------------------------------------
+local function insertAll(g, list) for _, e in ipairs(list) do assert(Log.Insert(g, e, true) == "new") end end
+
+test("raid: captain schedules, member can't; bad payloads refused", function()
+    local g = newStore()
+    local ok = author(g, "Player-1-CAPT", "RAID", { title = "BD night", raid = "Barrow Deeps", at = NOW + 86400, size = 10 })
+    eq(Log.Insert(g, ok, true), "new")
+    local no = author(g, "Player-1-MEM1", "RAID", { title = "x", raid = "Hyjal Summit", at = NOW + 86400, size = 20 })
+    local res, why = Log.Insert(g, no, true)
+    eq(res, false); eq(why, "forbidden")
+    local bad = author(g, "Player-1-CAPT", "RAID", { title = "x", raid = "y", at = NOW, size = 99 })
+    eq(select(2, Log.Insert(g, bad, true)), "payload")
+    local badSign = author(g, "Player-1-MEM1", "SIGNUP", { ev = ok.id, st = "yes", role = "bard" })
+    eq(select(2, Log.Insert(g, badSign, true)), "payload")
+end)
+
+test("raid: latest sign-up wins, counts by role, cancel hides it", function()
+    local g = newStore()
+    local r = author(g, "Player-1-CAPT", "RAID", { title = "BD", raid = "Barrow Deeps", at = NOW + 3600, size = 10 })
+    Log.Insert(g, r, true)
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "SIGNUP", { ev = r.id, st = "yes", role = "dps" }),
+        author(g, "Player-1-MEM2", "SIGNUP", { ev = r.id, st = "yes", role = "healer" }),
+        author(g, "Player-1-INIT", "SIGNUP", { ev = r.id, st = "maybe" }),
+    })
+    local change = author(g, "Player-1-MEM1", "SIGNUP", { ev = r.id, st = "yes", role = "tank" })
+    Log.Insert(g, change, true)
+    local st = Red.Build(g)
+    local c = ns.Raids.Summary(st, st.raids[r.id])
+    eq(c.yes, 2); eq(c.maybe, 1); eq(c.tank, 1); eq(c.dps, 0); eq(c.healer, 1)
+    eq(#ns.Raids.List(st, NOW), 1)
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "RAID_CANCEL", { ev = r.id }), true)
+    st = Red.Build(g)
+    eq(#ns.Raids.List(st, NOW), 0)
+end)
+
+test("attendance: nights counted once, idem dedupes, alts fold, window of 10", function()
+    local g = newStore()
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "ALT_LINK", { alt = "Player-1-MEM2", main = "Player-1-MEM1" }), true)
+    -- Night 1: two boss kills; MEM1's alt joins for the second one.
+    insertAll(g, {
+        author(g, "Player-1-CAPT", "ATTEND", { who = { "Player-1-MEM1", "Player-1-VET" }, day = "2026-12-09", idem = "boss1" }),
+        author(g, "Player-1-CAPT", "ATTEND", { who = { "Player-1-MEM2", "Player-1-VET" }, day = "2026-12-09", idem = "boss2" }),
+    })
+    -- The same idem relayed again by another officer counts once.
+    Log.Insert(g, author(g, "Player-1-OFFICER2", "ATTEND", { who = { "Player-1-INIT" }, day = "2026-12-10", idem = "boss1" }), true)
+    Log.Insert(g, author(g, "Player-1-CAPT", "ATTEND", { who = { "Player-1-VET" }, day = "2026-12-11", idem = "boss3" }), true)
+    local st = Red.Build(g)
+    eq(st.raidNights, 2)
+    eq(st.attendance["Player-1-MEM1"], 1)
+    eq(st.attendance["Player-1-MEM2"], nil)
+    eq(st.attendance["Player-1-VET"], 2)
+    eq(st.attendance["Player-1-INIT"], nil)
+    for i = 1, 12 do
+        Log.Insert(g, author(g, "Player-1-CAPT", "ATTEND", { who = { "Player-1-INIT" },
+            day = ("2027-01-%02d"):format(i), idem = "n" .. i }), true)
+    end
+    st = Red.Build(g)
+    eq(st.raidNights, 10)
+    eq(st.attendance["Player-1-INIT"], 10)
+    eq(st.attendance["Player-1-VET"], nil)
+end)
+
+test("raid: member can't take attendance; sign-up shows who was there", function()
+    local g = newStore()
+    local memberAttend = author(g, "Player-1-MEM1", "ATTEND", { who = { "Player-1-MEM1" }, day = "2026-12-09", idem = "x" })
+    eq(select(2, Log.Insert(g, memberAttend, true)), "forbidden")
+    local at = 1797019200   -- 2026-12-09 20:00 UTC
+    local r = author(g, "Player-1-CAPT", "RAID", { title = "BD", raid = "Barrow Deeps", at = at, size = 10 })
+    Log.Insert(g, r, true)
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "SIGNUP", { ev = r.id, st = "yes", role = "dps" }),
+        author(g, "Player-1-VET", "SIGNUP", { ev = r.id, st = "yes", role = "tank" }),
+        author(g, "Player-1-CAPT", "ATTEND", { who = { "Player-1-VET" }, day = ns.Raids.RaidDay(at), idem = "b" }),
+    })
+    local st = Red.Build(g)
+    local _, rows = ns.Raids.Summary(st, st.raids[r.id])
+    local by = {}
+    for _, row in ipairs(rows) do by[row.guid] = row end
+    eq(by["Player-1-VET"].showed, true)
+    eq(by["Player-1-MEM1"].showed, nil)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

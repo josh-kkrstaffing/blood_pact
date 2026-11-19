@@ -13,6 +13,7 @@ Red.DEFAULTS = {
     onTime = 10, bossFarm = 5, bossProg = 15, fullRaid = 10, decayPct = 15,
     priceBis = 100, priceMajor = 60, priceMinor = 30, priceOff = 10,
 }
+Red.ATTEND_WINDOW = 10
 Red.TIER_KEY = { bis = "priceBis", major = "priceMajor", minor = "priceMinor", off = "priceOff" }
 
 local function before(x, y)
@@ -39,7 +40,9 @@ function Red.Build(g)
     local st = {
         settings = ns.U.Copy(Red.DEFAULTS), pools = {}, alts = {}, idem = {},
         recruitMsgs = nil, history = {}, lastDecay = nil,
+        raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
     }
+    local signups, attIdem = {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
     local function pool(guid)
         local key = mainOf(guid)
@@ -89,6 +92,45 @@ function Red.Build(g)
             st.history[#st.history + 1] = e
         elseif k == "RECRUIT_MSGS" then
             st.recruitMsgs = d.msgs
+        elseif k == "RAID" then
+            st.raids[e.id] = { id = e.id, title = d.title, raid = d.raid, at = d.at, size = d.size,
+                n = d.n, author = e.a, signups = {} }
+        elseif k == "RAID_CANCEL" then
+            if st.raids[d.ev] then st.raids[d.ev].cancelled = true end
+        elseif k == "SIGNUP" then
+            -- Latest sign-up per person per raid wins (events are in Lamport order).
+            signups[d.ev] = signups[d.ev] or {}
+            signups[d.ev][e.a] = { st = d.st, role = d.role, n = d.n }
+        elseif k == "ATTEND" then
+            if not attIdem[d.idem] then
+                attIdem[d.idem] = true
+                local day = st.attendDays[d.day] or {}
+                st.attendDays[d.day] = day
+                for _, guid in ipairs(d.who) do day[guid] = true end
+            end
+        end
+    end
+
+    for ev, people in pairs(signups) do
+        local r = st.raids[ev]
+        if r then r.signups = people end
+    end
+
+    -- Attendance: share of the last ATTEND_WINDOW raid nights each main was at.
+    -- Alts count for their main.
+    local days = {}
+    for day in pairs(st.attendDays) do days[#days + 1] = day end
+    table.sort(days, function(x, y) return x > y end)
+    local held = math.min(#days, Red.ATTEND_WINDOW)
+    st.raidNights = held
+    for i = 1, held do
+        local seen = {}
+        for guid in pairs(st.attendDays[days[i]]) do
+            local main = mainOf(guid)
+            if not seen[main] then
+                seen[main] = true
+                st.attendance[main] = (st.attendance[main] or 0) + 1
+            end
         end
     end
     return st
@@ -109,6 +151,13 @@ function Red.Price(tier)
     local st = Red.State()
     local key = Red.TIER_KEY[tier]
     return st and key and st.settings[key] or nil
+end
+
+-- Attendance over the last raid nights: present, held (both 0 if none yet).
+function Red.Attendance(guid)
+    local st = Red.State()
+    if not st or st.raidNights == 0 then return 0, 0 end
+    return st.attendance[st.alts[guid] or guid] or 0, st.raidNights
 end
 
 function Red.Balance(guid)

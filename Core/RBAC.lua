@@ -31,6 +31,8 @@ R.ACTIONS = {
     altlink     = "officer",
     recruitEdit = "officer",
     recruit     = "captain",
+    schedule    = "captain",
+    signup      = "initiate",
     view        = "initiate",
 }
 
