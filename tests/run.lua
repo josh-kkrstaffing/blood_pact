@@ -874,5 +874,29 @@ test("recipes: each player shares their own; later scans only add; a reset repla
     eq(#Rc.List({ [7420] = true, [7418] = true }, "chest", function(id) return names[id] end), 1)
 end)
 
+test("roster: any column sorts both ways; empty values stay at the bottom", function()
+    local rows = {
+        { guid = "a", name = "Zed", ri = 1, level = 60, joined = 300, lastKey = 4 },
+        { guid = "b", name = "amy", ri = 3, level = 20, joined = nil, lastKey = -1 },
+        { guid = "c", name = "Bob", ri = 3, level = 44, joined = 100, lastKey = nil },
+        { guid = "d", name = "Cal", ri = 0, level = 44, joined = 200, lastKey = 0 },
+    }
+    local function order(key, desc)
+        local out = {}
+        for _, r in ipairs(ns.Roster.Sort(rows, key, desc)) do out[#out + 1] = r.name end
+        return table.concat(out, " ")
+    end
+    eq(order("name", false), "amy Bob Cal Zed")           -- capitals don't matter
+    eq(order("name", true), "Zed Cal Bob amy")
+    eq(order("rank", false), "Cal Zed amy Bob")           -- ties go by name
+    eq(order("rank", true), "amy Bob Zed Cal")
+    eq(order("level", true), "Zed Bob Cal amy")
+    eq(order("level", false), "amy Bob Cal Zed")
+    eq(order("joined", false), "Bob Cal Zed amy")         -- no join date: last
+    eq(order("joined", true), "Zed Cal Bob amy")          -- ...either way
+    eq(order("last", false), "amy Cal Zed Bob")           -- online first, never seen last
+    eq(order("last", true), "Zed Cal amy Bob")
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

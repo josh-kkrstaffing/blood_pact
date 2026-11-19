@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0
+
+- Roster: press Name, Rank, Lvl, Joined or Last on to sort by it; press again to flip the order (an arrow shows which way)
+- Roster: "Online only" checkbox
+- Linking an alt no longer cares about capitals ("binky bee" finds "Binky Bee")
+- Members with no join date or no last-seen time stay at the bottom whichever way a column is sorted
+
 ## 0.10.0
 
 - Recipes: open a profession window once and Blood Pact records the recipes you know and shares them with the guild; after that only newly learned recipes are sent

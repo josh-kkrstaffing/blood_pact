@@ -170,6 +170,36 @@ function W.Button(parent, text, width, height, onClick, style)
     return b
 end
 
+-- A column header that sorts. button:SetSort("up"), ("down") or (nil) draws
+-- a small arrow made of flat lines: up = lowest first, down = highest first.
+function W.SortButton(parent, text, width, onClick)
+    local b = W.Button(parent, text, width, 18, onClick)
+    local fs = b:GetFontString()
+    if fs then
+        fs:ClearAllPoints()
+        fs:SetPoint("LEFT", 5, 0)
+    end
+    local lines = {}
+    for i = 1, 4 do
+        local t = crisp(b:CreateTexture(nil, "OVERLAY"))
+        t:SetColorTexture(W.C.gold[1], W.C.gold[2], W.C.gold[3], 1)
+        t:SetHeight(1)
+        lines[i] = t
+    end
+    function b:SetSort(dir)
+        for i, t in ipairs(lines) do
+            t:SetShown(dir ~= nil)
+            if dir then
+                t:ClearAllPoints()
+                t:SetWidth(dir == "up" and (2 * i - 1) or (9 - 2 * i))
+                t:SetPoint("TOP", b, "RIGHT", -9, 3 - i)
+            end
+        end
+    end
+    b:SetSort(nil)
+    return b
+end
+
 function W.Text(parent, text, template)
     local fs = parent:CreateFontString(nil, "OVERLAY")
     fs:SetFontObject(FONT_MAP[template] or W.F.body)

@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "0.10.0"
+ns.VERSION = "0.11.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -130,9 +130,20 @@ function ns.RebuildRoster()
     ns.Fire("ROSTER_CHANGED")
 end
 
+-- Exact match first; then without the realm part; then ignoring capitals,
+-- so "binky bee" typed by an officer finds "Binky Bee".
 function ns.GUIDForName(name)
     if not name then return nil end
-    return ns.roster.byName[name] or ns.roster.byName[name:match("^[^-]+") or name]
+    local byName = ns.roster.byName
+    local short = name:match("^[^-]+") or name
+    local guid = byName[name] or byName[short]
+    if guid then return guid end
+    local want, wantShort = name:lower(), short:lower()
+    for known, g in pairs(byName) do
+        local lower = known:lower()
+        if lower == want or lower == wantShort then return g end
+    end
+    return nil
 end
 
 function ns.NameForGUID(guid)

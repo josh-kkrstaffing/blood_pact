@@ -166,6 +166,7 @@ end
 ---------------------------------------------------------------------------
 local W, U = ns.W, ns.U
 local view, selected, filter = "members", nil, ""
+local sortKey, sortDesc, onlineOnly = "rank", false, false
 
 local function day(t) return t and date("%b %d, %Y", t) or "-" end
 
@@ -176,25 +177,47 @@ local function lastOn(m)
     return m.offlineDays .. "d ago"
 end
 
+-- Sort member rows by a column. Ties go by name. Members with nothing in
+-- that column (no join date, never seen) stay at the bottom either way.
+function R.Sort(rows, key, desc)
+    local function value(r)
+        if key == "name" then return r.name:lower() end
+        if key == "level" then return r.level end
+        if key == "joined" then return r.joined end
+        if key == "last" then return r.lastKey end
+        return r.ri
+    end
+    table.sort(rows, function(a, b)
+        local x, y = value(a), value(b)
+        if x ~= y then
+            if x == nil then return false end
+            if y == nil then return true end
+            if desc then return x > y end
+            return x < y
+        end
+        local an, bn = a.name:lower(), b.name:lower()
+        if an ~= bn then return an < bn end
+        return a.guid < b.guid
+    end)
+    return rows
+end
+
 function R.Rows(st)
     local rows = {}
     for guid, m in pairs(ns.roster.byGUID) do
         local known = st and st.members[guid]
         local main = st and st.alts[guid]
         local nm = m.name or "?"
-        if filter == "" or nm:lower():find(filter, 1, true) then
+        if (filter == "" or nm:lower():find(filter, 1, true)) and (m.online or not onlineOnly) then
             local level = "unknown"
             if st then level = ns.Officer.Level(ns.Officer.ActiveDays(st, ns.roster.byGUID, guid, ns.Now()), st.settings) end
             rows[#rows + 1] = { guid = guid, name = nm, rank = m.rank or "", ri = m.rankIndex or 9, level = m.level or 0,
                 joined = known and known.joined, main = main, activity = level,
+                lastKey = m.online and -1 or m.offlineDays,       -- smaller = seen more recently
                 last = "|cff" .. ns.Officer.LEVEL_COLOR[level] .. lastOn(m) .. "|r" }
         end
     end
-    table.sort(rows, function(a, b)
-        if a.ri ~= b.ri then return a.ri < b.ri end
-        return a.name < b.name
-    end)
-    return rows
+    return R.Sort(rows, sortKey, sortDesc)
 end
 
 ns.UI.AddTab("roster", "Roster", "view", function(p)
@@ -213,21 +236,29 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         if view == "members" then ns.UI.Refresh() end
     end)
     p.count = W.Text(p, "", "GameFontDisableSmall")
-    p.count:SetPoint("TOPLEFT", 490, -5)
+    p.online = W.Check(p, "Online only", function(on) onlineOnly = on; ns.UI.Refresh() end)
+    p.online:SetPoint("TOPLEFT", 486, -4)
+    p.count:SetPoint("TOPLEFT", 590, -5)
 
     -- Members view
+    -- Press a column to sort by it; press it again to flip the order.
     p.head = {}
-    for _, h in ipairs({ { "Name", 4 }, { "Rank", 150 }, { "Lvl", 250 }, { "Joined", 282 }, { "Last on", 370 } }) do
-        local fs = W.Text(p, h[1], "GameFontNormalSmall")
-        fs:SetPoint("TOPLEFT", h[2], -28)
-        p.head[#p.head + 1] = fs
+    for _, h in ipairs({ { "Name", "name", 0, 150 }, { "Rank", "rank", 152, 96 }, { "Lvl", "level", 250, 40 },
+        { "Joined", "joined", 292, 76 }, { "Last on", "last", 370, 70 } }) do
+        local b = W.SortButton(p, h[1], h[4], function()
+            if sortKey == h[2] then sortDesc = not sortDesc else sortKey, sortDesc = h[2], false end
+            ns.UI.Refresh()
+        end)
+        b:SetPoint("TOPLEFT", h[3], -24)
+        b.key = h[2]
+        p.head[#p.head + 1] = b
     end
     p.list = W.List(p, 440, 310, 16, function(row, r)
-        p.list.Col(row, 1, 4, 144):SetText(U.Safe(r.name, 40) .. (r.main and " |cff808080(alt)|r" or ""))
-        p.list.Col(row, 2, 150, 98):SetText(U.Safe(r.rank, 32))
-        p.list.Col(row, 3, 250, 30):SetText(r.level)
-        p.list.Col(row, 4, 282, 86):SetText(day(r.joined))
-        p.list.Col(row, 5, 370, 66):SetText(r.last)
+        p.list.Col(row, 1, 5, 144):SetText(U.Safe(r.name, 40) .. (r.main and " |cff808080(alt)|r" or ""))
+        p.list.Col(row, 2, 157, 90):SetText(U.Safe(r.rank, 32))
+        p.list.Col(row, 3, 255, 34):SetText(r.level)
+        p.list.Col(row, 4, 297, 72):SetText(day(r.joined))
+        p.list.Col(row, 5, 375, 62):SetText(r.last)
     end, function(r) selected = r.guid; ns.UI.Refresh() end)
     p.list:Stretch(0, -44, nil, 0)
     p.list.key = "guid"
@@ -297,7 +328,12 @@ end, function(p)
     p.tasks.scroll:SetShown(tasks)
     p.tw:SetShown(tasks)
     p.searchLabel:SetShown(members)
-    for _, fs in ipairs(p.head) do fs:SetShown(members) end
+    for _, b in ipairs(p.head) do
+        b:SetShown(members)
+        b:SetSort(b.key == sortKey and (sortDesc and "down" or "up") or nil)
+    end
+    p.online:SetShown(members)
+    p.online.label:SetShown(members)
     p.list.scroll:SetShown(members)
     p.detail:SetShown(members)
     p.search:SetShown(members)
@@ -328,7 +364,7 @@ end, function(p)
 
     local rows = R.Rows(st)
     p.list:SetItems(rows)
-    p.count:SetText(#rows .. " members")
+    p.count:SetText(#rows .. (#rows == 1 and " member" or " members"))
     local sel
     for _, r in ipairs(rows) do if r.guid == selected then sel = r end end
     p.list.selected = sel

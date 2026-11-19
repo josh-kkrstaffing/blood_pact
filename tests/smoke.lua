@@ -620,6 +620,16 @@ end)
 slash(gm, "recipes")
 check(said(gm, "Open one of your profession windows first."), "/bp recipes explains itself with no window open")
 
+-- Alt linking: an officer types the name without capitals.
+run(gm, "link alt", function()
+    local ns = gm.ns
+    check(ns.GUIDForName("pip") == MEMBER and ns.GUIDForName("PIP-normal") == MEMBER and ns.GUIDForName("Nobody") == nil,
+        "member names are found whatever the capitals")
+    check(ns.Roster.LinkAlt("  pip ", "Player-1-VET") ~= nil, "linking an alt isn't case sensitive")
+    check(ns.Reducer.State().alts[MEMBER] == "Player-1-VET", "the alt link is recorded")
+    assert(ns.Roster.Unlink(MEMBER))
+end)
+
 -- 8. Every tab again with real data, as each role.
 for _, c in ipairs({ gm, officer, member }) do
     open(c)

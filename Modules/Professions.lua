@@ -352,16 +352,8 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
     -- Right: who has the chosen profession.
     p.title = W.Text(p, "", "GameFontNormalSmall")
     p.title:SetPoint("TOPLEFT", 212, -33)
-    p.sort = W.Button(p, "Level", 78, 18, function() ascending = not ascending; ns.UI.Refresh() end)
+    p.sort = W.SortButton(p, "Level", 70, function() ascending = not ascending; ns.UI.Refresh() end)
     p.sort:SetPoint("TOPLEFT", 418, -30)
-    -- A small arrow made of flat lines: points down for highest first.
-    p.arrow = {}
-    for i = 1, 4 do
-        local t = p.sort:CreateTexture(nil, "OVERLAY")
-        t:SetColorTexture(W.C.gold[1], W.C.gold[2], W.C.gold[3], 1)
-        t:SetHeight(1)
-        p.arrow[i] = t
-    end
     p.crafters = W.List(p, 480, 300, 20, function(row, r)
         if not row.dot then
             row.dot = row:CreateTexture(nil, "ARTWORK")
@@ -503,12 +495,6 @@ end, function(p)
     for _, r in ipairs(rows) do r.recipes = ns.Recipes.Count(st, r.guid, chosen) end
     p.crafters:SetItems(rows)
     p.title:SetText(chosen)
-    -- Arrow: widest line on top when pointing down (highest first).
-    for i, t in ipairs(p.arrow) do
-        local width = ascending and (2 * i - 1) or (9 - 2 * i)
-        t:ClearAllPoints()
-        t:SetWidth(width)
-        t:SetPoint("TOP", p.sort, "RIGHT", -12, 3 - i)
-    end
+    p.sort:SetSort(ascending and "up" or "down")
     p.count:SetText(#rows .. (#rows == 1 and " member" or " members") .. " with " .. chosen)
 end)
