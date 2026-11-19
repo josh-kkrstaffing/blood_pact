@@ -47,19 +47,13 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         p.msgButtons[i] = b
     end
 
-    local bg = CreateFrame("Frame", nil, p, "BackdropTemplate")
+    local bg = CreateFrame("Frame", nil, p)
     bg:SetPoint("TOPLEFT", 0, -48)
     bg:SetSize(640, 70)
-    bg:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    bg:SetBackdropColor(0, 0, 0, 0.6)
+    W.Panel(bg)
     p.box = CreateFrame("EditBox", nil, bg)
     p.box:SetMultiLine(true)
-    p.box:SetFontObject(ChatFontNormal)
+    p.box:SetFontObject(W.F.body)
     p.box:SetPoint("TOPLEFT", 8, -8)
     p.box:SetPoint("BOTTOMRIGHT", -8, 8)
     p.box:SetAutoFocus(false)
@@ -97,7 +91,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
     end, function(item)
         openWhisper(item.name)
     end)
-    p.list.scroll:SetPoint("TOPLEFT", 0, -198)
+    p.list:Stretch(0, -198, 0, 0)
 
     local h3 = W.Text(p, "3. When they reply, right-click their name in chat and choose Guild Invite.", "GameFontHighlightSmall")
     h3:SetPoint("TOPLEFT", 0, -354)

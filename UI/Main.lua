@@ -48,14 +48,14 @@ function UI.Refresh()
         if provisional > 0 then status = status .. "  |  " .. provisional .. " provisional" end
     end
     statusText:SetText(status)
-    local x, firstAllowed = 20, nil
+    local x, firstAllowed = 12, nil
     for _, key in ipairs(order) do
         local t = tabs[key]
         if allowed(t) then
             t.button:ClearAllPoints()
-            t.button:SetPoint("TOPLEFT", x, -44)
+            t.button:SetPoint("TOPLEFT", x, -38)
             t.button:Show()
-            x = x + t.button:GetWidth() + 4
+            x = x + t.button:GetWidth() + 2
             firstAllowed = firstAllowed or key
         else
             t.button:Hide()
@@ -66,43 +66,91 @@ function UI.Refresh()
     if activeKey then selectTab(activeKey) end
 end
 
+local MIN_W, MIN_H, MAX_W, MAX_H = 760, 500, 1600, 1100
+
+local function saveLayout()
+    if not (frame and ns.db) then return end
+    local point, _, rel, x, y = frame:GetPoint(1)
+    ns.db.ui.frame = { w = math.floor(frame:GetWidth() + 0.5), h = math.floor(frame:GetHeight() + 0.5),
+        point = point, rel = rel, x = x, y = y }
+end
+
 local function build()
-    frame = CreateFrame("Frame", "BloodPactMainFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(760, 500)
-    frame:SetPoint("CENTER")
+    frame = CreateFrame("Frame", "BloodPactMainFrame", UIParent)
+    local saved = ns.db.ui.frame
+    frame:SetSize(saved and saved.w or MIN_W, saved and saved.h or MIN_H)
+    if saved and saved.point then
+        frame:SetPoint(saved.point, UIParent, saved.rel or saved.point, saved.x or 0, saved.y or 0)
+    else
+        frame:SetPoint("CENTER")
+    end
     frame:SetFrameStrata("DIALOG")
-    frame:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 11, right = 12, top = 12, bottom = 11 },
-    })
+    frame:SetClampedToScreen(true)
+    W.Fill(frame, W.C.bg)
+    W.Border(frame)
+
+    -- Title bar: drag to move.
+    local bar = CreateFrame("Frame", nil, frame)
+    bar:SetPoint("TOPLEFT", 1, -1)
+    bar:SetPoint("TOPRIGHT", -1, -1)
+    bar:SetHeight(34)
+    W.Fill(bar, W.C.bar)
+    local accent = W.Line(frame, -35, W.C.accent, 1, 1)
+    accent:SetDrawLayer("ARTWORK")
     frame:SetMovable(true)
     frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    bar:EnableMouse(true)
+    bar:RegisterForDrag("LeftButton")
+    bar:SetScript("OnDragStart", function() frame:StartMoving() end)
+    bar:SetScript("OnDragStop", function() frame:StopMovingOrSizing(); saveLayout() end)
     tinsert(UISpecialFrames, "BloodPactMainFrame")
 
-    local title = W.Text(frame, "Blood Pact", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", 22, -18)
-    roleText = W.Text(frame, "", "GameFontHighlightSmall")
-    roleText:SetPoint("LEFT", title, "RIGHT", 16, 0)
-    statusText = W.Text(frame, "", "GameFontDisableSmall")
-    statusText:SetPoint("TOPRIGHT", -40, -22)
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -6, -6)
+    local title = W.Text(bar, "BLOOD PACT", "GameFontNormalLarge")
+    title:SetPoint("LEFT", 14, 0)
+    roleText = W.Text(bar, "", "GameFontDisableSmall")
+    roleText:SetPoint("LEFT", title, "RIGHT", 14, -1)
+    statusText = W.Text(bar, "", "GameFontDisableSmall")
+    statusText:SetPoint("RIGHT", -44, 0)
+    local close = W.Button(bar, "X", 26, 22, function() frame:Hide() end)
+    close:SetPoint("RIGHT", -6, 0)
 
-    frame.feedback = W.Text(frame, "", "GameFontNormalSmall")
-    frame.feedback:SetPoint("BOTTOMLEFT", 22, 18)
-    frame.feedback:SetWidth(710)
+    -- Resizing from the bottom-right corner.
+    frame:SetResizable(true)
+    if frame.SetResizeBounds then
+        frame:SetResizeBounds(MIN_W, MIN_H, MAX_W, MAX_H)
+    elseif frame.SetMinResize then
+        frame:SetMinResize(MIN_W, MIN_H)
+        frame:SetMaxResize(MAX_W, MAX_H)
+    end
+    local grip = CreateFrame("Button", nil, frame)
+    grip:SetSize(16, 16)
+    grip:SetPoint("BOTTOMRIGHT", -2, 2)
+    for _, xy in ipairs({ { 2, 2 }, { 6, 2 }, { 10, 2 }, { 2, 6 }, { 6, 6 }, { 2, 10 } }) do
+        local dot = grip:CreateTexture(nil, "OVERLAY")
+        dot:SetColorTexture(W.C.muted[1], W.C.muted[2], W.C.muted[3], 0.9)
+        dot:SetSize(2, 2)
+        dot:SetPoint("BOTTOMRIGHT", -xy[1], xy[2])
+    end
+    grip:SetScript("OnMouseDown", function() frame:StartSizing("BOTTOMRIGHT") end)
+    grip:SetScript("OnMouseUp", function() frame:StopMovingOrSizing(); saveLayout() end)
 
+    frame.feedback = W.Text(frame, "", "GameFontHighlightSmall")
+    frame.feedback:SetPoint("BOTTOMLEFT", 16, 12)
+    frame.feedback:SetPoint("BOTTOMRIGHT", -30, 12)
+    local foot = frame:CreateTexture(nil, "BORDER")
+    foot:SetColorTexture(W.C.border[1], W.C.border[2], W.C.border[3], 1)
+    foot:SetPoint("BOTTOMLEFT", 1, 32)
+    foot:SetPoint("BOTTOMRIGHT", -1, 32)
+    foot:SetHeight(1)
+
+    -- Tab strip
+    W.Line(frame, -68, W.C.border, 1, 1)
     for _, key in ipairs(order) do
         local t = tabs[key]
-        t.button = W.Button(frame, t.label, 96, 22, function() selectTab(key) end)
+        t.button = W.Button(frame, t.label, 96, 30, function() selectTab(key) end, "tab")
         t.panel = CreateFrame("Frame", nil, frame)
-        t.panel:SetPoint("TOPLEFT", 20, -76)
-        t.panel:SetPoint("BOTTOMRIGHT", -20, 36)
+        t.panel:SetPoint("TOPLEFT", 20, -80)
+        t.panel:SetPoint("BOTTOMRIGHT", -20, 40)
         t.panel:Hide()
         t.build(t.panel)
     end
@@ -146,7 +194,7 @@ UI.AddTab("standings", "Standings", "view", function(p)
         local here, held = ns.Reducer.Attendance(item.guid)
         p.list.Col(row, 6, 560, 70):SetText(held > 0 and (here .. "/" .. held) or "-")
     end)
-    p.list.scroll:SetPoint("TOPLEFT", 0, -18)
+    p.list:Stretch(0, -20, 0, 0)
 end, function(p)
     local rows = ns.DKP.Standings()
     for i, r in ipairs(rows) do r.rank = i end
@@ -212,7 +260,7 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
             return
         end
         UI.Try("Custom award sent.", D.Award, guids, tonumber(p.amount:GetText()), "manual", p.note:GetText())
-    end)
+    end, "accent")
     p.award:SetPoint("TOPLEFT", 0, -210)
     p.undo = W.Button(p, "Undo my last award or charge", 210, 22, function()
         UI.Try("Your last award or charge was voided.", D.UndoMine)
@@ -250,7 +298,7 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
         local who = p.lootList.selected
         if not who then UI.Say("Pick the winner in the list first.") return end
         UI.Try(("Charged %s."):format(U.Safe(who.name, 40)), D.Spend, who.guid, selectedTier, D.ItemIDFrom(p.item:GetText()))
-    end)
+    end, "accent")
     p.charge:SetPoint("TOPLEFT", 340, -304)
 end, function(p)
     local st = ns.Reducer.State()
@@ -316,7 +364,7 @@ UI.AddTab("settings", "Settings", "settings", function(p)
         local values = {}
         for key, e in pairs(p.edits) do values[key] = e:GetText() end
         UI.Try("Settings saved and shared with the guild.", ns.DKP.SaveSettings, values)
-    end)
+    end, "accent")
     p.save:SetPoint("TOPLEFT", 0, -250)
     p.decay = W.Button(p, "Run decay now", 140, 22, function()
         UI.Try("Decay applied to every balance.", ns.DKP.Decay)

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- New look: flat dark window, 1-pixel borders, a blood-red accent and cleaner game fonts
+- The window resizes from the bottom-right corner and remembers its size and position
+- Tabs sit on a strip with an underline for the open tab; main actions are highlighted in red
+- Long lists (Standings, BiS Check, Roster, Guild log, Officer tasks, Recruit) grow with the window
+
 ## 0.4.0
 
 - New Roster tab: every member with rank, level, join date and last online; search by name

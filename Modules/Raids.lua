@@ -258,7 +258,7 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             ns.UI.Refresh()
             if ns.Calendar then ns.Calendar.Add(Red.State().raids[e.id] or { title = e.d.title, raid = e.d.raid, at = e.d.at, prog = e.d.prog }) end
         end
-    end)
+    end, "accent")
     s.create:SetPoint("TOPLEFT", 310, -48)
     local zones = { { key = "LOCAL", label = "My PC time" } }
     for _, z in ipairs(ns.Time.ZONES) do zones[#zones + 1] = z end
