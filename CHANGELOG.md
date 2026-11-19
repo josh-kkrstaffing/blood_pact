@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.13.0
+
+- About: an About button in the title bar (and `/bp about`) shows who makes Blood Pact, the Blood Pact guild on US East PvP Horde, with the Discord link ready to copy
+- The first time the addon runs it says so once in chat; never again after that
+- The addon list in game shows the same credit
+
 ## 0.12.0
 
 - Loot history, built from the loot charges officers already record (who, which item, price, date); voided charges don't show

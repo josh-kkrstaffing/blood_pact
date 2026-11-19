@@ -1,8 +1,9 @@
 ## Interface: 16001
 ## Title: Blood Pact
-## Notes: Guild DKP, standings, loot, roster, warlock summons, raid sign-ups, attendance, BiS check and recruiting for WoW Forever. Fan-made; not affiliated with Blizzard Entertainment.
-## Author: Blood Pact
-## Version: 0.12.0
+## Notes: Guild DKP, standings, loot, roster, warlock summons, raid sign-ups, attendance, BiS check and recruiting for WoW Forever. Made by the Blood Pact guild, US East PvP Horde. Fan-made; not affiliated with Blizzard Entertainment.
+## Author: Blood Pact guild (US East PvP Horde)
+## X-Website: https://discord.gg/hfCKk6kED
+## Version: 0.13.0
 ## SavedVariables: BloodPactDB
 ## OptionalDeps: Questie
 ## AddonCompartmentFunc: BloodPact_OnCompartmentClick

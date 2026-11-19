@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID" }) do
+    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
     M[name] = noop
 end
 function M:SetSize(w, h) self._.w, self._.h = w, h end
@@ -124,6 +124,7 @@ function M:SetValue(v)
 end
 function M:GetVerticalScroll() return self._.scroll end
 function M:SetVerticalScroll(v) self._.scroll = v end
+function M:GetFrameLevel() return 1 end
 function M:GetPoint() return "CENTER", nil, "CENTER", 0, 0 end
 function M:RegisterEvent(e) self._.events[e] = true end
 
@@ -430,6 +431,7 @@ local gm = newClient(1)
 local officer = newClient(2)
 advance(5)
 check(said(gm, "loaded. Type /bp"), "login message")
+check(said(gm, "Made by the Blood Pact guild, US East PvP Horde. Type /bp about to find us."), "the first login says who makes the addon")
 check(gm.ns.roster.loaded and gm.ns.roster.complete, "roster loads and is complete")
 check(gm.ns.RBAC.RoleOf(gm.guid) == "gm" and officer.ns.RBAC.RoleOf(officer.guid) == "officer", "roles from ranks")
 
@@ -694,6 +696,17 @@ run(member, "member view of Raid & Loot", function()
     if tab then tab._.scripts.OnClick(tab, "LeftButton") end
     check(not visible("Charge selected player") and not visible("Award") and not visible("Award and charge"),
         "a Member sees the loot history without the award and charge controls")
+end)
+
+-- About: who makes it and where to join.
+slash(member, "about")
+check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/bp about gives the Discord link")
+run(member, "about panel", function()
+    local seen = false
+    for _, w in ipairs(member.widgets) do
+        if w._.text == "https://discord.gg/hfCKk6kED" and w:IsVisible() then seen = true end
+    end
+    check(seen, "the About panel shows the link to copy")
 end)
 
 -- 9. Mock mode end to end on the GM's client.

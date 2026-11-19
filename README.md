@@ -1,5 +1,7 @@
 # Blood Pact
 
+Made by the **Blood Pact** guild, US East PvP Horde, on WoW Forever. Looking for a guild or want to follow the addon? Join us on Discord: https://discord.gg/hfCKk6kED
+
 Guild DKP, standings, loot charging and recruiting for **World of Warcraft: Forever**. Free, open source, and no website or account needed.
 
 > Blood Pact is a fan-made addon. It is not made, endorsed, sponsored or supported by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.

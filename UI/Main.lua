@@ -132,10 +132,53 @@ local function build()
     title:SetPoint("LEFT", 14, 0)
     roleText = W.Text(bar, "", "GameFontDisableSmall")
     roleText:SetPoint("LEFT", title, "RIGHT", 14, -1)
-    statusText = W.Text(bar, "", "GameFontDisableSmall")
-    statusText:SetPoint("RIGHT", -44, 0)
     local close = W.Button(bar, "X", 26, 22, function() frame:Hide() end)
     close:SetPoint("RIGHT", -6, 0)
+    local aboutBtn = W.Button(bar, "About", 54, 22, function()
+        if frame.about:IsShown() then frame.about:Hide() else frame.about:Show() end
+    end)
+    aboutBtn:SetPoint("RIGHT", close, "LEFT", -6, 0)
+    statusText = W.Text(bar, "", "GameFontDisableSmall")
+    statusText:SetPoint("RIGHT", aboutBtn, "LEFT", -12, 0)
+
+    -- About: who makes Blood Pact and where to join. Covers the tabs while open.
+    local about = CreateFrame("Frame", nil, frame)
+    about:SetPoint("TOPLEFT", 1, -36)
+    about:SetPoint("BOTTOMRIGHT", -1, 33)
+    if about.SetFrameLevel and frame.GetFrameLevel then about:SetFrameLevel((frame:GetFrameLevel() or 1) + 40) end
+    about:EnableMouse(true)
+    W.Fill(about, { W.C.bg[1], W.C.bg[2], W.C.bg[3], 1 })
+    local info = ns.ABOUT
+    local y = -28
+    local function line(text, template, gap)
+        local fs = W.Text(about, text, template)
+        fs:SetPoint("TOPLEFT", 28, y)
+        fs:SetWidth(640)
+        y = y - (gap or 22)
+        return fs
+    end
+    line("BLOOD PACT", "GameFontNormalLarge", 28)
+    about.version = line("", "GameFontHighlight")
+    line(("Made by the %s guild, %s."):format(info.guild, info.home), "GameFontNormal", 34)
+    line("Looking for a guild, or want to follow the addon? Join us on Discord:", "GameFontHighlight", 24)
+    local link = W.Edit(about, 300, 80)
+    link:SetPoint("TOPLEFT", 28, y)
+    link:SetText(info.discord)
+    link:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
+    link:SetScript("OnMouseUp", function(self) self:SetFocus(); self:HighlightText() end)
+    -- The link is for copying, not editing: put it back if it's changed.
+    link:SetScript("OnTextChanged", function(self)
+        if self:GetText() ~= info.discord then self:SetText(info.discord) end
+    end)
+    about.link = link
+    y = y - 30
+    line("Click the link, press Ctrl+C, then paste it into your browser.", "GameFontDisableSmall", 40)
+    line("Blood Pact is fan-made. It is not affiliated with or endorsed by Blizzard Entertainment.", "GameFontDisableSmall", 30)
+    local back = W.Button(about, "Back", 80, 22, function() about:Hide() end)
+    back:SetPoint("TOPLEFT", 28, y)
+    about:SetScript("OnShow", function() about.version:SetText("Version " .. ns.VERSION .. ". A free guild management addon for WoW Forever.") end)
+    about:Hide()
+    frame.about = about
 
     -- Resizing from the bottom-right corner.
     frame:SetResizable(true)
@@ -217,6 +260,15 @@ function UI.Toggle()
 end
 
 function UI.IsOpen() return frame ~= nil and frame:IsShown() end
+
+-- Open the window on the About panel.
+function UI.ShowAbout()
+    if not UI.IsOpen() then UI.Toggle() end
+    if frame and frame.about then
+        frame.about:Show()
+        frame.about.version:SetText("Version " .. ns.VERSION .. ". A free guild management addon for WoW Forever.")
+    end
+end
 
 ns.Listen("LOG_CHANGED", UI.RefreshSoon)
 ns.Listen("ROSTER_CHANGED", UI.RefreshSoon)
