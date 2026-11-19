@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- New BiS Check tab (everyone): compares your equipped gear, bags and bank with Blood Pact's ranked pre-raid list
+- Ranks your biggest upgrades first, shows where to get each item, and suggests a step-up item when BiS is far off
+- First list: Demonology Warlock. More specs coming
+- Questie is detected if installed (optional); its public API has no item lookups yet
+- Item matching is by name, so the BiS check works on English clients only for now
+
 ## 0.1.3
 
 - Release pipeline fix (lint warning in tests)

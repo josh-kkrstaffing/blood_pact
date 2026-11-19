@@ -13,6 +13,10 @@ Guild DKP, standings, loot charging and recruiting for **World of Warcraft: Fore
 - **Undo.** Officers can void their own last award or charge. Nothing is ever deleted; corrections are recorded.
 - **Recruit tab** (Team Captain and above). Three shared recruiting messages, a copy box, and a one-click /who scan of your zone that lists players without a guild. Click a name to open a whisper; you paste and send it yourself.
 
+## BiS Check
+
+The BiS Check tab compares your gear with Blood Pact's own ranked pre-raid best-in-slot list. We read several public guides, give each guide's top pick 2 points and each alternative 1, and rank items by points. An item's score is its points divided by the BiS item's points. The tab sorts your slots by the biggest upgrade, says where to get each item, and suggests a step-up item. It reads only your own equipped items, bags and bank (open your bank once so banked items count). The first list is Demonology Warlock; item matching is by name, so English clients only for now.
+
 ## Default DKP values
 
 The defaults follow a published example setup (Raidium, "How to Build a Fair DKP System"). Your Guild Master should set your own values in the Settings tab.
