@@ -8,6 +8,7 @@ local function help()
     ns.Print("/bp mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
     ns.Print("/bp status - sync and message queue details")
     ns.Print("/bp prof - read your professions now, share them, and show what the game reported")
+    ns.Print("/bp recipes - with a profession window open: record and share its recipes now")
 end
 
 SLASH_BLOODPACT1 = "/bp"
@@ -27,6 +28,8 @@ SlashCmdList.BLOODPACT = function(input)
         ns.Mock.Command(rest)
     elseif cmd == "prof" or cmd == "profs" or cmd == "professions" then
         ns.Professions.Diagnose()
+    elseif cmd == "recipes" or cmd == "recipe" then
+        ns.Recipes.Scan(false)
     elseif cmd == "status" then
         local g = ns.G()
         local n, provisional = 0, 0

@@ -106,6 +106,12 @@ L.KINDS = {
             and lv(d.l1) and lv(d.l2) and lv(d.fa) and lv(d.ck) and lv(d.fi)
             and lv(d.x1) and lv(d.x2) and lv(d.xfa) and lv(d.xck) and lv(d.xfi)       -- skill caps
     end },
+    -- Recipes a player knows in one profession, as packed ids. reset = this
+    -- replaces what they shared before; otherwise it adds to it.
+    RECIPES = { "signup", function(d)
+        return str(d.p, 1, 24) and str(d.ids, 1, 1200) and ns.U.UnpackIDs(d.ids, 400) ~= nil
+            and (d.reset == nil or d.reset == true)
+    end },
     TASK = { "roster", function(d)
         return str(d.id, 1, 96) and L.TASK_STATES[d.st] ~= nil
     end },

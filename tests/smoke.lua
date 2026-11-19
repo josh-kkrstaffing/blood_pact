@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord" }) do
+    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID" }) do
     M[name] = noop
 end
 function M:SetSize(w, h) self._.w, self._.h = w, h end
@@ -237,7 +237,23 @@ G.GetSkillLineInfo = function(i)
 end
 G.RAID_CLASS_COLORS = { WARLOCK = { r = 0.53, g = 0.53, b = 0.93 }, WARRIOR = { r = 0.78, g = 0.61, b = 0.43 },
     ROGUE = { r = 1, g = 0.96, b = 0.41 } }   -- no MAGE: a class without a color must still draw
-G.C_TradeSkillUI = { GetProfessionInfoBySkillLineID = function(id)
+-- The profession window: which one a player has open, and its recipes.
+local RECIPE_NAMES = { [7418] = "Enchant Bracer - Minor Health", [7420] = "Enchant Chest - Minor Health",
+    [7421] = "Runed Copper Rod", [13380] = "Enchant Shield - Lesser Spirit", [25124] = "Minor Wizard Oil" }
+local TRADE = {}   -- guid -> { prof = "Enchanting", known = { id = true }, linked = bool }
+local function tradeWindow() return TRADE[ctx.guid] end
+G.C_Spell = { GetSpellName = function(id) return RECIPE_NAMES[id] end }
+G.C_TradeSkillUI = {
+    IsTradeSkillLinked = function() local w = tradeWindow(); return w and w.linked or false end,
+    IsTradeSkillReady = function() return tradeWindow() ~= nil end,
+    GetBaseProfessionInfo = function() local w = tradeWindow(); return w and { professionName = w.prof } or {} end,
+    GetAllRecipeIDs = function() return tradeWindow() and { 7418, 7420, 7421, 13380, 25124 } or {} end,
+    GetRecipeInfo = function(id)
+        local w = tradeWindow()
+        if not w then return nil end          -- names only resolve through the spell lookup here
+        return { recipeID = id, name = RECIPE_NAMES[id], learned = w.known[id] or false }
+    end,
+    GetProfessionInfoBySkillLineID = function(id)
     local s = SKILLS[ctx.guid]
     local names = { [393] = "Skinning", [356] = "Fishing" }
     if s and s.api == "ids" then
@@ -569,6 +585,40 @@ run(gm, "prof command", function()
         "/bp prof shows what the game reported")
     check(said(gm, "Already shared"), "/bp prof says when nothing changed")
 end)
+
+-- Recipes: the GM opens Enchanting; the recipes they know reach the guild.
+TRADE[gm.guid] = { prof = "Enchanting", known = { [7418] = true, [7420] = true, [7421] = true } }
+fire(gm, "TRADE_SKILL_SHOW")
+fire(gm, "TRADE_SKILL_LIST_UPDATE")
+advance(30)
+check(said(gm, "Shared 3 Enchanting recipes with the guild."), "opening a profession records and shares its recipes")
+local eventsBefore
+run(gm, "count", function() eventsBefore = gm.ns.Log.Count(gm.ns.G()) end)
+fire(gm, "TRADE_SKILL_LIST_UPDATE")           -- nothing changed: nothing is sent
+advance(10)
+run(gm, "no resend", function() check(gm.ns.Log.Count(gm.ns.G()) == eventsBefore, "an unchanged recipe list isn't sent again") end)
+TRADE[gm.guid].known[25124] = true            -- learns one more
+fire(gm, "NEW_RECIPE_LEARNED")
+advance(30)
+check(said(gm, "Shared 1 Enchanting recipes with the guild."), "a newly learned recipe is sent on its own")
+-- Looking at someone else's linked profession must not be recorded as mine.
+TRADE[officer.guid] = { prof = "Enchanting", known = { [13380] = true }, linked = true }
+fire(officer, "TRADE_SKILL_SHOW")
+advance(30)
+TRADE[gm.guid], TRADE[officer.guid] = nil, nil
+run(officer, "recipes arrive", function()
+    local ns = officer.ns
+    local st = ns.Reducer.State()
+    check(ns.Recipes.Count(st, gm.guid, "Enchanting") == 4, "recipes sync to another player")
+    check(ns.Recipes.Count(st, officer.guid, "Enchanting") == 0, "a linked profession window isn't recorded as mine")
+    local rows = ns.Recipes.List(st.recipes[gm.guid].Enchanting, "", ns.Recipes.Name)
+    check(#rows == 4 and rows[1].name == "Enchant Bracer - Minor Health" and rows[4].name == "Runed Copper Rod",
+        "recipe names come from the viewer's own game")
+    local crafters = ns.Professions.Crafters(ns.roster.byGUID, st.profs, "Enchanting", {})
+    check(#crafters == 1 and crafters[1].guid == gm.guid, "the crafter is listed under Enchanting")
+end)
+slash(gm, "recipes")
+check(said(gm, "Open one of your profession windows first."), "/bp recipes explains itself with no window open")
 
 -- 8. Every tab again with real data, as each role.
 for _, c in ipairs({ gm, officer, member }) do

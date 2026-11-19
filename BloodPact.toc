@@ -2,7 +2,7 @@
 ## Title: Blood Pact
 ## Notes: Guild DKP, standings, loot, roster, warlock summons, raid sign-ups, attendance, BiS check and recruiting for WoW Forever. Fan-made; not affiliated with Blizzard Entertainment.
 ## Author: Blood Pact
-## Version: 0.9.0
+## Version: 0.10.0
 ## SavedVariables: BloodPactDB
 ## OptionalDeps: Questie
 ## AddonCompartmentFunc: BloodPact_OnCompartmentClick
@@ -27,6 +27,7 @@ Modules\BiS.lua
 Modules\Raids.lua
 Modules\Calendar.lua
 Modules\Officer.lua
+Modules\Recipes.lua
 Modules\Professions.lua
 Modules\Roster.lua
 Modules\Summon.lua

@@ -4,7 +4,8 @@
 -- Cooking and Fishing. Shared when they change, at most once an hour.
 -- Skill names are matched in English, like the rest of Blood Pact for now.
 -- The Professions tab lists the guild by profession: pick one on the left,
--- see who has it on the right, best first.
+-- see who has it on the right, best first. Click a crafter to see the
+-- recipes they have shared (see Recipes.lua).
 local _, ns = ...
 local P = {}
 ns.Professions = P
@@ -29,6 +30,8 @@ P.ICON = {
     Cooking = "INV_Misc_Food_15", ["First Aid"] = "Spell_Holy_SealOfSacrifice", Fishing = "Trade_Fishing",
     Jewelcrafting = "INV_Misc_Gem_01", Inscription = "INV_Inscription_Tradeskill01",
 }
+-- Nothing to craft in these, so there is no recipe list to wait for.
+P.NO_RECIPES = { Herbalism = true, Skinning = true, Fishing = true }
 local PRIMARY = {}
 for _, name in pairs(P.SKILL_IDS) do
     if not P.SECONDARY[name] then PRIMARY[name] = true end
@@ -304,7 +307,8 @@ ns.Listen("ROSTER_CHANGED", function() if ns.roster.loaded then publishSoon(90) 
 ---------------------------------------------------------------------------
 local W, U, Red = ns.W, ns.U, ns.Reducer
 local chosen, search, onlineOnly, showAlts, ascending = nil, "", false, true, false
-local BAR_W = 170
+local viewing = nil            -- guid of the crafter whose recipes are shown
+local BAR_W = 130
 
 ns.UI.AddTab("profs", "Professions", "view", function(p)
     p.searchLabel = W.Text(p, "Search", "GameFontHighlightSmall")
@@ -341,7 +345,7 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         local c = g.count > 0 and W.C.text or W.C.muted
         name:SetTextColor(c[1], c[2], c[3])
         n:SetTextColor(c[1], c[2], c[3])
-    end, function(g) chosen = g.name; ns.UI.Refresh() end)
+    end, function(g) chosen = g.name; viewing = nil; ns.UI.Refresh() end)
     p.groups:Stretch(0, -30, nil, 22)
     p.groups.key = "name"
 
@@ -389,10 +393,43 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
                 row.bar:SetColorTexture(W.C.accent[1], W.C.accent[2], W.C.accent[3], 0.9)
             end
         end
-        p.crafters.Col(row, 2, 390, 80):SetText(cap and (r.level .. " / " .. cap) or tostring(r.level))
+        p.crafters.Col(row, 2, 350, 70):SetText(cap and (r.level .. " / " .. cap) or tostring(r.level))
+        local n = p.crafters.Col(row, 3, 424, 80)
+        n:SetText(r.recipes > 0 and (r.recipes .. (r.recipes == 1 and " recipe" or " recipes")) or "")
+        n:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
+    end, function(r)
+        viewing = r.guid
+        p.search:SetText("")          -- the box searches recipes now, not players
+        ns.UI.Refresh()
     end)
     p.crafters:Stretch(206, -52, 0, 22)
     p.crafters.key = "guid"
+
+    -- Right, after clicking a crafter: the recipes they have shared.
+    p.back = W.Button(p, "Back", 60, 18, function()
+        viewing = nil
+        p.search:SetText("")
+        ns.UI.Refresh()
+    end)
+    p.back:SetPoint("TOPLEFT", 212, -30)
+    p.who = W.Text(p, "", "GameFontNormalSmall")
+    p.who:SetPoint("TOPLEFT", 282, -33)
+    p.recipes = W.List(p, 480, 300, 18, function(row, r)
+        p.recipes.Col(row, 1, 8, 440):SetText(U.Safe(r.name, 80))
+        row:SetScript("OnEnter", function(self)
+            local item = self.item
+            if not item or not GameTooltip.SetSpellByID then return end
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            if pcall(GameTooltip.SetSpellByID, GameTooltip, item.id) then GameTooltip:Show() end
+        end)
+        row:SetScript("OnLeave", GameTooltip_Hide)
+    end)
+    p.recipes:Stretch(206, -52, 0, 22)
+    p.recipes.key = "id"
+    p.empty = W.Text(p, "", "GameFontHighlightSmall")
+    p.empty:SetPoint("TOPLEFT", 214, -60)
+    p.empty:SetWidth(460)
+    p.empty:SetWordWrap(true)
 
     p.foot = W.Text(p, "", "GameFontDisableSmall")
     p.foot:SetPoint("BOTTOMLEFT", 0, 2)
@@ -412,7 +449,58 @@ end, function(p)
     p.groups.selected = pick
     p.groups:SetItems(groups)
 
+    -- Recipes of one crafter, when one is picked and still has this profession.
+    local crafter
+    if viewing then
+        for _, s in ipairs(P.Skills(profs[viewing])) do
+            if s.name == chosen then crafter = s end
+        end
+        if not (crafter and ns.roster.byGUID[viewing]) then viewing, crafter = nil, nil end
+    end
+    local inRecipes = crafter ~= nil
+    p.title:SetShown(not inRecipes)
+    p.sort:SetShown(not inRecipes)
+    p.crafters.scroll:SetShown(not inRecipes)
+    p.back:SetShown(inRecipes)
+    p.who:SetShown(inRecipes)
+    p.recipes.scroll:SetShown(inRecipes)
+    p.empty:SetShown(false)
+
+    local total = 0
+    for _ in pairs(ns.roster.byGUID) do total = total + 1 end
+    local line = shared .. " of " .. total .. " members have shared their professions."
+    if not ns.mock and not profs[ns.MyGUID()] then
+        line = line .. " Yours aren't shared yet: type /bp prof."
+    end
+    p.foot:SetText(line)
+
+    if inRecipes then
+        local name = U.Safe(ns.roster.byGUID[viewing].name or "?", 40)
+        local set = st.recipes[viewing] and st.recipes[viewing][chosen]
+        local known = ns.Recipes.Count(st, viewing, chosen)
+        local list = ns.Recipes.List(set, search, ns.Recipes.Name)
+        p.recipes:SetItems(list)
+        p.who:SetText(name .. ": " .. chosen .. " " .. crafter.level .. (crafter.max and (" / " .. crafter.max) or ""))
+        if known == 0 then
+            p.recipes.scroll:SetShown(false)
+            p.empty:SetShown(true)
+            if P.NO_RECIPES[chosen] then
+                p.empty:SetText(chosen .. " has no recipes to list.")
+            elseif viewing == ns.MyGUID() then
+                p.empty:SetText("Open your " .. chosen .. " window once. Blood Pact records your recipes then and shares them with the guild.")
+            else
+                p.empty:SetText(name .. " hasn't shared " .. chosen .. " recipes yet. They're recorded the first time "
+                    .. name .. " opens the " .. chosen .. " window with Blood Pact 0.10 or newer.")
+            end
+            p.count:SetText("")
+        else
+            p.count:SetText(#list == known and (known .. (known == 1 and " recipe" or " recipes")) or (#list .. " of " .. known .. " recipes"))
+        end
+        return
+    end
+
     local rows = P.Crafters(ns.roster.byGUID, profs, chosen, opts)
+    for _, r in ipairs(rows) do r.recipes = ns.Recipes.Count(st, r.guid, chosen) end
     p.crafters:SetItems(rows)
     p.title:SetText(chosen)
     -- Arrow: widest line on top when pointing down (highest first).
@@ -423,12 +511,4 @@ end, function(p)
         t:SetPoint("TOP", p.sort, "RIGHT", -12, 3 - i)
     end
     p.count:SetText(#rows .. (#rows == 1 and " member" or " members") .. " with " .. chosen)
-
-    local total = 0
-    for _ in pairs(ns.roster.byGUID) do total = total + 1 end
-    local line = shared .. " of " .. total .. " members have shared their professions."
-    if not ns.mock and not profs[ns.MyGUID()] then
-        line = line .. " Yours aren't shared yet: type /bp prof."
-    end
-    p.foot:SetText(line)
 end)

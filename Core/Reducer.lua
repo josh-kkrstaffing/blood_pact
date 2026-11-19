@@ -49,7 +49,7 @@ function Red.Build(g)
         settings = ns.U.Copy(Red.DEFAULTS), pools = {}, alts = {}, idem = {},
         recruitMsgs = nil, history = {}, lastDecay = nil,
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
-        members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {},
+        members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {},
     }
     local signups, attIdem, rosterIdem = {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
@@ -134,6 +134,21 @@ function Red.Build(g)
         elseif k == "PROF" then
             st.profs[e.a] = { p1 = d.p1, l1 = d.l1, x1 = d.x1, p2 = d.p2, l2 = d.l2, x2 = d.x2,
                 fa = d.fa, xfa = d.xfa, ck = d.ck, xck = d.xck, fi = d.fi, xfi = d.xfi, t = e.t }
+        elseif k == "RECIPES" then
+            -- Each player reports their own. Bounded so nobody can bloat the guild's data.
+            local mine = st.recipes[e.a]
+            if not mine then mine = {}; st.recipes[e.a] = mine end
+            local kinds = 0
+            for _ in pairs(mine) do kinds = kinds + 1 end
+            if mine[d.p] or kinds < 8 then
+                local set = (not d.reset) and mine[d.p] or {}
+                mine[d.p] = set
+                local n = 0
+                for _ in pairs(set) do n = n + 1 end
+                for _, id in ipairs(ns.U.UnpackIDs(d.ids, 400) or {}) do
+                    if not set[id] and n < 2000 then set[id] = true; n = n + 1 end
+                end
+            end
         elseif k == "TASK" then
             st.tasks[d.id] = { st = d.st, by = e.a, t = e.t }
         elseif k == "RECRUIT_MSGS" then

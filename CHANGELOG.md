@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0
+
+- Recipes: open a profession window once and Blood Pact records the recipes you know and shares them with the guild; after that only newly learned recipes are sent
+- Professions tab: click a crafter to see their recipes for that profession, with search and the game's tooltip on hover; Back returns to the list
+- Each crafter row shows how many recipes they have shared
+- `/bp recipes` (with a profession window open) records and shares now, and says what the game listed
+- Someone else's linked profession window is never recorded as yours
+- Only recipe ids are shared; names are looked up on each player's own game
+
 ## 0.9.0
 
 - Professions is now its own tab, organized by profession: pick one on the left, see who has it on the right, best first

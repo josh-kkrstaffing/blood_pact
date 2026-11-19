@@ -28,6 +28,7 @@ ns.DKP = { GroupGUIDs = function() return {} end }
 load("Modules/Raids.lua")
 load("Modules/Officer.lua")
 ns.Char = function() return {} end
+load("Modules/Recipes.lua")
 load("Modules/Professions.lua")
 ns.Listen = function() end
 load("Modules/Roster.lua")
@@ -815,6 +816,62 @@ test("professions: each player's own report syncs; the guild is listed by profes
     eq(P.Groups(roster, st.profs, { online = true })[1].count, 2)
     eq(select(2, P.Groups(roster, st.profs, { online = true })), 2)
     eq(#P.Crafters(roster, st.profs, "Mining", {}), 0)
+end)
+
+test("recipes: id lists pack small and only well-formed ones unpack", function()
+    local ids = { 7421, 7418, 13380, 7420, 7418 }
+    local s = U.PackIDs(ids)
+    eq(s, "5q2.2.1.4lj")
+    local back = U.UnpackIDs(s)
+    eq(#back, 4); eq(back[1], 7418); eq(back[2], 7420); eq(back[3], 7421); eq(back[4], 13380)
+    local many = {}
+    for i = 1, 100 do many[i] = 20000 + i * 7 end
+    eq(#U.PackIDs(many) < 220, true)                     -- 100 recipes fit in one addon message
+    eq(#U.UnpackIDs(U.PackIDs(many)), 100)
+    for _, bad in ipairs({ "", ".", "5q2..2", ".5q2", "5q2.", "5Q2", "5q2,2", "0", "5q2.0", "zzzzzz", "zzzzz.zzzzz" }) do
+        eq(U.UnpackIDs(bad), nil)
+    end
+    eq(U.UnpackIDs("1.1.1", 2), nil)                      -- more ids than allowed
+    eq(U.UnpackIDs(12), nil)
+end)
+
+test("recipes: each player shares their own; later scans only add; a reset replaces", function()
+    local Rc = ns.Recipes
+    local g = newStore()
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "RECIPES", { p = "Enchanting", ids = U.PackIDs({ 7418, 7420, 7421 }), reset = true }),
+        author(g, "Player-1-MEM1", "RECIPES", { p = "Enchanting", ids = U.PackIDs({ 13380 }) }),
+        author(g, "Player-1-MEM1", "RECIPES", { p = "Tailoring", ids = U.PackIDs({ 2385, 2387 }) }),
+        author(g, "Player-1-MEM2", "RECIPES", { p = "Enchanting", ids = U.PackIDs({ 7418 }) }),
+    })
+    for _, bad in ipairs({ { p = "Enchanting", ids = "5q2..2" }, { p = "", ids = "5q2" }, { p = "Enchanting" },
+        { p = "Enchanting", ids = "5q2", reset = "yes" }, { p = ("x"):rep(25), ids = "5q2" } }) do
+        eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "RECIPES", bad), true)), "payload")
+    end
+    local st = Red.Build(g)
+    eq(Rc.Count(st, "Player-1-MEM1", "Enchanting"), 4); eq(Rc.Count(st, "Player-1-MEM1", "Tailoring"), 2)
+    eq(Rc.Count(st, "Player-1-MEM2", "Enchanting"), 1); eq(Rc.Count(st, "Player-1-VET", "Enchanting"), 0)
+
+    -- What a new scan would send.
+    local have = st.recipes["Player-1-MEM1"].Enchanting
+    local adds, gone = Rc.Diff({ 7418, 7420, 7421, 13380 }, have)
+    eq(#adds, 0); eq(gone, false)                         -- nothing new: nothing is sent
+    adds, gone = Rc.Diff({ 7418, 7420, 7421, 13380, 13419, 13419 }, have)
+    eq(#adds, 1); eq(adds[1], 13419); eq(gone, false)     -- one new recipe: one id is sent
+    adds, gone = Rc.Diff({ 7418, 7420 }, have)
+    eq(gone, true)                                        -- a shared recipe is gone: replace the list
+    eq(#Rc.Diff({ 5, 6 }, nil), 2)
+    local parts = Rc.Chunks({ 1, 2, 3, 4, 5 }, 2)
+    eq(#parts, 3); eq(#parts[3], 1); eq(parts[2][1], 3)
+
+    insertAll(g, { author(g, "Player-1-MEM1", "RECIPES", { p = "Enchanting", ids = U.PackIDs({ 7418, 7420 }), reset = true }) })
+    st = Red.Build(g)
+    eq(Rc.Count(st, "Player-1-MEM1", "Enchanting"), 2); eq(Rc.Count(st, "Player-1-MEM1", "Tailoring"), 2)
+
+    local names = { [7418] = "Enchant Bracer - Minor Health", [7420] = "Enchant Chest - Minor Health" }
+    local rows = Rc.List({ [7420] = true, [7418] = true, [99] = true }, "", function(id) return names[id] end)
+    eq(#rows, 3); eq(rows[1].name, "Enchant Bracer - Minor Health"); eq(rows[3].name, "Recipe 99")
+    eq(#Rc.List({ [7420] = true, [7418] = true }, "chest", function(id) return names[id] end), 1)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

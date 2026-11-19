@@ -19,6 +19,8 @@ The Roster tab lists every member with rank, level, join date and when they were
 
 The Professions tab lists the guild by profession: pick one on the left and see who has it on the right, with their skill level and a bar against their current cap. Only a player's own client can read their skills, so each player's addon reads them (two professions plus First Aid, Cooking and Fishing) and shares them with the guild when they change. Press Level to flip the order; filter by player name, online only, or alts. The profession icons are the game's own; none are bundled. If your own professions don't show, type `/bp prof`.
 
+Click a crafter to see the recipes they know. The game shows a character's recipes only to that character, and only while the profession window is open, so each player opens each profession once and Blood Pact records and shares the list (recipe ids only; names come from each viewer's own game). Newly learned recipes are added the next time the window is open. `/bp recipes` does it on demand.
+
 Activity counts per player: a main is active if any of their alts was online, or they signed up for or attended a raid. The Officer tasks view lists cleanup candidates, Initiates who meet the guild's promotion rule, alts whose rank doesn't match their main, and new members to check for alts. Officers claim tasks and mark them done for everyone. WoW Forever doesn't let addons change ranks or remove members, so each task copies the command for an officer to run by hand.
 
 ## Summons
@@ -66,7 +68,7 @@ Blood Pact never plays the game for you. It does not automate combat, movement, 
 
 ## Privacy
 
-Blood Pact sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests, and each player's own readiness score and profession levels) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
+Blood Pact sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests, and each player's own readiness score, profession levels and known recipes) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
 
 ## Commands
 

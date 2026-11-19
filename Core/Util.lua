@@ -140,6 +140,47 @@ function U.FormatPattern(fmt)
 end
 
 -- "0.10.2" vs "0.9.0": true when a is newer than b.
+-- A list of ids as a short string: sorted, each written as the gap from the
+-- one before it, in base 36, joined by dots. { 7418, 7420 } -> "5q2.2".
+U.MAX_ID = 10000000
+local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
+local function base36(n)
+    local s = ""
+    repeat
+        local d = n % 36
+        s = DIGITS:sub(d + 1, d + 1) .. s
+        n = (n - d) / 36
+    until n == 0
+    return s
+end
+function U.PackIDs(ids)
+    local sorted = {}
+    for i, id in ipairs(ids) do sorted[i] = id end
+    table.sort(sorted)
+    local parts, prev = {}, 0
+    for _, id in ipairs(sorted) do
+        if id > prev then
+            parts[#parts + 1] = base36(id - prev)
+            prev = id
+        end
+    end
+    return table.concat(parts, ".")
+end
+-- Back to a list, or nil when the string isn't a well-formed id list.
+function U.UnpackIDs(s, limit)
+    if type(s) ~= "string" or s == "" or not s:match("^[0-9a-z%.]+$") then return nil end
+    local ids, prev = {}, 0
+    for token in s:gmatch("[^%.]+") do
+        local gap = #token <= 5 and tonumber(token, 36)
+        if not gap or gap < 1 then return nil end
+        prev = prev + gap
+        if prev >= U.MAX_ID or #ids >= (limit or 400) then return nil end
+        ids[#ids + 1] = prev
+    end
+    if #ids == 0 or s:find("..", 1, true) or s:sub(1, 1) == "." or s:sub(-1) == "." then return nil end
+    return ids
+end
+
 function U.VersionNewer(a, b)
     local function parts(v)
         local out = {}
