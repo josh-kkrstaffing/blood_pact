@@ -64,6 +64,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
     hint:SetPoint("TOPLEFT", 0, -122)
     p.saveMsg = W.Button(p, "Save as guild message", 170, 20, function()
         local msgs = U.Copy(messages())
+        if msgs[current] == p.box:GetText() then ns.UI.Say("That message is already saved.") return end
         msgs[current] = p.box:GetText()
         ns.UI.Try("Recruiting message saved for all recruiters.", function()
             if not ns.RBAC.ICan("recruitEdit") then return nil, "Only Officers and above can edit the messages." end

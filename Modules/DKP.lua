@@ -51,15 +51,21 @@ end
 function D.AwardGroup(kind)
     local st = Red.State()
     if not st then return nil, "Not in a guild." end
+    if not ns.mock and not IsInGroup() then return nil, "Join the raid first: this awards everyone in your group." end
     local amount = kind == "ontime" and st.settings.onTime or st.settings.fullRaid
-    local idem = kind .. ":" .. date("%Y-%m-%d")
+    local idem = kind .. ":" .. ns.Time.RaidDay(ns.Now())
     return D.Award(D.GroupGUIDs(), amount, kind, nil, idem)
 end
 
 function D.OnBossKill(encounterID, encounterName, difficultyID)
     if not (ns.db and ns.db.ui.autoBossAward) then return end
     if not RBAC.ICan("award") then return end
-    if not ns.mock and not UnitIsGroupLeader("player") then return end
+    -- Raids only (dungeon bosses fire this too), and only from the raid's
+    -- leader or an assistant. Two officers awarding the same kill count once.
+    if not ns.mock then
+        if not IsInRaid() then return end
+        if not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then return end
+    end
     local st = Red.State()
     if not st then return end
     -- A scheduled raid tonight decides progression vs farm; otherwise the
@@ -68,7 +74,7 @@ function D.OnBossKill(encounterID, encounterName, difficultyID)
     local prog = ns.db.ui.progression
     if current then prog = current.prog end
     local amount = prog and st.settings.bossProg or st.settings.bossFarm
-    local idem = ("boss:%s:%s:%s"):format(tostring(encounterID), tostring(difficultyID or 0), date("%Y-%m-%d"))
+    local idem = ("boss:%s:%s:%s"):format(tostring(encounterID), tostring(difficultyID or 0), ns.Time.RaidDay(ns.Now()))
     local e = D.Award(D.GroupGUIDs(), amount, "boss", cut(encounterName, 60), idem)
     if e then ns.Print(("Awarded %d DKP to the raid for the kill."):format(amount)) end
 end
@@ -110,6 +116,14 @@ function D.SaveSettings(values)
     return Log.New("SETTINGS", changed)
 end
 
+-- Take back the most recent decay (Guild Master only).
+function D.UndoDecay()
+    if not RBAC.ICan("decay") then return nil, "Only the Guild Master can undo decay." end
+    local st = Red.State()
+    if not st or not st.lastDecay then return nil, "There's no decay to undo." end
+    return Log.New("UNDECAY", { target = st.lastDecay.id })
+end
+
 -- Void the most recent award or spend you authored.
 function D.UndoMine()
     if not RBAC.ICan("void") then return nil, "Only Officers and above can undo." end
@@ -120,7 +134,7 @@ function D.UndoMine()
     end
     local best
     for _, e in pairs(g.log) do
-        if e.a == me and (e.k == "AWARD" or e.k == "SPEND") and not voided[e.id] then
+        if e.ok and e.a == me and (e.k == "AWARD" or e.k == "SPEND") and not voided[e.id] then
             if not best or e.s > best.s then best = e end
         end
     end

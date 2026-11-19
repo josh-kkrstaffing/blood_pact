@@ -19,6 +19,10 @@ The Roster tab lists every member with rank, level, join date and when they were
 
 Activity counts per player: a main is active if any of their alts was online, or they signed up for or attended a raid. The Officer tasks view lists cleanup candidates, Initiates who meet the guild's promotion rule, alts whose rank doesn't match their main, and new members to check for alts. Officers claim tasks and mark them done for everyone. WoW Forever doesn't let addons change ranks or remove members, so each task copies the command for an officer to run by hand.
 
+## Summons
+
+WoW Forever has no summoning stones, so a warlock's Ritual of Summoning is the only summon, and it needs the warlock plus two more group members to click the portal. The Summon tab lists the guild's online warlocks with how many guildmates are in each one's zone. Anyone can ask for a summon; warlocks with the addon are alerted. The warlock picks the request and presses one button to invite the asker and up to two guildmates from their zone, or calls for clickers. Every invite and message is a click by a player; the ritual itself is cast by hand.
+
 ## Raids and attendance
 
 Team Captains and above schedule raids in the Raids tab, with presets for Barrow Deeps (10) and Hyjal Summit (20). Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't. Attendance is taken on every boss kill while a Team Captain or above leads the raid, or with one click. Standings shows each player's attendance over the last 10 raid nights, with alts counted for their main. Raids are scheduled in a US time zone or your PC's time, and everyone sees them in their own PC's time. Each raid is marked progression or farm, which sets the boss-kill DKP that night. New raids go on the in-game calendar when your rank allows it. Everyone who signs up gets reminders on their own screen 30 and 15 minutes before, and leaders can whisper the sign-ups with one click. Sign-ups and attendance sync through the guild like DKP, with no website needed.
@@ -64,6 +68,10 @@ Blood Pact sends **no data outside the game**. It has no website, server or data
 - `/bp whoami` shows your character ID and role.
 - `/bp mock on` starts a solo test mode with 19 fake guildmates. Try `/bp mock boss`, `/bp mock award` and `/bp mock forge`, then `/bp mock off`. Mock data never leaves your client.
 - `/bp status` shows sync details.
+
+## Tests
+
+`lua tests/run.lua` checks the rules (DKP math, permissions, sync safety). `lua tests/smoke.lua` loads the whole addon into a stand-in for the game client, runs three players in one guild, syncs them over a simulated addon channel, opens every tab and presses every button. Both run on every release.
 
 ## Credits and licenses
 

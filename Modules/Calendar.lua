@@ -26,6 +26,7 @@ end
 local function say(msg) if ns.UI then ns.UI.Say(msg) else ns.Print(msg) end end
 
 function C.Add(r)
+    if ns.mock then return false end   -- test mode never touches the real calendar
     local api = cal()
     if not api or not api.CreateGuildSignUpEvent or not api.AddEvent then
         say("Raid saved. This client has no in-game calendar for addons, so add it there by hand.")
@@ -60,6 +61,7 @@ end
 -- Find the calendar event for a raid (same title, same realm date) and answer it.
 local pending
 function C.Respond(r, status)
+    if ns.mock then return end
     local api = cal()
     if not api or not api.OpenEvent or not api.SetAbsMonth then return end
     local offset = realmOffset()

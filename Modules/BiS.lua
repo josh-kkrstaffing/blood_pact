@@ -121,7 +121,7 @@ end
 
 ns.On("BANKFRAME_OPENED", scanBank)
 ns.On("PLAYERBANKSLOTS_CHANGED", scanBank)
-ns.On("PLAYER_EQUIPMENT_CHANGED", function() if ns.UI then ns.UI.Refresh() end end)
+ns.On("PLAYER_EQUIPMENT_CHANGED", function() if ns.UI then ns.UI.RefreshSoon() end end)
 
 -- Questie's public API (Questie.API) covers readiness, quest updates and
 -- nameplate icons. It has no item or map-pin lookups, so we only detect it.

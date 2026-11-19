@@ -8,9 +8,13 @@ local W, U, RBAC = ns.W, ns.U, ns.RBAC
 local tabs, order = {}, {}
 local frame, roleText, statusText, activeKey
 
+-- Left to right. Everyday tabs first, officer tools after, Settings last.
+local TAB_ORDER = { standings = 1, raids = 2, roster = 3, bis = 4, summon = 5, raid = 6, recruit = 7, settings = 8 }
+
 function UI.AddTab(key, label, action, build, refresh)
     order[#order + 1] = key
     tabs[key] = { label = label, action = action, build = build, refresh = refresh }
+    table.sort(order, function(a, b) return (TAB_ORDER[a] or 99) < (TAB_ORDER[b] or 99) end)
 end
 
 local function allowed(tab) return RBAC.ICan(tab.action) end
@@ -18,6 +22,25 @@ local function allowed(tab) return RBAC.ICan(tab.action) end
 function UI.Say(msg)
     ns.Print(msg)
     if frame and frame.feedback then frame.feedback:SetText(U.Safe(msg, 200)) end
+end
+
+-- For actions that can't be taken back: the first click arms the button,
+-- a second click within 5 seconds runs it.
+function UI.Confirm(button, fn)
+    local armedAt, label = -10, nil
+    return function(...)
+        if GetTime() - armedAt > 5 then
+            armedAt, label = GetTime(), button:GetText()
+            button:SetText("Click again to confirm")
+            C_Timer.After(5, function()
+                if armedAt > 0 and label then button:SetText(label) end
+            end)
+            return
+        end
+        armedAt = -10
+        if label then button:SetText(label) end
+        return fn(...)
+    end
 end
 
 -- Run an action that returns (result) or (nil, error message).
@@ -148,6 +171,9 @@ local function build()
     for _, key in ipairs(order) do
         local t = tabs[key]
         t.button = W.Button(frame, t.label, 96, 30, function() selectTab(key) end, "tab")
+        local fs = t.button:GetFontString()
+        local textWidth = fs and fs:GetStringWidth() or 0
+        t.button:SetWidth(math.max(60, math.floor(textWidth + 0.5) + 26))
         t.panel = CreateFrame("Frame", nil, frame)
         t.panel:SetPoint("TOPLEFT", 20, -80)
         t.panel:SetPoint("BOTTOMRIGHT", -20, 40)
@@ -155,6 +181,19 @@ local function build()
         t.build(t.panel)
     end
     frame:SetScript("OnShow", UI.Refresh)
+    -- Keeps "5 min ago", zones and the sync status current while it's open.
+    C_Timer.NewTicker(15, function() UI.RefreshSoon() end)
+end
+
+-- Many changes can land at once (a sync, a roster burst). Redraw once.
+local refreshQueued = false
+function UI.RefreshSoon()
+    if refreshQueued or not frame or not frame:IsShown() then return end
+    refreshQueued = true
+    C_Timer.After(0.15, function()
+        refreshQueued = false
+        UI.Refresh()
+    end)
 end
 
 function UI.Toggle()
@@ -169,12 +208,18 @@ function UI.Toggle()
             ns.Print("The window couldn't open: " .. tostring(err))
             return
         end
+        -- A new frame starts out shown, so the first /bp opens it.
+        frame:Show()
+        UI.Refresh()
+        return
     end
     frame:SetShown(not frame:IsShown())
 end
 
-ns.Listen("LOG_CHANGED", UI.Refresh)
-ns.Listen("ROSTER_CHANGED", UI.Refresh)
+function UI.IsOpen() return frame ~= nil and frame:IsShown() end
+
+ns.Listen("LOG_CHANGED", UI.RefreshSoon)
+ns.Listen("ROSTER_CHANGED", UI.RefreshSoon)
 
 ---------------------------------------------------------------------------
 -- Standings tab (everyone)
@@ -224,7 +269,7 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
         ns.db.ui.progression = on
     end)
     p.prog:SetPoint("TOPLEFT", 0, -50)
-    p.auto = W.Check(p, "Auto-award boss kills while I lead the raid", function(on)
+    p.auto = W.Check(p, "Auto-award raid boss kills while I lead or assist the raid", function(on)
         ns.db.ui.autoBossAward = on
     end)
     p.auto:SetPoint("TOPLEFT", 0, -74)
@@ -247,6 +292,10 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
         local guids, missing = {}, {}
         local text = p.names:GetText() or ""
         if text:match("^%s*$") then
+            if not ns.mock and not IsInGroup() then
+                UI.Say("Type one or more names, or join the raid to award your whole group.")
+                return
+            end
             guids = D.GroupGUIDs()
         else
             for name in text:gmatch("[^,]+") do
@@ -294,6 +343,7 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
         p.lootList.Col(row, 2, 210, 60, "RIGHT"):SetText(item.bal)
     end)
     p.lootList.scroll:SetPoint("TOPLEFT", 340, -88)
+    p.lootList.key = "guid"
     p.charge = W.Button(p, "Charge selected player", 180, 22, function()
         local who = p.lootList.selected
         if not who then UI.Say("Pick the winner in the list first.") return end
@@ -366,10 +416,23 @@ UI.AddTab("settings", "Settings", "settings", function(p)
         UI.Try("Settings saved and shared with the guild.", ns.DKP.SaveSettings, values)
     end, "accent")
     p.save:SetPoint("TOPLEFT", 0, -250)
-    p.decay = W.Button(p, "Run decay now", 140, 22, function()
+    -- Decay touches every balance, so it takes two clicks.
+    p.armed = -10
+    p.decay = W.Button(p, "Run decay now", 170, 22, function()
+        if GetTime() - p.armed > 5 then
+            p.armed = GetTime()
+            p.decay:SetText("Click again to confirm")
+            UI.Say("Decay lowers every positive balance. Click again within 5 seconds to confirm.")
+            return
+        end
+        p.armed = -10
         UI.Try("Decay applied to every balance.", ns.DKP.Decay)
     end)
     p.decay:SetPoint("LEFT", p.save, "RIGHT", 8, 0)
+    p.undoDecay = W.Button(p, "Undo last decay", 140, 22, function()
+        UI.Try("The last decay was undone for everyone.", ns.DKP.UndoDecay)
+    end)
+    p.undoDecay:SetPoint("LEFT", p.decay, "RIGHT", 8, 0)
     p.last = W.Text(p, "", "GameFontDisableSmall")
     p.last:SetPoint("TOPLEFT", 0, -282)
 end, function(p)
@@ -378,6 +441,7 @@ end, function(p)
     for key, e in pairs(p.edits) do
         if not e:HasFocus() then e:SetText(tostring(st.settings[key])) end
     end
-    p.decay:SetText(("Run %d%% decay now"):format(st.settings.decayPct))
+    if GetTime() - p.armed > 5 then p.decay:SetText(("Run %d%% decay now"):format(st.settings.decayPct)) end
+    p.undoDecay:SetEnabled(st.lastDecay ~= nil)
     p.last:SetText(st.lastDecay and ("Last decay: " .. date("%b %d, %Y", st.lastDecay.t)) or "Decay has not been run yet.")
 end)

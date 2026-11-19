@@ -21,6 +21,13 @@ local buckets = {
     WHISPER = { tokens = 10, max = 10, rate = 2 },
 }
 local queue = {}                 -- FIFO of { dist, target, msg }
+-- Whisper targets. WoW Forever has no realms, and some name forms aren't
+-- found by the server; when a whisper bounces we retry with the short name,
+-- and stop whispering someone who has gone offline.
+local alias = {}                 -- [name as heard] = name that works
+local unreachable = {}           -- [name as heard] = GetTime() until which we skip them
+local lastWhisper = {}           -- [name sent to] = { orig = name as heard, at = GetTime() }
+local recent = {}                -- [name as heard] = whispers of the last seconds, to resend after a bounce
 local holdUntil = 0              -- lockdown or throttle backoff
 local msgCounter = 0
 C.stats = { sent = 0, received = 0, lockdowns = 0, throttled = 0, dropped = 0 }
@@ -69,11 +76,19 @@ local function pump()
     while i <= #queue do
         local item = queue[i]
         local b = buckets[item.dist]
-        if b.tokens < 1 then
+        if item.dist == "WHISPER" and (unreachable[item.target] or 0) > now then
+            table.remove(queue, i)
+            C.stats.dropped = C.stats.dropped + 1
+        elseif b.tokens < 1 then
             i = i + 1
         else
+            local target = item.target
+            if item.dist == "WHISPER" then
+                target = alias[target] or target
+                lastWhisper[target] = { orig = item.target, at = now }
+            end
             -- Some builds throw instead of returning a code during lockdown.
-            local called, result = pcall(C_ChatInfo.SendAddonMessage, C.PREFIX, item.msg, item.dist, item.target)
+            local called, result = pcall(C_ChatInfo.SendAddonMessage, C.PREFIX, item.msg, item.dist, target)
             if not called then result = RESULT_LOCKDOWN end
             if result == true or result == nil then result = RESULT_OK end
             if result == false then result = 9 end
@@ -81,6 +96,14 @@ local function pump()
                 b.tokens = b.tokens - 1
                 table.remove(queue, i)
                 C.stats.sent = C.stats.sent + 1
+                if item.dist == "WHISPER" and not alias[item.target] then
+                    local r = recent[item.target]
+                    if not r then
+                        r = {}
+                        recent[item.target] = r
+                    end
+                    if #r < 40 then r[#r + 1] = { msg = item.msg, at = now } end
+                end
             elseif result == RESULT_LOCKDOWN then
                 C.stats.lockdowns = C.stats.lockdowns + 1
                 holdUntil = now + 5
@@ -137,9 +160,52 @@ local function sweep()
     for key, entry in pairs(partial) do
         if now - entry.at > REASSEMBLY_TIMEOUT then partial[key] = nil end
     end
+    for name, w in pairs(lastWhisper) do
+        if now - w.at > 30 then lastWhisper[name] = nil end
+    end
+    for name, r in pairs(recent) do
+        if #r == 0 or now - r[#r].at > 15 then recent[name] = nil end
+    end
 end
 
+-- "No player named 'X' is currently playing." after one of our whispers.
+local NOT_FOUND = ns.U.FormatPattern(ERR_CHAT_PLAYER_NOT_FOUND_S or "No player named '%s' is currently playing.")
+
+-- Returns true when the message was caused by a Blood Pact whisper.
+function C.OnSystemMessage(msg)
+    if type(msg) ~= "string" then return false end
+    local name = msg:match(NOT_FOUND)
+    local w = name and lastWhisper[name]
+    if not w or GetTime() - w.at > 10 then return false end
+    local short = ns.U.ShortName(w.orig)
+    if name ~= (alias[w.orig] or w.orig) then return true end   -- a late bounce from the old form
+    if not alias[w.orig] and short ~= w.orig then
+        alias[w.orig] = short                    -- try the short name next
+        -- Send again what just bounced, under the name that works.
+        for _, sent in ipairs(recent[w.orig] or {}) do
+            if GetTime() - sent.at <= 10 then
+                queue[#queue + 1] = { dist = "WHISPER", target = w.orig, msg = sent.msg }
+            end
+        end
+        recent[w.orig] = nil
+    else
+        unreachable[w.orig] = GetTime() + 60     -- offline: stop for a minute
+    end
+    return true
+end
+
+ns.On("CHAT_MSG_SYSTEM", function(msg) C.OnSystemMessage(msg) end)
+
 ns.On("PLAYER_LOGIN", function()
+    -- Keep those bounce messages out of the chat window.
+    local addFilter = (ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter) or ChatFrame_AddMessageEventFilter
+    if addFilter then
+        pcall(addFilter, "CHAT_MSG_SYSTEM", function(_, _, msg)
+            local name = type(msg) == "string" and msg:match(NOT_FOUND)
+            local w = name and lastWhisper[name]
+            return (w and GetTime() - w.at <= 10) and true or false
+        end)
+    end
     C_ChatInfo.RegisterAddonMessagePrefix(C.PREFIX)
     C_Timer.NewTicker(0.25, pump)
     C_Timer.NewTicker(30, sweep)

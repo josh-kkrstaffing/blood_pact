@@ -13,12 +13,7 @@ local Log, Red, RBAC = ns.Log, ns.Reducer, ns.RBAC
 local date = date or os.date   -- WoW global; os.date in tests
 
 -- Turn a game message format ("%s has joined the guild.") into a Lua pattern.
-function R.Pattern(fmt)
-    if type(fmt) ~= "string" then return nil end
-    local p = fmt:gsub("%%%d%$s", "\001"):gsub("%%s", "\001")
-    p = p:gsub("([%%%(%)%.%+%-%*%?%[%]%^%$])", "%%%1"):gsub("\001", "(.+)")
-    return "^" .. p .. "$"
-end
+R.Pattern = ns.U.FormatPattern
 
 local PATTERNS = {
     { "join", ERR_GUILD_JOIN_S or "%s has joined the guild." },
@@ -97,7 +92,7 @@ local function current()
 end
 
 function R.Scan()
-    if ns.mock or not ns.roster.loaded or not RBAC.ICan("roster") then return end
+    if ns.mock or not ns.roster.loaded or not ns.roster.complete or not RBAC.ICan("roster") then return end
     local g = ns.G()
     if not g then return end
     local now = current()
@@ -123,7 +118,9 @@ local scheduled
 local function scanSoon()
     if scheduled then return end
     scheduled = true
-    C_Timer.After(3, function() scheduled = false; R.Scan() end)
+    -- Several officers see the same change. A random wait lets the first one's
+    -- record reach the others before they write their own.
+    C_Timer.After(3 + math.random() * 12, function() scheduled = false; R.Scan() end)
 end
 ns.Listen("ROSTER_CHANGED", scanSoon)
 
@@ -233,6 +230,7 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         p.list.Col(row, 5, 370, 66):SetText(r.last)
     end, function(r) selected = r.guid; ns.UI.Refresh() end)
     p.list:Stretch(0, -44, nil, 0)
+    p.list.key = "guid"
 
     -- Detail of the selected member
     p.detail = W.Text(p, "", "GameFontHighlightSmall")
@@ -267,6 +265,7 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         p.tasks.Col(row, 2, 570, 136):SetText(task.claimedBy and ("|cffffd100" .. U.Safe(ns.NameForGUID(task.claimedBy) or "an officer", 30) .. "|r") or "")
     end, function(task) p.taskSel = task.id; ns.UI.Refresh() end)
     p.tasks:Stretch(0, -28, 0, 70)
+    p.tasks.key = "id"
     p.tw = CreateFrame("Frame", nil, p)
     p.tw:SetPoint("BOTTOMLEFT", 0, 0)
     p.tw:SetSize(710, 60)

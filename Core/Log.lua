@@ -53,6 +53,9 @@ L.KINDS = {
     DECAY = { "decay", function(d)
         return isInt(d.pct, 1, 100)
     end },
+    UNDECAY = { "decay", function(d)
+        return str(d.target, 1, 80)
+    end },
     SETTINGS = { "settings", function(d)
         local any = false
         for k, v in pairs(d) do
@@ -112,18 +115,33 @@ function L.Wire(e)
     return { id = e.id, a = e.a, s = e.s, L = e.L, t = e.t, prev = e.prev, k = e.k, d = e.d, h = e.h }
 end
 
+L.MAX_UNKNOWN_BYTES = 2000
+
 -- Shape, hash, size and authorization checks. Returns true, or false + reason.
 -- "unknownAuthor" means the roster can't place the author yet (retry later).
-function L.Validate(e, g)
+-- vouched: an Officer relayed it as confirmed, so the author's rank isn't
+--   checked again. That keeps history intact after its author is demoted or
+--   leaves the guild.
+-- A kind this version doesn't know (from a newer Blood Pact) passes as
+--   true, "unknownKind": it is stored and passed on, but never counted.
+function L.Validate(e, g, vouched)
     if type(e) ~= "table" then return false, "shape" end
     if not isGUID(e.a) or not isInt(e.s, 1, 1e9) or type(e.id) ~= "string"
         or e.id ~= e.a .. ":" .. e.s then return false, "id" end
     if not isInt(e.L, 1, 1e12) or not isInt(e.t, 0, 1e11) then return false, "clock" end
     if e.prev ~= nil and type(e.prev) ~= "string" then return false, "prev" end
     if e.L > (g.lamport or 0) + L.MAX_LAMPORT_JUMP then return false, "lamportJump" end
+    if type(e.k) ~= "string" or #e.k < 1 or #e.k > 24 or type(e.d) ~= "table" then return false, "payload" end
     local spec = L.KINDS[e.k]
-    if not spec or type(e.d) ~= "table" or not spec[2](e.d) then return false, "payload" end
+    if spec and not spec[2](e.d) then return false, "payload" end
     if e.h ~= L.Hash(e) then return false, "hash" end
+    if not spec then
+        local ok, enc = pcall(U.Encode, e.d)
+        if not ok or #enc > L.MAX_UNKNOWN_BYTES then return false, "payload" end
+        if not vouched and not ns.RBAC.RoleOf(e.a) then return false, "unknownAuthor" end
+        return true, "unknownKind"
+    end
+    if vouched then return true end
     if not ns.RBAC.RoleOf(e.a) then return false, "unknownAuthor" end
     if not ns.RBAC.Can(e.a, spec[1]) then return false, "forbidden" end
     return true
@@ -137,12 +155,22 @@ end
 
 -- Insert a validated event. confirmed = came from its author or an officer.
 -- Returns "new", "confirmed", "dup", "conflict" or false + reason.
-function L.Insert(g, e, confirmed)
-    local ok, why = L.Validate(e, g)
+function L.Insert(g, e, confirmed, vouched)
+    local ok, why = L.Validate(e, g, vouched)
     if not ok then return false, why end
     local have = g.log[e.id]
     if have then
         if have.h ~= e.h then
+            -- An unconfirmed copy never blocks a confirmed one. Otherwise anyone
+            -- could reserve an Officer's next event number with a fake.
+            if confirmed and not have.ok then
+                local stored = L.Wire(e)
+                stored.ok = true
+                stored.u = (why == "unknownKind") and true or nil
+                g.log[e.id] = stored
+                if e.L > (g.lamport or 0) then g.lamport = e.L end
+                return "new"
+            end
             g.conflicts = (g.conflicts or 0) + 1
             return "conflict"
         end
@@ -154,10 +182,44 @@ function L.Insert(g, e, confirmed)
     end
     local stored = L.Wire(e)
     stored.ok = confirmed and true or nil
+    stored.u = (why == "unknownKind") and true or nil   -- held until an update knows the kind
     g.log[e.id] = stored
     if e.L > (g.lamport or 0) then g.lamport = e.L end
     advanceVV(g, e.a)
     return "new"
+end
+
+-- After an update: events of kinds this version now knows were stored
+-- unchecked. Check them once; ones that fail are kept (so sync stays whole)
+-- but marked bad and never counted. Returns how many were checked.
+function L.Revalidate(g)
+    local n = 0
+    for _, e in pairs(g.log) do
+        local spec = e.u and L.KINDS[e.k]
+        if spec then
+            n = n + 1
+            e.u = nil
+            if not spec[2](e.d) then
+                e.bad = true
+            elseif ns.RBAC.RoleOf(e.a) and not ns.RBAC.Can(e.a, spec[1]) then
+                e.bad = true
+            end
+        end
+    end
+    return n
+end
+
+-- Two computers, one character: if this PC wrote an event under a number the
+-- guild already holds from the other PC, take the guild's copy and hand back
+-- ours so it can be written again under a fresh number.
+function L.AdoptFork(g, e)
+    local mine = g.log[e.id]
+    if not mine or mine.h == e.h then return nil end
+    local stored = L.Wire(e)
+    stored.ok = true
+    g.log[e.id] = stored
+    if e.L > (g.lamport or 0) then g.lamport = e.L end
+    return mine
 end
 
 -- Build (but don't insert) the next event for an author.

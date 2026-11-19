@@ -17,7 +17,12 @@ O.NEW_MEMBER_DAYS = 7
 function O.Group(st, guid)
     local main = st.alts[guid] or guid
     local out = { main }
-    for alt, m in pairs(st.alts) do if m == main and alt ~= main then out[#out + 1] = alt end end
+    local alts = st.altsOf and st.altsOf[main]
+    if alts then
+        for i = 1, #alts do out[#out + 1] = alts[i] end
+    else
+        for alt, m in pairs(st.alts) do if m == main and alt ~= main then out[#out + 1] = alt end end
+    end
     return out, main
 end
 

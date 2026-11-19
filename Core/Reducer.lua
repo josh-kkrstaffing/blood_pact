@@ -33,13 +33,16 @@ function Red.Invalidate() dirty = true end
 function Red.Build(g)
     local list, voided = {}, {}
     for _, e in pairs(g.log) do
-        if e.ok then list[#list + 1] = e end
+        if e.ok and not e.u and not e.bad then list[#list + 1] = e end
     end
     table.sort(list, before)
 
-    -- A void cancels an award or a spend, whenever it arrives.
+    -- A void cancels an award or a spend, whenever it arrives. An undo-decay
+    -- (Guild Master only) cancels a decay the same way.
+    local undecayed = {}
     for _, e in ipairs(list) do
         if e.k == "VOID" then voided[e.d.target] = true end
+        if e.k == "UNDECAY" then undecayed[e.d.target] = true end
     end
 
     local st = {
@@ -48,7 +51,7 @@ function Red.Build(g)
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
         members = {}, rosterLog = {}, tasks = {}, lastSeen = {},
     }
-    local signups, attIdem = {}, {}
+    local signups, attIdem, rosterIdem = {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
     local function pool(guid)
         local key = mainOf(guid)
@@ -74,8 +77,8 @@ function Red.Build(g)
             st.rosterLog[#st.rosterLog + 1] = e
         elseif k == "ROSTER" then
             -- Several officers may see the same change; the idem key counts it once.
-            if not st.idem[d.idem] then
-                st.idem[d.idem] = e.id
+            if not rosterIdem[d.idem] then
+                rosterIdem[d.idem] = true
                 local m = st.members[d.who]
                 if not m then
                     m = { name = d.name, history = {} }
@@ -116,13 +119,15 @@ function Red.Build(g)
             p.spent = p.spent + d.amt
             st.history[#st.history + 1] = e
         elseif k == "DECAY" then
-            for _, p in pairs(st.pools) do
-                if p.bal > 0 then
-                    p.bal = floor(p.bal * (100 - d.pct) / 100 + 0.5)
+            if not undecayed[e.id] then
+                for _, p in pairs(st.pools) do
+                    if p.bal > 0 then
+                        p.bal = floor(p.bal * (100 - d.pct) / 100 + 0.5)
+                    end
                 end
+                st.lastDecay = e
+                st.history[#st.history + 1] = e
             end
-            st.lastDecay = e
-            st.history[#st.history + 1] = e
         elseif k == "TASK" then
             st.tasks[d.id] = { st = d.st, by = e.a, t = e.t }
         elseif k == "RECRUIT_MSGS" then
@@ -153,6 +158,17 @@ function Red.Build(g)
     for ev, people in pairs(signups) do
         local r = st.raids[ev]
         if r then r.signups = people end
+    end
+
+    -- Each main's alts, for activity checks.
+    st.altsOf = {}
+    for alt, main in pairs(st.alts) do
+        local t = st.altsOf[main]
+        if not t then
+            t = {}
+            st.altsOf[main] = t
+        end
+        t[#t + 1] = alt
     end
 
     -- Attendance: share of the last ATTEND_WINDOW raid nights each main was at.
@@ -206,7 +222,7 @@ function Red.Balance(guid)
     return p and p.bal or 0
 end
 
+-- Balances depend only on the log, so roster updates don't force a replay.
 if ns.Listen then
     ns.Listen("LOG_CHANGED", Red.Invalidate)
-    ns.Listen("ROSTER_CHANGED", Red.Invalidate)
 end

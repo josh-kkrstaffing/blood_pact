@@ -20,6 +20,7 @@ jobs:
         with:
           luaVersion: "5.1"
       - run: lua tests/run.lua
+      - run: lua tests/smoke.lua
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

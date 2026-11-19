@@ -154,7 +154,18 @@ function W.Button(parent, text, width, height, onClick, style)
     b:SetScript("OnEnable", function() if under then under:Hide() end paint(false) end)
     b:SetScript("OnDisable", function() if under then under:Show() end paint(false) end)
     paint(false)
-    if onClick then b:SetScript("OnClick", onClick) end
+    if onClick and style == "accent" then
+        -- Main actions write to the guild's log: ignore an accidental double click.
+        local last = -10
+        b:SetScript("OnClick", function(self, ...)
+            local now = GetTime()
+            if now - last < 0.8 then return end
+            last = now
+            onClick(self, ...)
+        end)
+    elseif onClick then
+        b:SetScript("OnClick", onClick)
+    end
     return b
 end
 
@@ -203,48 +214,62 @@ function W.Check(parent, label, onClick)
 end
 
 -- Scrolling list. render(row, item) fills a row; onClick(item) on click.
+-- Only the rows that fit on screen exist, so a 1,000-member guild costs the
+-- same as a 20-member one. Set list.key (a field name such as "guid") to keep
+-- the selection when the items are rebuilt.
 function W.List(parent, width, height, rowHeight, render, onClick)
     local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
     scroll:SetSize(width, height)
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(width, rowHeight)
     scroll:SetScrollChild(content)
-    local rows, list = {}, { scroll = scroll, items = {}, selected = nil }
+    local rows, list = {}, { scroll = scroll, items = {}, selected = nil, key = nil }
 
-    function list:SetItems(items)
-        self.items = items
-        for i = 1, math.max(#items, #rows) do
+    local function makeRow()
+        local row = CreateFrame("Button", nil, content)
+        row:SetHeight(rowHeight)
+        row.stripe = crisp(row:CreateTexture(nil, "BACKGROUND"))
+        row.stripe:SetAllPoints()
+        row.stripe:SetColorTexture(1, 1, 1, 0.025)
+        local hl = crisp(row:CreateTexture(nil, "HIGHLIGHT"))
+        hl:SetAllPoints()
+        hl:SetColorTexture(1, 1, 1, 0.06)
+        row.sel = crisp(row:CreateTexture(nil, "BORDER"))
+        row.sel:SetAllPoints()
+        row.sel:SetColorTexture(W.C.accent[1], W.C.accent[2], W.C.accent[3], 0.28)
+        row.cols = {}
+        row:RegisterForClicks("AnyUp")
+        row:SetScript("OnClick", function(self)
+            list.selected = self.item
+            for _, r in ipairs(rows) do r.sel:SetShown(r.item ~= nil and r.item == list.selected) end
+            if onClick then onClick(self.item) end
+        end)
+        rows[#rows + 1] = row
+        return row
+    end
+
+    -- Draw the rows that are in view.
+    local function update()
+        local items = list.items
+        local viewHeight = scroll:GetHeight() or height
+        if viewHeight < rowHeight then viewHeight = height end
+        local visible = math.ceil(viewHeight / rowHeight) + 1
+        local first = math.floor((scroll:GetVerticalScroll() or 0) / rowHeight)
+        if first > #items - 1 then first = math.max(0, #items - 1) end
+        for i = 1, math.max(visible, #rows) do
+            local index = first + i
+            local item = i <= visible and items[index] or nil
             local row = rows[i]
-            if not row and items[i] then
-                row = CreateFrame("Button", nil, content)
-                row:SetHeight(rowHeight)
-                row:SetPoint("TOPLEFT", 0, -(i - 1) * rowHeight)
-                row:SetPoint("RIGHT", content, "RIGHT")
-                if i % 2 == 0 then
-                    local stripe = crisp(row:CreateTexture(nil, "BACKGROUND"))
-                    stripe:SetAllPoints()
-                    stripe:SetColorTexture(1, 1, 1, 0.025)
-                end
-                local hl = crisp(row:CreateTexture(nil, "HIGHLIGHT"))
-                hl:SetAllPoints()
-                hl:SetColorTexture(1, 1, 1, 0.06)
-                row.sel = crisp(row:CreateTexture(nil, "BORDER"))
-                row.sel:SetAllPoints()
-                row.sel:SetColorTexture(W.C.accent[1], W.C.accent[2], W.C.accent[3], 0.28)
-                row.cols = {}
-                row:RegisterForClicks("AnyUp")
-                row:SetScript("OnClick", function(self)
-                    list.selected = self.item
-                    for _, r in ipairs(rows) do r.sel:SetShown(r.item ~= nil and r.item == list.selected) end
-                    if onClick then onClick(self.item) end
-                end)
-                rows[i] = row
-            end
+            if item and not row then row = makeRow() end
             if row then
-                if items[i] then
-                    row.item = items[i]
-                    render(row, items[i])
-                    row.sel:SetShown(items[i] == list.selected)
+                if item then
+                    row.item = item
+                    row:ClearAllPoints()
+                    row:SetPoint("TOPLEFT", 0, -(index - 1) * rowHeight)
+                    row:SetPoint("RIGHT", content, "RIGHT")
+                    row.stripe:SetShown(index % 2 == 0)
+                    render(row, item)
+                    row.sel:SetShown(item == list.selected)
                     row:Show()
                 else
                     row.item = nil
@@ -252,8 +277,30 @@ function W.List(parent, width, height, rowHeight, render, onClick)
                 end
             end
         end
-        content:SetHeight(math.max(1, #items) * rowHeight)
     end
+    list.Update = update
+
+    function list:SetItems(items)
+        self.items = items
+        if self.key and self.selected then
+            local want, found = self.selected[self.key], nil
+            for i = 1, #items do
+                if items[i][self.key] == want then found = items[i]; break end
+            end
+            self.selected = found
+        end
+        content:SetHeight(math.max(1, #items) * rowHeight)
+        local maxScroll = math.max(0, #items * rowHeight - (scroll:GetHeight() or height))
+        if (scroll:GetVerticalScroll() or 0) > maxScroll then scroll:SetVerticalScroll(maxScroll) end
+        update()
+    end
+
+    scroll:HookScript("OnVerticalScroll", update)
+    scroll:HookScript("OnSizeChanged", function(self)
+        local w = self:GetWidth()
+        if w and w > 0 then content:SetWidth(w) end
+        update()
+    end)
 
     -- Add a text column to every row at x offset with width.
     function list.Col(row, idx, x, w, justify)
@@ -282,7 +329,6 @@ function W.List(parent, width, height, rowHeight, render, onClick)
             scroll:SetPoint("BOTTOMLEFT", left, bottom)
             scroll:SetWidth(w)
         end
-        scroll:SetScript("OnSizeChanged", function(self, width) content:SetWidth(width) end)
     end
 
     return list

@@ -26,6 +26,11 @@ function T.Civil(y, m, d, h, mi)
     return T.DaysFromCivil(y, m, d) * 86400 + (h or 0) * 3600 + (mi or 0) * 60
 end
 
+-- The "raid day" a moment belongs to. The day turns over at 14:00 UTC (morning
+-- in the Americas, mid-afternoon in Europe), so an evening raid is one day
+-- for everyone and two nights in a row are never merged.
+function T.RaidDay(unix) return dateFn("!%Y-%m-%d", unix - 14 * 3600) end
+
 -- 0 = Sunday.
 function T.Weekday(y, m, d) return (T.DaysFromCivil(y, m, d) + 4) % 7 end
 

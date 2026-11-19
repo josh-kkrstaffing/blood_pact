@@ -131,6 +131,29 @@ function U.Copy(t)
     return c
 end
 
+-- Turn a game message format ("%s has joined the guild.") into a Lua pattern.
+function U.FormatPattern(fmt)
+    if type(fmt) ~= "string" then return nil end
+    local p = fmt:gsub("%%%d%$s", "\001"):gsub("%%s", "\001")
+    p = p:gsub("([%%%(%)%.%+%-%*%?%[%]%^%$])", "%%%1"):gsub("\001", "(.+)")
+    return "^" .. p .. "$"
+end
+
+-- "0.10.2" vs "0.9.0": true when a is newer than b.
+function U.VersionNewer(a, b)
+    local function parts(v)
+        local out = {}
+        for n in tostring(v or ""):gmatch("%d+") do out[#out + 1] = tonumber(n) end
+        return out
+    end
+    local x, y = parts(a), parts(b)
+    for i = 1, math.max(#x, #y) do
+        local p, q = x[i] or 0, y[i] or 0
+        if p ~= q then return p > q end
+    end
+    return false
+end
+
 function U.ShortName(fullName)
     if not fullName then return "?" end
     return (fullName:match("^[^-]+")) or fullName

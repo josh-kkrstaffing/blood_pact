@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.6.0
+
+New
+- Summon tab: ask for a warlock summon; every guild warlock with the addon is alerted and sees how many guildmates are in their zone to click the portal
+- Warlocks get one button that invites the asker and up to two guildmates from their zone, and another to call for clickers; nothing is sent or invited without a click
+- Raid dates and times can be typed the easy way: 12/9 and 8pm, 8:30pm or 20:00
+- The Raids tab shows your own answer, and past raids can't be signed up for
+- Decay takes two clicks, and the Guild Master can undo the last decay; cancelling a raid takes two clicks
+- A chat note when a guildmate runs a newer Blood Pact
+
+Fixed
+- The first /bp could create the window and hide it again
+- Boss kills in 5-player dungeons no longer pay raid DKP or count as attendance
+- A member could send a fake event that blocked an Officer's next real award
+- An Officer playing on two computers could lose awards made before the second computer caught up
+- History written by someone who later left the guild or changed rank was refused by new members
+- Players on an older version stalled when a newer version added a feature; unknown events are now kept and passed on
+- On-time and full-raid bonuses could be awarded to yourself while not in a group
+- Two raid nights on back-to-back days could be merged into one; awards from Officers in different time zones could count twice
+- The roster no longer logs members as "left" when the game sends a partial roster
+- Names show without the realm suffix
+- Test mode can no longer whisper real players or add real calendar events
+- Whispers to a player who logged off no longer fill chat with "No player named..." lines
+
+Faster
+- A late login catches up in under a minute instead of up to 15
+- Lists draw only the rows on screen, so a 1,000-member guild is as light as a small one
+- The window redraws once per burst of changes instead of once per change, and balances are no longer recomputed on every roster update
+
 ## 0.5.0
 
 - New look: flat dark window, 1-pixel borders, a blood-red accent and cleaner game fonts

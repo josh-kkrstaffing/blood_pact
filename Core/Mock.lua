@@ -26,18 +26,24 @@ function M.Start()
     ns.mock = true
     local byGUID, byName = {}, {}
     local me, myName = ns.MyGUID(), UnitName("player")
-    byGUID[me] = { name = myName, rankIndex = 0, rank = "Guild Master", online = true }
+    local _, myClass = UnitClass("player")
+    local here = (GetRealZoneText and GetRealZoneText()) or "Orgrimmar"
+    byGUID[me] = { name = myName, rankIndex = 0, rank = "Guild Master", online = true, class = myClass,
+        level = UnitLevel and UnitLevel("player") or 60, zone = here }
     byName[myName] = me
     for i, f in ipairs(FAKE) do
         local guid = fakeGUID(i)
         -- A spread of last-online days so the activity colors and cleanup tasks show.
         local away = ({ [6] = 35, [9] = 70, [12] = 120, [15] = 95 })[i] or (i % 3 == 0 and 2 or nil)
         local ranks = { [0] = "Guild Master", "Officer", "Team Captain", "Veteran", "Member", "Initiate" }
+        -- Every fourth one is a warlock; a few stand in your zone.
+        local zones = { here, "Felwood", "Blackrock Mountain" }
         byGUID[guid] = { name = f[1], rankIndex = f[2], rank = ranks[f[2]], level = 60,
-            online = away == nil, offlineDays = away }
+            online = away == nil, offlineDays = away,
+            class = i % 4 == 0 and "WARLOCK" or "WARRIOR", zone = zones[(i + 1) % 3 + 1] }
         byName[f[1]] = guid
     end
-    ns.roster = { byGUID = byGUID, byName = byName, loaded = true }
+    ns.roster = { byGUID = byGUID, byName = byName, loaded = true, complete = true }
     ns.Fire("ROSTER_CHANGED")
     ns.Fire("LOG_CHANGED")
     ns.Print("Mock mode ON: you are Guild Master of 19 fake guildmates. Nothing is sent to your real guild.")
@@ -107,10 +113,17 @@ function M.Command(arg)
         fakeEvent(1, "ROSTER", { ev = "promote", who = fakeGUID(5), name = ns.NameForGUID(fakeGUID(5)) or "Vet", ri = 3, rank = "Veteran", by = "Grimtusk", idem = "mp:" .. day, live = true }, true)
         fakeEvent(1, "ALT_LINK", { alt = fakeGUID(19), main = fakeGUID(4) }, true)
         ns.Print("Grimtusk logged a join, a promotion and an alt link. See Roster > Guild log and Officer tasks.")
+    elseif arg == "summon" then
+        -- A fake guildmate asks for a summon, and one in your zone offers to click.
+        local me, now = ns.MyGUID(), ns.Now()
+        ns.Summon.Apply({ t = "SR", z = "Felwood", n = "Blackrock Spire" }, fakeGUID(2), ns.roster.byGUID, me, now)
+        ns.Summon.Apply({ t = "SI", to = me }, fakeGUID(5), ns.roster.byGUID, me, now)
+        ns.Fire("LOG_CHANGED")
+        ns.Print("Velara asked for a summon and Shalendra offered to click. See the Summon tab.")
     elseif arg == "attend" then
         local e, n = ns.Raids.TakeAttendance("mock")
         ns.Print(e and ("Attendance taken for " .. n .. " raiders.") or tostring(n))
     else
-        ns.Print("Mock commands: on, off, boss, award, forge, signups, attend, roster, reset")
+        ns.Print("Mock commands: on, off, boss, award, forge, signups, attend, roster, summon, reset")
     end
 end

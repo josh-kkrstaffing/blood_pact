@@ -29,6 +29,8 @@ load("Modules/Raids.lua")
 load("Modules/Officer.lua")
 ns.Listen = function() end
 load("Modules/Roster.lua")
+ns.Sync = { Handle = function() end }
+load("Modules/Summon.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
 local passed, failed = 0, 0
@@ -529,6 +531,156 @@ test("new member check shows for a week, not for alts", function()
     local tasks = O.Tasks(Red.Build(g), roster, NOW + 86400, any)
     eq(#tasks, 1); eq(tasks[1].kind, "newcheck")
     eq(#O.Tasks(Red.Build(g), roster, NOW + 8 * 86400, any), 0)
+end)
+
+-- Review fixes ---------------------------------------------------------------
+test("log: a kind from a newer version is stored and passed on, but not counted", function()
+    local g = newStore()
+    local e = author(g, "Player-1-OFFICER1", "FUTURE_KIND", { x = 1 })
+    eq(Log.Insert(g, e, true), "new")
+    eq(g.log[e.id].u, true)
+    eq(g.vv["Player-1-OFFICER1"], 1)                 -- sync keeps moving
+    local after = author(g, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1" }, amt = 5, r = "boss" })
+    Log.Insert(g, after, true)
+    eq(Red.Build(g).pools["Player-1-MEM1"].bal, 5)
+    eq(select(2, Log.Insert(g, author(g, "Player-1-OFFICER1", "BIG", { x = ("y"):rep(3000) }), true)), "payload")
+    -- After an update that knows the kind, it is checked once.
+    Log.KINDS.FUTURE_KIND = { "settings", function(d) return d.x == 1 end }
+    eq(Log.Revalidate(g), 1)
+    eq(g.log[e.id].u, nil); eq(g.log[e.id].bad, true)   -- an Officer may not do a Guild Master action
+    Log.KINDS.FUTURE_KIND = nil
+end)
+
+test("log: an Officer can vouch for history whose author left the guild", function()
+    local g = newStore()
+    ns.roster.byGUID["Player-1-GONE"] = { name = "Gone", rankIndex = 1 }
+    local src = newStore()
+    local e = author(src, "Player-1-GONE", "AWARD", { to = { "Player-1-MEM1" }, amt = 9, r = "boss" })
+    ns.roster.byGUID["Player-1-GONE"] = nil            -- they left
+    eq(select(2, Log.Insert(g, e, true)), "unknownAuthor")
+    eq(Log.Insert(g, e, true, true), "new")            -- relayed and vouched for by an Officer
+    eq(Red.Build(g).pools["Player-1-MEM1"].bal, 9)
+end)
+
+test("log: two computers, one character - the guild's copy wins and ours is kept", function()
+    local pc1, pc2 = newStore(), newStore()
+    local a = author(pc1, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1" }, amt = 10, r = "boss" })
+    Log.Insert(pc1, a, true)
+    local b = author(pc2, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM2" }, amt = 20, r = "boss" })
+    Log.Insert(pc2, b, true)
+    eq(a.id, b.id)
+    eq(Log.Insert(pc2, a, true), "conflict")
+    local mine = Log.AdoptFork(pc2, a)
+    eq(mine.d.amt, 20)
+    local again = Log.Build(pc2, "Player-1-OFFICER1", mine.k, mine.d, NOW)
+    eq(again.s, 2)
+    eq(Log.Insert(pc2, again, true), "new")
+    local st = Red.Build(pc2)
+    eq(st.pools["Player-1-MEM1"].bal, 10); eq(st.pools["Player-1-MEM2"].bal, 20)
+    eq(Log.AdoptFork(pc2, a), nil)                      -- nothing to do twice
+end)
+
+test("log: an unconfirmed fake can't hold an Officer's event number", function()
+    local victim, peer = newStore(), newStore()
+    local fake = author(newStore(), "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1" }, amt = 5000, r = "manual" })
+    eq(Log.Insert(peer, fake, false), "new")                 -- relayed by a member: provisional
+    local real = author(victim, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1" }, amt = 7, r = "boss" })
+    Log.Insert(victim, real, true)
+    eq(real.id, fake.id)
+    eq(Log.Insert(peer, real, true), "new")                  -- the confirmed one replaces it
+    eq(Red.Build(peer).pools["Player-1-MEM1"].bal, 7)
+    eq(Log.Insert(peer, fake, false), "conflict")            -- and the fake can't come back
+    eq(Red.Build(peer).pools["Player-1-MEM1"].bal, 7)
+end)
+
+test("decay can be undone by the Guild Master only", function()
+    local g = newStore()
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1" }, amt = 100, r = "boss" }), true)
+    local d = author(g, "Player-1-GM", "DECAY", { pct = 15 })
+    Log.Insert(g, d, true)
+    local st = Red.Build(g)
+    eq(st.pools["Player-1-MEM1"].bal, 85); eq(st.lastDecay.id, d.id)
+    eq(select(2, Log.Insert(g, author(g, "Player-1-OFFICER1", "UNDECAY", { target = d.id }), true)), "forbidden")
+    Log.Insert(g, author(g, "Player-1-GM", "UNDECAY", { target = d.id }), true)
+    st = Red.Build(g)
+    eq(st.pools["Player-1-MEM1"].bal, 100); eq(st.lastDecay, nil)
+end)
+
+test("a roster record can't block a DKP award by reusing its key", function()
+    local g = newStore()
+    Log.Insert(g, author(g, "Player-1-CAPT", "ROSTER", { ev = "join", who = "Player-1-MEM1", name = "M", idem = "boss:1:3:2026-12-09" }), true)
+    Log.Insert(g, author(g, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1" }, amt = 5, r = "boss", idem = "boss:1:3:2026-12-09" }), true)
+    eq(Red.Build(g).pools["Player-1-MEM1"].bal, 5)
+end)
+
+test("raid times: 8pm, 8:30 PM, 20:00; dates 12/9, 12/9/2026, 2026-12-09", function()
+    local R = ns.Raids
+    local function clock(s) local h, m = R.ParseClock(s); return h and (h * 100 + m) or nil end
+    eq(clock("8pm"), 2000); eq(clock("8:30 PM"), 2030); eq(clock("20:00"), 2000); eq(clock("12am"), 0)
+    eq(clock("12:15pm"), 1215); eq(clock("7 p.m."), 1900); eq(clock("13pm"), nil); eq(clock("20"), nil); eq(clock("soon"), nil)
+    local function day(s) local y, m, d = R.ParseDay(s, NOW); return y and (y * 10000 + m * 100 + d) or nil end
+    eq(day("2026-12-09"), 20261209); eq(day("12/9/2026"), 20261209); eq(day("12/9/26"), 20261209)
+    eq(day("12/9"), 20251209)                 -- the test clock (NOW) is Nov 18, 2025
+    eq(day("1/5"), 20260105)                  -- already past this year: next year
+    eq(day("2/30"), nil); eq(day("13/1"), nil); eq(day("tomorrow"), nil)
+    eq(R.ParseWhen("12/9", "8pm", "CT"), ns.Time.FromZone("CT", 2025, 12, 9, 20, 0))
+end)
+
+test("raid day: an evening raid is one day in every time zone; back-to-back nights stay apart", function()
+    local T = ns.Time
+    local tue = T.FromZone("CT", 2026, 12, 8, 20, 0)     -- Tue 8 PM Central = Wed 02:00 UTC
+    local wed = T.FromZone("CT", 2026, 12, 9, 17, 30)    -- Wed 5:30 PM Central = Wed 23:30 UTC
+    eq(T.RaidDay(tue), "2026-12-08"); eq(T.RaidDay(tue + 4 * 3600), "2026-12-08")
+    eq(T.RaidDay(wed), "2026-12-09")
+end)
+
+test("versions and message patterns", function()
+    eq(U.VersionNewer("0.10.0", "0.9.9"), true); eq(U.VersionNewer("0.6.0", "0.6.0"), false)
+    eq(U.VersionNewer("0.5.9", "0.6.0"), false); eq(U.VersionNewer("1.0", "0.9.9"), true)
+    eq(("No player named 'Pip Bee' is currently playing."):match(U.FormatPattern("No player named '%s' is currently playing.")), "Pip Bee")
+end)
+
+test("summon: warlocks with clickers in their zone come first; helpers are picked from the zone", function()
+    local S = ns.Summon
+    local roster = {
+        L1 = { name = "Lock One", class = "WARLOCK", level = 60, online = true, zone = "Felwood" },
+        L2 = { name = "Lock Two", class = "WARLOCK", level = 60, online = true, zone = "Orgrimmar" },
+        L3 = { name = "Baby Lock", class = "WARLOCK", level = 12, online = true, zone = "Orgrimmar" },
+        L4 = { name = "Away Lock", class = "WARLOCK", level = 60, online = false, zone = "Orgrimmar" },
+        A = { name = "A", class = "MAGE", level = 60, online = true, zone = "Orgrimmar" },
+        B = { name = "B", class = "MAGE", level = 60, online = true, zone = "Orgrimmar" },
+        C = { name = "C", class = "MAGE", level = 60, online = true, zone = "Orgrimmar" },
+        D = { name = "D", class = "MAGE", level = 60, online = false, zone = "Orgrimmar" },
+        ASK = { name = "Asker", class = "ROGUE", level = 40, online = true, zone = "Tanaris" },
+    }
+    local locks = S.Warlocks(roster)
+    eq(#locks, 2); eq(locks[1].guid, "L2"); eq(locks[1].ready, true); eq(#locks[1].near, 4)
+    eq(locks[2].guid, "L1"); eq(locks[2].ready, false)
+    local picks = S.PickHelpers(roster, "L2", "ASK", { L2 = true }, { C = 1 }, 2)
+    eq(#picks, 2); eq(picks[1], "C")                      -- offered first
+    eq(#S.PickHelpers(roster, "L2", "ASK", { L2 = true, A = true, B = true }, nil, 0), 0)
+    eq(#S.PickHelpers(roster, "L1", "ASK", { L1 = true }, nil, 2), 0)   -- nobody in Felwood
+end)
+
+test("summon: request, claim, close and expiry", function()
+    local S = ns.Summon
+    local roster = { L = { class = "WARLOCK", online = true }, M = { class = "MAGE", online = true }, ASK = { class = "ROGUE" } }
+    S.requests, S.offers, S.calls = {}, {}, {}
+    eq((S.Apply({ t = "SR", z = "Tanaris", n = "Blackrock Spire" }, "ASK", roster, "L", 1000)), "request")
+    eq(S.Apply({ t = "SR", z = ("x"):rep(100) }, "M", roster, "L", 1000), nil)       -- oversized: ignored
+    eq(#S.Open(1000), 1)
+    S.Apply({ t = "SA", who = "ASK" }, "M", roster, "ASK", 1001)                      -- a mage can't claim
+    eq(S.requests.ASK.by, nil)
+    eq((S.Apply({ t = "SA", who = "ASK" }, "L", roster, "ASK", 1002)), "claimed")
+    eq(S.requests.ASK.by, "L")
+    S.Apply({ t = "SX", who = "ASK" }, "M", roster, "L", 1003)                        -- a bystander can't close it
+    eq(#S.Open(1003), 1)
+    eq((S.Apply({ t = "SH", z = "Orgrimmar" }, "L", roster, "M", 1004)), "call")
+    eq((S.Apply({ t = "SI", to = "L" }, "M", roster, "L", 1005)), "offer")
+    S.Apply({ t = "SX", who = "ASK" }, "ASK", roster, "L", 1006)
+    eq(#S.Open(1006), 0)
+    S.Apply({ t = "SR", z = "Tanaris" }, "ASK", roster, "L", 2000)
+    eq(#S.Open(2000 + S.TTL + 1), 0)                                                  -- expired
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))
