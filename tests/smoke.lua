@@ -888,12 +888,47 @@ run(gm, "fill again", function() assert(gm.ns.Mail.Prepare(rodId)) end)
 local sent = pressSend(gm)
 advance(10)
 check(sent.to == "Pip" and sent.items == 3, "the player's own Send click mails the three rods")
-check(said(gm, "Mailed 3 Runed Copper Rod to Pip. The order is marked ready; they confirm when they have it."), "the crafter is told the order is marked ready")
-check(said(member, "Your order is ready: Runed Copper Rod x3 from Binky Bee."), "the requester is told their order is on its way")
+check(said(gm, "Mailed 3 Runed Copper Rod to Pip. The order is now In transit; it's complete when they confirm they have it."), "the crafter is told the order is in transit")
+check(said(member, "Binky Bee mailed your order: Runed Copper Rod x3. Collect it at a mailbox, then press \"I received it\""), "the requester is told their order is in the mail")
+check(not said(member, "Your order is ready: Runed Copper Rod x3"), "and isn't told twice")
+run(gm, "in transit for the crafter", function()
+    local ns = gm.ns
+    local st = ns.Reducer.State()
+    local o = st.orders[rodId]
+    check(ns.Orders.InTransit(o) and ns.Orders.StatusText(o, ns.Now(), ns.Orders.NameOf):find("In transit, mailed", 1, true) == 1,
+        "after the mail is sent the crafter's order reads In transit")
+    check(ns.Orders.Needs({ orders = { [rodId] = o }, recipes = st.recipes }, gm.guid) == 0 and ns.Mail.Rows()[1].left == 0,
+        "and it no longer counts as work to do")
+end)
 run(member, "mailed order", function()
-    local o = member.ns.Reducer.State().orders[rodId]
-    check(o.status == "ready" and o.note == "In your mailbox", "the order shows as ready with a note saying it's in the mail")
-    assert(member.ns.Orders.Update(rodId, "deliver"))
+    local ns = member.ns
+    local o = ns.Reducer.State().orders[rodId]
+    check(o.status == "ready" and o.note == "In your mailbox" and o.mailed == 3 and ns.Orders.InTransit(o),
+        "the whole guild sees the order as In transit")
+    assert(ns.Orders.Update(rodId, "deliver"))
+end)
+advance(10)
+run(gm, "complete", function()
+    local o = gm.ns.Reducer.State().orders[rodId]
+    check(o.status == "delivered" and not gm.ns.Orders.InTransit(o), "when the requester confirms, the order is complete")
+end)
+-- An order mailed with version 0.17.0, which kept the count on the crafter's
+-- own character: marked ready by hand, then mailed. It becomes In transit.
+local oldId
+run(member, "order one more", function() oldId = assert(member.ns.Orders.Create(7421, "Enchanting", 1, "crafter", "", gm.guid)).id end)
+advance(10)
+run(gm, "old mail", function()
+    assert(gm.ns.Orders.Update(oldId, "accept", 2))
+    assert(gm.ns.Orders.Update(oldId, "ready"))
+    gm.ns.Char().mailed = { [oldId] = 1, gone = 4 }
+    gm.ns.Mail.Migrate(true)
+    check(gm.ns.Char().mailed == nil, "the old per-character count is moved into the guild's log")
+end)
+advance(10)
+run(member, "old mail seen", function()
+    local o = member.ns.Reducer.State().orders[oldId]
+    check(o.mailed == 1 and member.ns.Orders.InTransit(o), "an order mailed before this version shows as In transit too")
+    assert(member.ns.Orders.Update(oldId, "deliver"))
 end)
 advance(10)
 run(gm, "after delivery", function()

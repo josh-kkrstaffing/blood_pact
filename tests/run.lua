@@ -1133,5 +1133,60 @@ test("mail: which stacks to attach, and what the letter says", function()
     eq(#M.Body(("long "):rep(200), 1, 1, "Bee") <= M.BODY_MAX, true)
 end)
 
+test("orders: mailed items make an order In transit until it is confirmed", function()
+    local g = newStore()
+    local A, B, V = "Player-1-MEM1", "Player-1-VET", "Player-1-MEM2"
+    local O = ns.Orders
+    local order = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 3, mats = "crafter" })
+    insertAll(g, { order })
+    local id = order.id
+    local function nameOf() return "someone" end
+    -- Nobody is crafting it yet, so a mail report counts for nothing.
+    insertAll(g, { author(g, B, "ORDER_MAIL", { id = id, n = 3 }) })
+    eq(Red.Build(g).orders[id].mailed, nil)
+    insertAll(g, { author(g, B, "ORDER_ST", { id = id, st = "accept", h = 24 }) })
+    insertAll(g, { author(g, V, "ORDER_MAIL", { id = id, n = 3 }) })          -- not the crafter
+    insertAll(g, { author(g, A, "ORDER_MAIL", { id = id, n = 3 }) })          -- nor the requester
+    local o = Red.Build(g).orders[id]
+    eq(o.mailed, nil); eq(O.InTransit(o), false)
+    insertAll(g, { author(g, B, "ORDER_MAIL", { id = id, n = 2 }) })          -- part of it
+    o = Red.Build(g).orders[id]
+    eq(o.mailed, 2); eq(O.InTransit(o), false); eq(ns.Mail.Left(o), 1)
+    eq(O.StatusText(o, o.t, nameOf):find(", 2 of 3 mailed", 1, true) ~= nil, true)
+    insertAll(g, { author(g, B, "ORDER_MAIL", { id = id, n = 5 }) })          -- never more than was ordered
+    local st = Red.Build(g)
+    o = st.orders[id]
+    eq(o.mailed, 3); eq(O.InTransit(o), true); eq(ns.Mail.Left(o), 0)
+    local text, tone = O.StatusText(o, o.due + 99999, nameOf)                 -- in the mail is never "late"
+    eq(text:sub(1, 18), "In transit, mailed"); eq(tone, "transit"); eq(O.IsLate(o, o.due + 99999), false)
+    eq(O.Needs(st, B), 0); eq(O.Needs(st, A), 1)                              -- now it waits on the requester
+    eq(#O.Rows(st, B, "craft"), 1)
+    -- Marked ready as well: still In transit.
+    insertAll(g, { author(g, B, "ORDER_ST", { id = id, st = "ready", n = "In your mailbox" }) })
+    o = Red.Build(g).orders[id]
+    eq(o.status, "ready"); eq(O.InTransit(o), true)
+    -- Confirmed: complete, and no longer in transit.
+    insertAll(g, { author(g, A, "ORDER_ST", { id = id, st = "deliver" }) })
+    o = Red.Build(g).orders[id]
+    eq(o.status, "delivered"); eq(O.InTransit(o), false)
+    eq(O.StatusText(o, o.t, nameOf):sub(1, 9), "Delivered")
+    insertAll(g, { author(g, B, "ORDER_MAIL", { id = id, n = 1 }) })          -- nothing changes after that
+    eq(Red.Build(g).orders[id].mailed, 3)
+
+    -- Handing a part-mailed order back clears the count for the next crafter.
+    local g2 = newStore()
+    local second = author(g2, A, "ORDER", { rid = 7421, p = "Enchanting", q = 2, mats = "crafter" })
+    insertAll(g2, { second })
+    insertAll(g2, { author(g2, B, "ORDER_ST", { id = second.id, st = "accept", h = 2 }) })
+    insertAll(g2, { author(g2, B, "ORDER_MAIL", { id = second.id, n = 1 }) })
+    insertAll(g2, { author(g2, B, "ORDER_ST", { id = second.id, st = "release" }) })
+    o = Red.Build(g2).orders[second.id]
+    eq(o.status, "open"); eq(o.mailed, nil)
+
+    for _, bad in ipairs({ { id = id }, { id = id, n = 0 }, { id = id, n = 100 }, { id = id, n = 1.5 }, { n = 1 } }) do
+        eq(select(2, Log.Insert(g, author(g, B, "ORDER_MAIL", bad), true)), "payload")
+    end
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

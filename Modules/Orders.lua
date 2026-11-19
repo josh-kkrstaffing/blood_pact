@@ -27,6 +27,11 @@ local ACTIVE = { open = true, accepted = true, ready = true }
 ---------------------------------------------------------------------------
 function O.IsActive(o) return ACTIVE[o.status] == true end
 
+-- Mailed in full by the crafter and not yet confirmed by the member who asked.
+function O.InTransit(o)
+    return (o.status == "accepted" or o.status == "ready") and (o.mailed or 0) >= o.q
+end
+
 -- Has this member shared the recipe an order asks for?
 function O.CanCraft(st, guid, o)
     local mine = st and st.recipes[guid]
@@ -90,15 +95,19 @@ local function span(seconds)
 end
 O.Span = span
 
--- -> text, tone ("late", "good", "muted" or nil)
+-- -> text, tone ("late", "good", "transit", "muted" or nil)
 function O.StatusText(o, now, nameOf)
-    if o.status == "open" then
+    if O.InTransit(o) then
+        return "In transit, mailed " .. date("%b %d", o.mailedAt or o.t), "transit"
+    elseif o.status == "open" then
         if o.to then return "Waiting for " .. (nameOf(o.to) or "?"), "muted" end
         return "Open: any crafter", nil
     elseif o.status == "accepted" then
-        if now > o.due then return "Late by " .. span(now - o.due), "late" end
-        return "Due in " .. span(o.due - now), nil
+        local part = (o.mailed or 0) > 0 and (", %d of %d mailed"):format(o.mailed, o.q) or ""
+        if now > o.due then return "Late by " .. span(now - o.due) .. part, "late" end
+        return "Due in " .. span(o.due - now) .. part, nil
     elseif o.status == "ready" then
+        if (o.mailed or 0) > 0 then return ("Ready, %d of %d mailed"):format(o.mailed, o.q), "good" end
         return "Ready to hand over", "good"
     elseif o.status == "delivered" then
         return "Delivered " .. date("%b %d", o.doneAt or o.t), "good"
@@ -108,7 +117,7 @@ function O.StatusText(o, now, nameOf)
     return "Cancelled", "muted"
 end
 
-function O.IsLate(o, now) return o.status == "accepted" and now > o.due end
+function O.IsLate(o, now) return o.status == "accepted" and now > o.due and not O.InTransit(o) end
 
 -- Rows for one of the four lists.
 --   craft   = asked of me, accepted by me and not handed over, or on the
@@ -153,8 +162,8 @@ end
 function O.Needs(st, me)
     local n = 0
     for _, o in pairs(st and st.orders or {}) do
-        if (o.status == "open" and o.to == me) or (o.status == "accepted" and o.crafter == me)
-            or (o.status == "ready" and o.by == me) or O.Matches(st, me, o) then
+        if (o.status == "open" and o.to == me) or (o.status == "accepted" and o.crafter == me and not O.InTransit(o))
+            or ((o.status == "ready" or O.InTransit(o)) and o.by == me) or O.Matches(st, me, o) then
             n = n + 1
         end
     end
@@ -285,10 +294,23 @@ function O.Update(id, action, hours, note)
     return ns.Log.New("ORDER_ST", { id = id, st = action, h = action == "accept" and hours or nil, n = note ~= "" and note or nil })
 end
 
+-- The crafter records that n of an order's items were mailed. Called after
+-- the player's own Send click at the mailbox (Modules/Mail.lua).
+function O.Mailed(id, n)
+    local st = ns.Reducer.State()
+    local o = st and st.orders[id]
+    if not o or o.crafter ~= ns.MyGUID() or not (o.status == "accepted" or o.status == "ready") then
+        return nil, "That order isn't yours to mail."
+    end
+    n = math.min(tonumber(n) or 0, o.q - (o.mailed or 0))
+    if n < 1 then return nil, "Everything for that order is already mailed." end
+    return ns.Log.New("ORDER_MAIL", { id = id, n = n })
+end
+
 ---------------------------------------------------------------------------
 -- Telling the player what changed (chat lines only, for their own orders)
 ---------------------------------------------------------------------------
-local seen, primed = {}, false
+local seen, seenMail, primed = {}, {}, false
 
 function O.Announce()
     local st = ns.Reducer.State()
@@ -296,6 +318,16 @@ function O.Announce()
     local me = ns.MyGUID()
     for id, o in pairs(st.orders) do
         local was = seen[id]
+        local mailedNow = o.mailed or 0
+        if primed and o.by == me and ACTIVE[o.status] and mailedNow > (seenMail[id] or 0) then
+            local item, who = O.ItemText(o), U.Safe(nameOf(o.crafter), 40)
+            if mailedNow >= o.q then
+                ns.Print(("%s mailed your order: %s. Collect it at a mailbox, then press \"I received it\" under /bp > Professions > Orders."):format(who, item))
+            else
+                ns.Print(("%s mailed %d of your order: %s. The rest will follow."):format(who, mailedNow, item))
+            end
+        end
+        seenMail[id] = mailedNow
         if primed and was ~= o.status and o.lastBy ~= me then
             local item, who = O.ItemText(o), U.Safe(nameOf(o.lastBy), 40)
             if o.status == "open" and o.to == me and was == nil then
@@ -305,7 +337,8 @@ function O.Announce()
             elseif o.by == me and o.status == "accepted" then
                 ns.Print(("%s accepted your order for %s, due in %s."):format(who, item, span(o.due - ns.Now())))
             elseif o.by == me and o.status == "ready" then
-                ns.Print(("Your order is ready: %s from %s."):format(item, who))
+                -- Mailed in full: the line above already said so.
+                if mailedNow < o.q then ns.Print(("Your order is ready: %s from %s."):format(item, who)) end
             elseif o.by == me and o.status == "declined" then
                 ns.Print(("%s can't make %s for you right now."):format(who, item))
             elseif o.by == me and o.status == "open" and was ~= nil then

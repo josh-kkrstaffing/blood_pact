@@ -132,6 +132,9 @@ L.KINDS = {
         end
         return str(d.id, 1, 80) and optNote(d.n)
     end },
+    -- The crafter mailed n of the items for an order they are making. Its own
+    -- kind, so versions from before it existed keep it without counting it.
+    ORDER_MAIL = { "signup", function(d) return str(d.id, 1, 80) and isInt(d.n, 1, 99) end },
     -- An Officer cancelling someone else's order to keep the board tidy.
     ORDER_MOD = { "void", function(d) return str(d.id, 1, 80) and d.st == "cancel" end },
     -- A player's own PvP rank, 0 (none) to 14.

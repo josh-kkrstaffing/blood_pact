@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.17.1
+
+- Orders now move To craft > In transit > Delivered. Once the full amount is mailed, the order reads "In transit, mailed <date>" for the whole guild, in gold, until the member who ordered presses "I received it"
+- An order in transit stays listed under To craft but no longer counts in the "To craft (n)" number or as late
+- The member who ordered gets one chat line when their order is mailed, telling them to collect it and confirm
+- Part-mailed orders show how many have gone ("2 of 3 mailed")
+- What has been mailed is now kept in the guild's log, not on the crafter's own character. An order mailed with 0.17.0 switches to In transit by itself after the update
+
 ## 0.17.0
 
 - Mailing a crafting order: open a mailbox and Blood Pact lists the orders you've accepted, with how many of the item are in your bags

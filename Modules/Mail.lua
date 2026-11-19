@@ -99,14 +99,9 @@ local pending          -- the mail Blood Pact filled in and the player hasn't se
 local hooked = false   -- do we get to see what the player actually sends?
 local panel
 
--- How many of each order this character has already mailed. Kept per character.
-local function mailed()
-    local c = ns.Char()
-    c.mailed = c.mailed or {}
-    return c.mailed
-end
-
-function Mail.Left(o) return math.max(0, o.q - (mailed()[o.id] or 0)) end
+-- How many of an order's items are still to be mailed. What has been mailed
+-- is in the guild's log, so everyone sees the same count.
+function Mail.Left(o) return math.max(0, o.q - (o.mailed or 0)) end
 
 -- Unbound, unlocked stacks of an item in the bags, and how many items in all.
 local function bagStacks(itemID)
@@ -170,27 +165,18 @@ end
 function Mail.Rows()
     local st = ns.Reducer.State()
     local rows = {}
-    local sent = mailed()
-    local live = {}
     for _, o in ipairs(Mail.Orders(st, ns.MyGUID())) do
-        live[o.id] = true
         local item = ns.Recipes.Output(o.rid)
         local m = ns.roster.byGUID[o.by]
         local row = { id = o.id, o = o, item = item, name = itemName(o, item), to = m and m.name or nil,
             left = Mail.Left(o), have = 0, stacks = {} }
         if item then row.stacks, row.have = bagStacks(item) end
         if not m then row.why = "They are no longer in the guild."
-        elseif row.left == 0 then row.why = "All mailed. They confirm when they have it."
+        elseif row.left == 0 then row.why = "In transit. It's complete when they confirm they have it."
         elseif not item then row.why = "This recipe makes no item that can be mailed."
         elseif row.have == 0 then row.why = "None in your bags yet (bound items can't be mailed)."
         end
         rows[#rows + 1] = row
-    end
-    -- Forget counts for orders that are finished.
-    if st then
-        for id in pairs(sent) do
-            if not live[id] then sent[id] = nil end
-        end
     end
     return rows
 end
@@ -275,19 +261,42 @@ local function onSent()
     local st = ns.Reducer.State()
     local o = st and st.orders[p.id]
     if not o then return end
-    local sent = mailed()
-    sent[p.id] = (sent[p.id] or 0) + p.count
     local who = U.Safe(ns.Orders.NameOf(o.by), 40)
-    if sent[p.id] >= o.q then
-        if o.status == "accepted" and ns.Orders.Update(p.id, "ready", nil, Mail.READY_NOTE) then
-            ns.Print(("Mailed %d %s to %s. The order is marked ready; they confirm when they have it."):format(p.count, p.name, who))
-        else
-            ns.Print(("Mailed %d %s to %s. They confirm when they have it."):format(p.count, p.name, who))
-        end
+    local wasAccepted = o.status == "accepted"
+    local e, why = ns.Orders.Mailed(p.id, p.count)
+    if not e then
+        ns.Print(("Mailed %d %s to %s, but the order couldn't be updated: %s"):format(p.count, p.name, who, tostring(why)))
+        return
+    end
+    local fresh = ns.Reducer.State()
+    fresh = fresh and fresh.orders[p.id]
+    local total = fresh and fresh.mailed or p.count
+    if total >= o.q then
+        if wasAccepted then ns.Orders.Update(p.id, "ready", nil, Mail.READY_NOTE) end
+        ns.Print(("Mailed %d %s to %s. The order is now In transit; it's complete when they confirm they have it."):format(p.count, p.name, who))
     else
-        ns.Print(("Mailed %d %s to %s. %d more to go."):format(p.count, p.name, who, o.q - sent[p.id]))
+        ns.Print(("Mailed %d %s to %s. %d more to go."):format(p.count, p.name, who, o.q - total))
     end
 end
+
+-- Version 0.17.0 kept what had been mailed on this character only. Put any
+-- such count in the guild's log once, so those orders show as In transit too.
+local migrated = false
+local function migrate(again)
+    if (migrated and again ~= true) or ns.mock or not ns.roster.loaded then return end
+    local st = ns.Reducer.State()
+    local old = ns.Char().mailed
+    if not st then return end
+    migrated = true
+    if type(old) ~= "table" then return end
+    for id, n in pairs(old) do
+        local o = st.orders[id]
+        if o and type(n) == "number" and n > (o.mailed or 0) then ns.Orders.Mailed(id, n - (o.mailed or 0)) end
+    end
+    ns.Char().mailed = nil
+end
+Mail.Migrate = migrate
+ns.Listen("ROSTER_CHANGED", function() migrate() end)
 
 ---------------------------------------------------------------------------
 -- The panel beside the mailbox window

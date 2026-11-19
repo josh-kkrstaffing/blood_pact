@@ -160,7 +160,7 @@ function Red.Build(g)
             elseif step == "release" then
                 -- Handed back: a Wanted order reopens; one asked of a single crafter is declined.
                 if o.status ~= "open" and o.crafter == who then
-                    o.crafter, o.due, o.hours = nil, nil, nil
+                    o.crafter, o.due, o.hours, o.mailed, o.mailedAt = nil, nil, nil, nil, nil
                     if o.to then o.status, o.doneAt = "declined", e.t else o.status = "open" end
                     done = true
                 end
@@ -172,6 +172,13 @@ function Red.Build(g)
             if done then
                 o.lastBy = who
                 if d.n and who ~= o.by then o.note = d.n end
+            end
+        elseif k == "ORDER_MAIL" then
+            -- Only the crafter, and only while the order is theirs to finish.
+            local o = st.orders[d.id]
+            if o and o.crafter == e.a and (o.status == "accepted" or o.status == "ready") then
+                o.mailed = math.min(o.q, (o.mailed or 0) + d.n)
+                o.mailedAt, o.lastBy = e.t, e.a
             end
         elseif k == "PVP" then
             st.pvp[e.a] = { r = d.r, t = e.t }

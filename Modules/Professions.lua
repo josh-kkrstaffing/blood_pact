@@ -530,6 +530,8 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
             c4:SetTextColor(1, 0.3, 0.3)
         elseif tone == "good" then
             c4:SetTextColor(0.35, 0.9, 0.45)
+        elseif tone == "transit" then
+            c4:SetTextColor(W.C.gold[1], W.C.gold[2], W.C.gold[3])
         elseif tone == "muted" then
             c4:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
         else
@@ -714,7 +716,13 @@ end, function(p)
         p.act:SetShown(not placing)
         p.orders.scroll:SetShown(not placing)
         for _, b in ipairs(p.filters) do
-            local n = (b.key ~= "history" and b.key ~= "new") and #Orders.Rows(st, me, b.key) or 0
+            local n = 0
+            if b.key ~= "history" and b.key ~= "new" then
+                -- An order in the mail is listed under To craft but no longer counts as work to do.
+                for _, r in ipairs(Orders.Rows(st, me, b.key)) do
+                    if not (b.key == "craft" and Orders.InTransit(r)) then n = n + 1 end
+                end
+            end
             b:SetText(n > 0 and (b.label .. " (" .. n .. ")") or b.label)
             b:SetEnabled(b.key ~= which)
         end
@@ -778,7 +786,10 @@ end, function(p)
                 parts[#parts + 1] = "You haven't shared this recipe, so you can't take it."
             end
             if Orders.IsLate(sel, now) then parts[#parts + 1] = "Past the promised time." end
-            if sel.crafter == me and (sel.status == "accepted" or sel.status == "ready") then
+            if Orders.InTransit(sel) then
+                parts[#parts + 1] = sel.by == me and "It's in the mail. Collect it at a mailbox, then press I received it."
+                    or "In the mail. It's complete when they press I received it."
+            elseif sel.crafter == me and (sel.status == "accepted" or sel.status == "ready") then
                 parts[#parts + 1] = "At a mailbox, Blood Pact fills in the mail for this order; you press Send."
             end
             local cost = Orders.IsActive(sel) and Orders.CostText(sel.rid, sel.q)
