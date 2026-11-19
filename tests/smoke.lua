@@ -656,6 +656,62 @@ run(member, "pvp ranks", function()
 end)
 check(said(gm, "Your PvP rank: 7, Blood Guard."), "/bp pvp shows what the game reported")
 
+-- Crafting orders: a Member orders from the GM (who shared Enchanting recipes).
+local orderId, wantedId
+local whispersBefore = #guildChat
+run(member, "place order", function()
+    local O = member.ns.Orders
+    local e = assert(O.Create(7418, "Enchanting", 2, "me", "for raid", gm.guid))
+    orderId = e.id
+    check(select(2, O.Create(7418, "Enchanting", 1, "me", "", "Player-9-STRANGER")) ~= nil and O.Create(7418, "Enchanting", 1, "me", "", "Player-9-STRANGER") == nil,
+        "an order can't be sent to someone outside the guild")
+    check(O.Create(7418, "Enchanting", 1, "me", "", MEMBER) == nil, "you can't order from yourself")
+    check(O.Create(7418, "Enchanting", 0, "me", "", gm.guid) == nil, "an order needs a sensible quantity")
+end)
+local whisper = guildChat[#guildChat] or ""
+check(#guildChat == whispersBefore + 1 and whisper:find("WHISPER:Binky Bee:", 1, true) == 1
+    and whisper:find("Blood Pact order", 1, true) ~= nil and whisper:find("x2", 1, true) ~= nil,
+    "placing an order whispers the online crafter once, and only them")
+advance(10)
+check(said(gm, "New crafting order from Pip: Enchant Bracer - Minor Health x2."), "the crafter is told about a new order")
+run(gm, "accept", function()
+    local ns = gm.ns
+    check(#ns.Orders.Rows(ns.Reducer.State(), gm.guid, "craft") == 1 and ns.Orders.Needs(ns.Reducer.State(), gm.guid) == 1,
+        "the order shows in the crafter's To craft list")
+    check(ns.Orders.Update(orderId, "deliver") == nil, "a crafter can't confirm their own delivery")
+    assert(ns.Orders.Update(orderId, "accept", 8, "after raid"))
+end)
+advance(10)
+check(said(member, "Binky Bee accepted your order for Enchant Bracer - Minor Health x2, due in 8h."), "the requester sees the promised turnaround")
+run(gm, "ready", function() assert(gm.ns.Orders.Update(orderId, "ready")) end)
+advance(10)
+check(said(member, "Your order is ready: Enchant Bracer - Minor Health x2 from Binky Bee."), "the requester is told when it's ready")
+run(member, "deliver", function() assert(member.ns.Orders.Update(orderId, "deliver")) end)
+advance(10)
+check(said(gm, "Pip confirmed delivery of Enchant Bracer - Minor Health x2."), "the crafter is told when delivery is confirmed")
+run(officer, "order history", function()
+    local o = officer.ns.Reducer.State().orders[orderId]
+    check(o and o.status == "delivered" and o.crafter == gm.guid and o.note == "after raid", "a finished order is history for the whole guild")
+end)
+-- The Wanted board: only someone who shared the recipe can take it; an Officer can tidy it.
+run(member, "post wanted", function() wantedId = assert(member.ns.Orders.Create(7420, "Enchanting", 1, "crafter", "", nil)).id end)
+check(#guildChat == whispersBefore + 1, "a Wanted post whispers nobody")
+advance(10)
+run(officer, "can't take it", function()
+    local res, why = officer.ns.Orders.Update(wantedId, "accept", 2)
+    check(res == nil and why:find("shared this recipe", 1, true) ~= nil, "a member without the recipe can't take a Wanted order")
+end)
+run(gm, "take and hand back", function()
+    assert(gm.ns.Orders.Update(wantedId, "accept", 2))
+    assert(gm.ns.Orders.Update(wantedId, "release"))
+end)
+advance(10)
+run(member, "back on the board", function()
+    local st = member.ns.Reducer.State()
+    check(st.orders[wantedId].status == "open" and #member.ns.Orders.Rows(st, MEMBER, "wanted") == 1, "a handed-back order returns to the Wanted board")
+    check(member.ns.Orders.Update(wantedId, "accept", 2) == nil, "you can't take your own Wanted order")
+end)
+
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
     local ns = gm.ns

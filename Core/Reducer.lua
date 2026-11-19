@@ -49,7 +49,7 @@ function Red.Build(g)
         settings = ns.U.Copy(Red.DEFAULTS), pools = {}, alts = {}, idem = {},
         recruitMsgs = nil, history = {}, lastDecay = nil,
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
-        members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {}, pvp = {},
+        members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {}, pvp = {}, orders = {},
     }
     local signups, attIdem, rosterIdem = {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
@@ -134,6 +134,45 @@ function Red.Build(g)
         elseif k == "PROF" then
             st.profs[e.a] = { p1 = d.p1, l1 = d.l1, x1 = d.x1, p2 = d.p2, l2 = d.l2, x2 = d.x2,
                 fa = d.fa, xfa = d.xfa, ck = d.ck, xck = d.xck, fi = d.fi, xfi = d.xfi, t = e.t }
+        elseif k == "ORDER" then
+            if d.to ~= e.a then
+                st.orders[e.id] = { id = e.id, by = e.a, to = d.to, rid = d.rid, p = d.p, q = d.q, mats = d.mats,
+                    ask = d.n, status = "open", t = e.t, lastBy = e.a }
+            end
+        elseif k == "ORDER_ST" or k == "ORDER_MOD" then
+            -- Only the right person can take each step; anything else is ignored.
+            local o = st.orders[d.id]
+            local step, who = d.st, e.a
+            local live = o and (o.status == "open" or o.status == "accepted" or o.status == "ready")
+            local done = false
+            if not live then
+                done = false
+            elseif k == "ORDER_MOD" then
+                o.status, o.doneAt, done = "cancelled", e.t, true
+            elseif step == "accept" then
+                if o.status == "open" and who ~= o.by and (o.to == nil or o.to == who) then
+                    o.status, o.crafter, o.hours, o.due, done = "accepted", who, d.h, e.t + d.h * 3600, true
+                end
+            elseif step == "decline" then
+                if o.status == "open" and o.to == who then o.status, o.doneAt, done = "declined", e.t, true end
+            elseif step == "ready" then
+                if o.status == "accepted" and o.crafter == who then o.status, done = "ready", true end
+            elseif step == "release" then
+                -- Handed back: a Wanted order reopens; one asked of a single crafter is declined.
+                if o.status ~= "open" and o.crafter == who then
+                    o.crafter, o.due, o.hours = nil, nil, nil
+                    if o.to then o.status, o.doneAt = "declined", e.t else o.status = "open" end
+                    done = true
+                end
+            elseif step == "deliver" then
+                if o.status ~= "open" and o.by == who then o.status, o.doneAt, done = "delivered", e.t, true end
+            elseif step == "cancel" then
+                if o.by == who then o.status, o.doneAt, done = "cancelled", e.t, true end
+            end
+            if done then
+                o.lastBy = who
+                if d.n and who ~= o.by then o.note = d.n end
+            end
         elseif k == "PVP" then
             st.pvp[e.a] = { r = d.r, t = e.t }
         elseif k == "RECIPES" then

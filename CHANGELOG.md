@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.15.0
+
+- Crafting orders, inside the guild only
+- Every recipe in a crafter's list has an Order button: set a quantity, who supplies the materials (you, the crafter or the guild bank) and a note, then order from that crafter
+- If the crafter is online, the same click whispers them the recipe; if not, the order is waiting at their next login
+- Post as Wanted: put a request on the Wanted board for any guild crafter who has shared that recipe
+- The crafter accepts with a promised turnaround of 2, 8, 24 or 48 hours; the order shows the time left and turns red when late
+- Steps everyone sees: open, accepted, ready, delivered. A crafter can decline or hand an order back; the member who asked can cancel
+- Only the member who asked can confirm delivery, so the history stays honest
+- Professions > Orders: To craft, My requests, Wanted board and History, with a count of orders needing you
+- Chat lines for your own orders (new order, accepted, ready, delivered) and a login reminder
+- Officers can cancel an order to keep the board tidy
+- A member can have up to 20 orders open at once
+- Recipe and loot tooltips now stay on screen
+
 ## 0.14.0
 
 - Roster: each member's PvP rank badge shows to the left of their name; hover the row for the rank number and title (Scout to High Warlord, or Private to Grand Marshal)

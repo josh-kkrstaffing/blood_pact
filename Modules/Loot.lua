@@ -126,7 +126,7 @@ Loot.NameOf = nameOf
 -- The game's own item tooltip (stats and all), plus who got it and when.
 function Loot.Tooltip(owner, e)
     if not e or e.header then return end
-    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+    GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")      -- at the pointer, so it stays on screen
     local item = Loot.Item(e.item)
     local shown = false
     if e.item then

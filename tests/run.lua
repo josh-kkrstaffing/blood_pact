@@ -31,6 +31,7 @@ ns.Char = function() return {} end
 load("Modules/PvP.lua")
 load("Modules/Loot.lua")
 load("Modules/Recipes.lua")
+load("Modules/Orders.lua")
 load("Modules/Professions.lua")
 ns.Listen = function() end
 load("Modules/Roster.lua")
@@ -959,6 +960,86 @@ test("pvp: ranks 1 to 14 have a title and a badge; each player's own report sync
     end
     local st = Red.Build(g)
     eq(st.pvp["Player-1-MEM1"].r, 4); eq(st.pvp["Player-1-MEM2"].r, 0); eq(st.pvp["Player-1-VET"], nil)
+end)
+
+test("orders: only the right person can take each step; turnaround, late, delivered", function()
+    local O = ns.Orders
+    local g = newStore()
+    local A, B, V, OFF = "Player-1-MEM1", "Player-1-MEM2", "Player-1-VET", "Player-1-OFFICER1"
+    local function names(guid) return guid:sub(10) end
+    local order = author(g, A, "ORDER", { rid = 7418, p = "Enchanting", q = 2, mats = "me", to = B, n = "for raid" })
+    insertAll(g, { order })
+    local id = order.id
+    local function stepBy(who, data) data.id = data.id or id; insertAll(g, { author(g, who, "ORDER_ST", data) }) end
+    local function one() return Red.Build(g).orders[id] end
+    eq(one().status, "open"); eq(one().by, A); eq(one().to, B); eq(one().q, 2); eq(one().ask, "for raid")
+    stepBy(V, { st = "accept", h = 8 })                   -- not the crafter who was asked
+    stepBy(A, { st = "accept", h = 8 })                   -- can't accept your own order
+    stepBy(B, { st = "ready" })                           -- not accepted yet
+    eq(one().status, "open")
+    stepBy(B, { st = "accept", h = 8, n = "after raid" })
+    local o = one()
+    eq(o.status, "accepted"); eq(o.crafter, B); eq(o.due, NOW + 8 * 3600); eq(o.note, "after raid")
+    eq(select(1, O.StatusText(o, NOW + 3600, names)), "Due in 7h")
+    local text, tone = O.StatusText(o, NOW + 9 * 3600, names)
+    eq(text, "Late by 1h"); eq(tone, "late"); eq(O.IsLate(o, NOW + 9 * 3600), true); eq(O.IsLate(o, NOW), false)
+    eq(O.Needs(Red.Build(g), B), 1); eq(O.Needs(Red.Build(g), A), 0)
+    stepBy(B, { st = "deliver" })                         -- the crafter can't confirm their own delivery
+    eq(one().status, "accepted")
+    stepBy(B, { st = "ready" })
+    eq(one().status, "ready"); eq(O.Needs(Red.Build(g), A), 1)      -- now the requester has something to collect
+    stepBy(V, { st = "deliver" })
+    eq(one().status, "ready")
+    stepBy(A, { st = "deliver" })
+    eq(one().status, "delivered"); eq(one().lastBy, A)
+    stepBy(A, { st = "cancel" })                          -- finished orders don't change
+    eq(one().status, "delivered")
+
+    -- Wanted board: anyone but the requester may take it; handing back reopens it.
+    local wanted = author(g, V, "ORDER", { rid = 7420, p = "Enchanting", q = 1, mats = "crafter" })
+    insertAll(g, { wanted })
+    stepBy(B, { id = wanted.id, st = "accept", h = 24 })
+    eq(Red.Build(g).orders[wanted.id].crafter, B)
+    stepBy(B, { id = wanted.id, st = "release" })
+    local w = Red.Build(g).orders[wanted.id]
+    eq(w.status, "open"); eq(w.crafter, nil); eq(w.due, nil)
+    eq(select(2, Log.Insert(g, author(g, A, "ORDER_MOD", { id = wanted.id, st = "cancel" }), true)), "forbidden")
+    insertAll(g, { author(g, OFF, "ORDER_MOD", { id = wanted.id, st = "cancel" }) })
+    eq(Red.Build(g).orders[wanted.id].status, "cancelled")
+
+    -- Asked of one crafter: declining or handing back closes it as declined.
+    local d1 = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 1, mats = "bank", to = B })
+    local d2 = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 1, mats = "bank", to = B })
+    local selfOrder = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 1, mats = "me", to = A })
+    insertAll(g, { d1, d2, selfOrder })
+    stepBy(B, { id = d1.id, st = "decline" })
+    stepBy(B, { id = d2.id, st = "accept", h = 2 })
+    stepBy(B, { id = d2.id, st = "release" })
+    local st = Red.Build(g)
+    eq(st.orders[d1.id].status, "declined"); eq(st.orders[d2.id].status, "declined"); eq(st.orders[selfOrder.id], nil)
+
+    for _, bad in ipairs({ { rid = 7418, p = "Enchanting", q = 0, mats = "me" }, { rid = 7418, p = "Enchanting", q = 100, mats = "me" },
+        { rid = 7418, p = "Enchanting", q = 1, mats = "gold" }, { rid = 0, p = "Enchanting", q = 1, mats = "me" }, { rid = 7418, q = 1, mats = "me" } }) do
+        eq(select(2, Log.Insert(g, author(g, A, "ORDER", bad), true)), "payload")
+    end
+    for _, bad in ipairs({ { id = id, st = "accept" }, { id = id, st = "accept", h = 5 }, { id = id, st = "ready", h = 8 },
+        { id = id, st = "steal" }, { st = "ready" } }) do
+        eq(select(2, Log.Insert(g, author(g, B, "ORDER_ST", bad), true)), "payload")
+    end
+
+    -- Lists and what each person may do.
+    local live = author(g, A, "ORDER", { rid = 7426, p = "Enchanting", q = 1, mats = "me" })
+    insertAll(g, { live })
+    st = Red.Build(g)
+    eq(#O.Rows(st, A, "mine"), 1); eq(#O.Rows(st, B, "craft"), 0); eq(#O.Rows(st, V, "wanted"), 1)
+    eq(#O.Rows(st, A, "history"), 4); eq(O.ActiveCount(st, A), 1)
+    local lo = st.orders[live.id]
+    eq(O.Actions(lo, B, false, true).accept, true)        -- knows the recipe
+    eq(O.Actions(lo, B, false, false).accept, nil)        -- doesn't
+    eq(O.Actions(lo, A, false, true).accept, nil); eq(O.Actions(lo, A, false, true).cancel, true)
+    eq(O.Actions(lo, OFF, true, false).moderate, true); eq(O.Actions(lo, V, false, false).moderate, nil)
+    eq(next(O.Actions(st.orders[id], A, true, true)), nil)          -- finished: nothing to do
+    eq(O.Span(90), "2m"); eq(O.Span(3 * 3600), "3h"); eq(O.Span(3 * 86400), "3d")
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

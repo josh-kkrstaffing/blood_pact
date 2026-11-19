@@ -112,6 +112,28 @@ L.KINDS = {
         return str(d.p, 1, 24) and str(d.ids, 1, 1200) and ns.U.UnpackIDs(d.ids, 400) ~= nil
             and (d.reset == nil or d.reset == true)
     end },
+    -- Crafting orders, inside the guild. to = the crafter asked, or nil for
+    -- the Wanted board. mats = who supplies the materials.
+    ORDER = { "signup", function(d)
+        return isInt(d.rid, 1, 9999999) and str(d.p, 1, 24) and isInt(d.q, 1, 99)
+            and (d.to == nil or isGUID(d.to)) and (d.mats == "me" or d.mats == "crafter" or d.mats == "bank") and optNote(d.n)
+    end },
+    -- A step on an order by the crafter or the member who asked. The
+    -- reducer decides whether that person may take that step.
+    ORDER_ST = { "signup", function(d)
+        local step = d.st
+        if not (step == "accept" or step == "decline" or step == "ready" or step == "release" or step == "deliver" or step == "cancel") then
+            return false
+        end
+        if step == "accept" then
+            if not (d.h == 2 or d.h == 8 or d.h == 24 or d.h == 48) then return false end
+        elseif d.h ~= nil then
+            return false
+        end
+        return str(d.id, 1, 80) and optNote(d.n)
+    end },
+    -- An Officer cancelling someone else's order to keep the board tidy.
+    ORDER_MOD = { "void", function(d) return str(d.id, 1, 80) and d.st == "cancel" end },
     -- A player's own PvP rank, 0 (none) to 14.
     PVP = { "signup", function(d) return isInt(d.r, 0, 14) end },
     TASK = { "roster", function(d)

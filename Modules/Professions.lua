@@ -306,29 +306,45 @@ ns.Listen("ROSTER_CHANGED", function() if ns.roster.loaded then publishSoon(90) 
 -- Professions tab
 ---------------------------------------------------------------------------
 local W, U, Red = ns.W, ns.U, ns.Reducer
+local date = date or os.date   -- WoW global; os.date in tests
 local chosen, search, onlineOnly, showAlts, ascending = nil, "", false, true, false
 local viewing = nil            -- guid of the crafter whose recipes are shown
+local view = "dir"             -- "dir" (crafters) or "orders"
+local picked = nil             -- recipe id chosen for the order bar
+local mats = "me"              -- who supplies the materials on a new order
+local which, selOrder = "craft", nil
 local BAR_W = 130
 
 ns.UI.AddTab("profs", "Professions", "view", function(p)
-    p.searchLabel = W.Text(p, "Search", "GameFontHighlightSmall")
+    local Orders = ns.Orders
+    p.dirBtn = W.Button(p, "Crafters", 90, 22, function() view = "dir"; ns.UI.Refresh() end)
+    p.dirBtn:SetPoint("TOPLEFT", 0, 0)
+    p.ordBtn = W.Button(p, "Orders", 110, 22, function() view = "orders"; ns.UI.Refresh() end)
+    p.ordBtn:SetPoint("TOPLEFT", 94, 0)
+
+    -- Crafters: the guild by profession, and each crafter's recipes.
+    local d = CreateFrame("Frame", nil, p)
+    d:SetPoint("TOPLEFT", 0, -28)
+    d:SetPoint("BOTTOMRIGHT", 0, 0)
+    p.dir = d
+    p.searchLabel = W.Text(d, "Search", "GameFontHighlightSmall")
     p.searchLabel:SetPoint("TOPLEFT", 0, -5)
-    p.search = W.Edit(p, 130, 30)
+    p.search = W.Edit(d, 130, 30)
     p.search:SetPoint("TOPLEFT", 44, -1)
     p.search:SetScript("OnTextChanged", function(self)
         search = (self:GetText() or ""):lower()
         ns.UI.Refresh()
     end)
-    p.online = W.Check(p, "Online only", function(on) onlineOnly = on; ns.UI.Refresh() end)
+    p.online = W.Check(d, "Online only", function(on) onlineOnly = on; ns.UI.Refresh() end)
     p.online:SetPoint("TOPLEFT", 192, -4)
-    p.alts = W.Check(p, "Show alts", function(on) showAlts = on; ns.UI.Refresh() end)
+    p.alts = W.Check(d, "Show alts", function(on) showAlts = on; ns.UI.Refresh() end)
     p.alts:SetPoint("TOPLEFT", 296, -4)
     p.alts:SetChecked(true)
-    p.count = W.Text(p, "", "GameFontDisableSmall")
+    p.count = W.Text(d, "", "GameFontDisableSmall")
     p.count:SetPoint("TOPLEFT", 392, -5)
 
     -- Left: the professions.
-    p.groups = W.List(p, 176, 300, 20, function(row, g)
+    p.groups = W.List(d, 176, 300, 20, function(row, g)
         if not row.icon then
             row.icon = row:CreateTexture(nil, "ARTWORK")
             row.icon:SetSize(16, 16)
@@ -345,16 +361,16 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         local c = g.count > 0 and W.C.text or W.C.muted
         name:SetTextColor(c[1], c[2], c[3])
         n:SetTextColor(c[1], c[2], c[3])
-    end, function(g) chosen = g.name; viewing = nil; ns.UI.Refresh() end)
+    end, function(g) chosen = g.name; viewing, picked = nil, nil; ns.UI.Refresh() end)
     p.groups:Stretch(0, -30, nil, 22)
     p.groups.key = "name"
 
     -- Right: who has the chosen profession.
-    p.title = W.Text(p, "", "GameFontNormalSmall")
+    p.title = W.Text(d, "", "GameFontNormalSmall")
     p.title:SetPoint("TOPLEFT", 212, -33)
-    p.sort = W.SortButton(p, "Level", 70, function() ascending = not ascending; ns.UI.Refresh() end)
+    p.sort = W.SortButton(d, "Level", 70, function() ascending = not ascending; ns.UI.Refresh() end)
     p.sort:SetPoint("TOPLEFT", 418, -30)
-    p.crafters = W.List(p, 480, 300, 20, function(row, r)
+    p.crafters = W.List(d, 480, 300, 20, function(row, r)
         if not row.dot then
             row.dot = row:CreateTexture(nil, "ARTWORK")
             row.dot:SetSize(6, 6)
@@ -390,7 +406,7 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         n:SetText(r.recipes > 0 and (r.recipes .. (r.recipes == 1 and " recipe" or " recipes")) or "")
         n:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
     end, function(r)
-        viewing = r.guid
+        viewing, picked = r.guid, nil
         p.search:SetText("")          -- the box searches recipes now, not players
         ns.UI.Refresh()
     end)
@@ -398,35 +414,227 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
     p.crafters.key = "guid"
 
     -- Right, after clicking a crafter: the recipes they have shared.
-    p.back = W.Button(p, "Back", 60, 18, function()
-        viewing = nil
+    p.back = W.Button(d, "Back", 60, 18, function()
+        viewing, picked = nil, nil
         p.search:SetText("")
         ns.UI.Refresh()
     end)
     p.back:SetPoint("TOPLEFT", 212, -30)
-    p.who = W.Text(p, "", "GameFontNormalSmall")
+    p.who = W.Text(d, "", "GameFontNormalSmall")
     p.who:SetPoint("TOPLEFT", 282, -33)
-    p.recipes = W.List(p, 480, 300, 18, function(row, r)
-        p.recipes.Col(row, 1, 8, 440):SetText(U.Safe(r.name, 80))
-        row:SetScript("OnEnter", function(self)
-            local item = self.item
-            if not item or not GameTooltip.SetSpellByID then return end
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            if pcall(GameTooltip.SetSpellByID, GameTooltip, item.id) then GameTooltip:Show() end
-        end)
-        row:SetScript("OnLeave", GameTooltip_Hide)
-    end)
-    p.recipes:Stretch(206, -52, 0, 22)
+    p.recipes = W.List(d, 480, 300, 18, function(row, r)
+        p.recipes.Col(row, 1, 8, 380):SetText(U.Safe(r.name, 80))
+        if not row.order then
+            -- "Order" on the right of every recipe: picks it for the order bar below.
+            row.order = W.Button(row, "Order", 54, 16, function()
+                if row.item then picked = row.item.id; ns.UI.Refresh() end
+            end)
+            row.order:SetPoint("RIGHT", -4, 0)
+            row:SetScript("OnEnter", function(self)
+                local item = self.item
+                if not item or not GameTooltip.SetSpellByID then return end
+                GameTooltip:SetOwner(self, "ANCHOR_LEFT")      -- to the left, so it stays on screen
+                if pcall(GameTooltip.SetSpellByID, GameTooltip, item.id) then GameTooltip:Show() end
+            end)
+            row:SetScript("OnLeave", GameTooltip_Hide)
+        end
+        row.order:SetShown(viewing ~= ns.MyGUID())
+    end, function(r) picked = r.id; ns.UI.Refresh() end)
+    p.recipes:Stretch(206, -52, 0, 80)
     p.recipes.key = "id"
-    p.empty = W.Text(p, "", "GameFontHighlightSmall")
+
+    -- Order bar under the recipes: quantity, who supplies the mats, a note, send.
+    local ob = CreateFrame("Frame", nil, d)
+    ob:SetPoint("BOTTOMLEFT", 206, 24)
+    ob:SetPoint("BOTTOMRIGHT", 0, 24)
+    ob:SetHeight(52)
+    p.ob = ob
+    p.oName = W.Text(ob, "", "GameFontNormalSmall")
+    p.oName:SetPoint("TOPLEFT", 0, -4)
+    p.oName:SetWidth(250)
+    p.oName:SetWordWrap(false)
+    W.Text(ob, "Qty", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 258, -4)
+    p.qty = W.Edit(ob, 34, 2)
+    p.qty:SetPoint("TOPLEFT", 284, 0)
+    p.qty:SetText("1")
+    p.matsBtn = W.Button(ob, "", 160, 22, function()
+        for i, key in ipairs(Orders.MATS_ORDER) do
+            if key == mats then mats = Orders.MATS_ORDER[i % #Orders.MATS_ORDER + 1]; break end
+        end
+        ns.UI.Refresh()
+    end)
+    p.matsBtn:SetPoint("TOPLEFT", 326, 0)
+    W.Text(ob, "Note", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -30)
+    p.oNote = W.Edit(ob, 190, 120)
+    p.oNote:SetPoint("TOPLEFT", 34, -26)
+    local function place(to, okMsg)
+        if not picked then ns.UI.Say("Click a recipe first.") return end
+        if ns.UI.Try(okMsg, Orders.Create, picked, chosen, tonumber(p.qty:GetText()), mats, p.oNote:GetText(), to) then
+            picked = nil
+            p.oNote:SetText("")
+            p.qty:SetText("1")
+            ns.UI.Refresh()
+        end
+    end
+    p.orderBtn = W.Button(ob, "Order", 150, 22, function()
+        place(viewing, "Order placed. Track it under Orders.")
+    end, "accent")
+    p.orderBtn:SetPoint("TOPLEFT", 232, -26)
+    p.wantBtn = W.Button(ob, "Post as Wanted", 120, 22, function()
+        place(nil, "Posted on the Wanted board for any guild crafter who knows it.")
+    end)
+    p.wantBtn:SetPoint("TOPLEFT", 386, -26)
+    p.empty = W.Text(d, "", "GameFontHighlightSmall")
     p.empty:SetPoint("TOPLEFT", 214, -60)
     p.empty:SetWidth(460)
     p.empty:SetWordWrap(true)
 
-    p.foot = W.Text(p, "", "GameFontDisableSmall")
+    p.foot = W.Text(d, "", "GameFontDisableSmall")
     p.foot:SetPoint("BOTTOMLEFT", 0, 2)
+
+    -- Orders: what I should craft, what I asked for, the Wanted board, history.
+    local o = CreateFrame("Frame", nil, p)
+    o:SetPoint("TOPLEFT", 0, -28)
+    o:SetPoint("BOTTOMRIGHT", 0, 0)
+    p.ord = o
+    p.filters = {}
+    local x = 0
+    for _, f in ipairs({ { "craft", "To craft", 110 }, { "mine", "My requests", 124 }, { "wanted", "Wanted board", 124 }, { "history", "History", 80 } }) do
+        local b = W.Button(o, f[2], f[3], 22, function() which = f[1]; selOrder = nil; ns.UI.Refresh() end)
+        b:SetPoint("TOPLEFT", x, 0)
+        b.key, b.label = f[1], f[2]
+        p.filters[#p.filters + 1] = b
+        x = x + f[3] + 4
+    end
+    p.orders = W.List(o, 690, 220, 20, function(row, r)
+        local now = ns.Now()
+        p.orders.Col(row, 1, 6, 206):SetText(U.Safe(Orders.ItemText(r), 60))
+        p.orders.Col(row, 2, 216, 108):SetText(U.Safe(Orders.NameOf(r.by), 30))
+        local who = r.crafter or r.to
+        local c3 = p.orders.Col(row, 3, 328, 108)
+        c3:SetText(who and U.Safe(Orders.NameOf(who), 30) or "anyone")
+        local m = W.C[who and "text" or "muted"]
+        c3:SetTextColor(m[1], m[2], m[3])
+        local text, tone = Orders.StatusText(r, now, Orders.NameOf)
+        local c4 = p.orders.Col(row, 4, 440, 160)
+        c4:SetText(U.Safe(text, 40))
+        if tone == "late" then
+            c4:SetTextColor(1, 0.3, 0.3)
+        elseif tone == "good" then
+            c4:SetTextColor(0.35, 0.9, 0.45)
+        elseif tone == "muted" then
+            c4:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
+        else
+            c4:SetTextColor(W.C.text[1], W.C.text[2], W.C.text[3])
+        end
+        local c5 = p.orders.Col(row, 5, 604, 90)
+        c5:SetText(r.mats == "me" and "their mats" or (r.mats == "crafter" and "crafter's mats" or "bank mats"))
+        c5:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
+    end, function(r) selOrder = r.id; ns.UI.Refresh() end)
+    p.orders:Stretch(0, -28, 0, 88)
+    p.orders.key = "id"
+    p.oEmpty = W.Text(o, "", "GameFontHighlightSmall")
+    p.oEmpty:SetPoint("TOPLEFT", 6, -36)
+    p.oEmpty:SetWidth(640)
+
+    local act = CreateFrame("Frame", nil, o)
+    act:SetPoint("BOTTOMLEFT", 0, 0)
+    act:SetPoint("BOTTOMRIGHT", 0, 0)
+    act:SetHeight(82)
+    p.oDetail = W.Text(act, "", "GameFontHighlightSmall")
+    p.oDetail:SetPoint("TOPLEFT", 0, 0)
+    p.oDetail:SetWidth(690)
+    p.oDetail:SetHeight(28)
+    p.oDetail:SetJustifyV("TOP")
+    W.Text(act, "Note", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -62)
+    p.stNote = W.Edit(act, 260, 120)
+    p.stNote:SetPoint("TOPLEFT", 34, -58)
+    W.Text(act, "Optional. Sent with the next button you press.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 304, -62)
+    local function step(action, hours, okMsg)
+        return function()
+            if not selOrder then return end
+            if ns.UI.Try(okMsg, Orders.Update, selOrder, action, hours, p.stNote:GetText()) then
+                p.stNote:SetText("")
+                ns.UI.Refresh()
+            end
+        end
+    end
+    p.steps = {}
+    local function add(key, label, width, fn, style)
+        local b = W.Button(act, label, width, 22, fn, style)
+        b.key = key
+        p.steps[#p.steps + 1] = b
+        return b
+    end
+    for _, h in ipairs(Orders.HOURS) do
+        add("accept", (h == 2 and "Accept, ready in 2h" or (h .. "h")), h == 2 and 140 or 46,
+            step("accept", h, "Accepted. The member who asked can see when you'll have it."))
+    end
+    add("decline", "Can't make it", 100, step("decline", nil, "Declined. The member who asked is told."))
+    add("ready", "Mark ready", 90, step("ready", nil, "Marked ready. Trade or mail it to them."))
+    add("release", "Hand back", 84, step("release", nil, "Handed back."))
+    add("deliver", "I received it", 100, step("deliver", nil, "Marked delivered. Thanks for confirming."), "accent")
+    local cancel = add("cancel", "Cancel order", 110, nil)
+    cancel:SetScript("OnClick", ns.UI.Confirm(cancel, step("cancel", nil, "Order cancelled.")))
 end, function(p)
     local st = Red.State()
+    local Orders = ns.Orders
+    local me = ns.MyGUID()
+    local needs = Orders.Needs(st, me)
+    p.ordBtn:SetText(needs > 0 and ("Orders (" .. needs .. ")") or "Orders")
+    p.dirBtn:SetEnabled(view ~= "dir")
+    p.ordBtn:SetEnabled(view ~= "orders")
+    p.dir:SetShown(view == "dir")
+    p.ord:SetShown(view == "orders")
+
+    if view == "orders" then
+        local now = ns.Now()
+        for _, b in ipairs(p.filters) do
+            local n = b.key ~= "history" and #Orders.Rows(st, me, b.key) or 0
+            b:SetText(n > 0 and (b.label .. " (" .. n .. ")") or b.label)
+            b:SetEnabled(b.key ~= which)
+        end
+        local rows = Orders.Rows(st, me, which)
+        local sel
+        for _, r in ipairs(rows) do if r.id == selOrder then sel = r end end
+        selOrder = sel and sel.id or nil
+        p.orders.selected = sel
+        p.orders:SetItems(rows)
+        p.oEmpty:SetShown(#rows == 0)
+        p.oEmpty:SetText(which == "craft" and "Nothing waiting for you to craft."
+            or which == "mine" and "You have no orders open. Find a recipe under Crafters and press Order."
+            or which == "wanted" and "The Wanted board is empty. Post a request from any crafter's recipe list."
+            or "No finished orders yet.")
+        local allowed = {}
+        if sel then
+            local canCraft = st.recipes[me] and st.recipes[me][sel.p] and st.recipes[me][sel.p][sel.rid] or false
+            allowed = Orders.Actions(sel, me, ns.RBAC.ICan("void"), canCraft)
+            local parts = { U.Safe(Orders.ItemText(sel), 60) .. " for " .. U.Safe(Orders.NameOf(sel.by), 30) .. ". "
+                .. Orders.MATS[sel.mats] .. ". Asked " .. date("%b %d", sel.t) .. "." }
+            if sel.ask then parts[#parts + 1] = "They said: " .. U.Safe(sel.ask, 120) end
+            if sel.note then parts[#parts + 1] = "Crafter's note: " .. U.Safe(sel.note, 120) end
+            if sel.status == "open" and sel.to == nil and sel.by ~= me and not canCraft then
+                parts[#parts + 1] = "You haven't shared this recipe, so you can't take it."
+            end
+            if Orders.IsLate(sel, now) then parts[#parts + 1] = "Past the promised time." end
+            p.oDetail:SetText(table.concat(parts, " "))
+        else
+            p.oDetail:SetText(#rows > 0 and "Click an order to see what you can do with it." or "")
+        end
+        -- Lay the allowed buttons out left to right.
+        local x = 0
+        for _, b in ipairs(p.steps) do
+            local show = allowed[b.key] or (b.key == "cancel" and allowed.moderate) or false
+            b:SetShown(show)
+            if show then
+                b:ClearAllPoints()
+                b:SetPoint("TOPLEFT", x, -32)
+                x = x + b:GetWidth() + 4
+            end
+        end
+        return
+    end
+
     local profs = st and st.profs or {}
     local opts = { online = onlineOnly, hideAlts = not showAlts, alts = st and st.alts or {}, filter = search, asc = ascending }
     local groups, shared = P.Groups(ns.roster.byGUID, profs, opts)
@@ -457,6 +665,7 @@ end, function(p)
     p.who:SetShown(inRecipes)
     p.recipes.scroll:SetShown(inRecipes)
     p.empty:SetShown(false)
+    p.ob:SetShown(false)
 
     local total = 0
     for _ in pairs(ns.roster.byGUID) do total = total + 1 end
@@ -471,7 +680,21 @@ end, function(p)
         local set = st.recipes[viewing] and st.recipes[viewing][chosen]
         local known = ns.Recipes.Count(st, viewing, chosen)
         local list = ns.Recipes.List(set, search, ns.Recipes.Name)
+        if picked and not (set and set[picked]) then picked = nil end
+        local sel
+        for _, r in ipairs(list) do if r.id == picked then sel = r end end
+        p.recipes.selected = sel
         p.recipes:SetItems(list)
+        -- The order bar: not for my own recipes.
+        local canOrder = known > 0 and viewing ~= me
+        p.ob:SetShown(canOrder)
+        if canOrder then
+            p.oName:SetText(picked and ("Order: " .. U.Safe(ns.Recipes.Name(picked) or ("Recipe " .. picked), 60)) or "Press Order on a recipe.")
+            p.matsBtn:SetText(Orders.MATS[mats])
+            p.orderBtn:SetText("Order from " .. name:sub(1, 14))
+            p.orderBtn:SetEnabled(picked ~= nil)
+            p.wantBtn:SetEnabled(picked ~= nil)
+        end
         p.who:SetText(name .. ": " .. chosen .. " " .. crafter.level .. (crafter.max and (" / " .. crafter.max) or ""))
         if known == 0 then
             p.recipes.scroll:SetShown(false)

@@ -112,6 +112,9 @@ function M.Command(arg)
         fakeEvent(1, "ROSTER", { ev = "join", who = fakeGUID(18), name = ns.NameForGUID(fakeGUID(18)) or "Newbie", ri = 5, rank = "Initiate", idem = "mj:" .. day, live = true }, true)
         fakeEvent(1, "ROSTER", { ev = "promote", who = fakeGUID(5), name = ns.NameForGUID(fakeGUID(5)) or "Vet", ri = 3, rank = "Veteran", by = "Grimtusk", idem = "mp:" .. day, live = true }, true)
         fakeEvent(1, "ALT_LINK", { alt = fakeGUID(19), main = fakeGUID(4) }, true)
+        -- Fake crafting orders: one asked of you, one on the Wanted board.
+        fakeEvent(4, "ORDER", { rid = 7418, p = "Enchanting", q = 1, mats = "me", to = ns.MyGUID(), n = "Mock order for you" }, true)
+        fakeEvent(6, "ORDER", { rid = 7420, p = "Enchanting", q = 2, mats = "crafter" }, true)
         -- Fake PvP ranks, and a few fake guildmates share their professions and recipes.
         fakeEvent(1, "PVP", { r = 7 }, true)
         fakeEvent(3, "PVP", { r = 2 }, true)
