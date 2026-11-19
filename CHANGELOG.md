@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.2
+
+- Raids: the sign-up counts stay on one line and no longer overlap "You haven't answered yet"; the note about the readiness % moved to a heading above the sign-up list
+
 ## 0.16.1
 
 - Summon: "Ask selected" now whispers the chosen warlock, so they see it even without Blood Pact (before, it only reached warlocks running the addon)

@@ -259,9 +259,11 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
     p.counts = W.Text(p, "", "GameFontHighlightSmall")
     p.counts:SetPoint("TOPLEFT", 330, -50)
     p.counts:SetWidth(360)
+    p.counts:SetWordWrap(false)        -- one line, so it can't run into the line below
     p.mine = W.Text(p, "", "GameFontNormalSmall")
     p.mine:SetPoint("TOPLEFT", 330, -68)
     p.mine:SetWidth(360)
+    p.mine:SetWordWrap(false)
     local btns = {
         { "Tank", "yes", "tank" }, { "Healer", "yes", "healer" }, { "DPS", "yes", "dps" },
         { "Maybe", "maybe" }, { "Can't", "no" },
@@ -303,7 +305,12 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         end)
         row:SetScript("OnLeave", GameTooltip_Hide)
     end)
-    p.people.scroll:SetPoint("TOPLEFT", 330, -116)
+    p.peopleHead = W.Text(p, "Sign-ups (the % is how much of their pre-raid BiS list they own)", "GameFontDisableSmall")
+    p.peopleHead:SetPoint("TOPLEFT", 334, -116)
+    p.peopleHead:SetWidth(356)
+    p.peopleHead:SetWordWrap(false)
+    p.people.scroll:SetPoint("TOPLEFT", 330, -132)
+    p.people.scroll:SetHeight(76)
 
     -- Scheduling (Team Captain and above)
     local s = CreateFrame("Frame", nil, p)
@@ -408,6 +415,7 @@ end, function(p)
         p.when:SetText("")
         p.counts:SetText("")
         p.mine:SetText("")
+        p.peopleHead:SetShown(false)
         p.people:SetItems({})
         return
     end
@@ -416,8 +424,9 @@ end, function(p)
     p.info:SetText(U.Safe(found.raid, 30) .. " (" .. found.size .. ")  -  " .. (found.prog and "|cffff8040Progression|r" or "Farm")
         .. (found.n and ("  -  " .. U.Safe(found.n, 60)) or ""))
     p.when:SetText(R.When(found))
-    p.counts:SetText(("Coming %d/%d   Tanks %d  Healers %d  DPS %d   Maybe %d   Can't %d   (%% = pre-raid BiS owned)"):format(
+    p.counts:SetText(("Coming %d/%d   Tanks %d  Healers %d  DPS %d   Maybe %d   Can't %d"):format(
         c.yes, found.size, c.tank, c.healer, c.dps, c.maybe, c.no))
+    p.peopleHead:SetShown(#rows > 0)
     local mine = found.signups[ns.MyGUID()]
     if not open then
         p.mine:SetText("This raid is over.")
