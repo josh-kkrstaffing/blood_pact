@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.0
+
+- Orders > New order: pick a profession, see every recipe the guild has shared with how many crafters know it (and how many are online), and place an order without finding a crafter first
+- Ask "Any guild crafter" (the Wanted board) or cycle to one crafter by name
+- Wanted orders are matched to crafters: they show in To craft for everyone who has shared that recipe, and those crafters get a chat line
+- Estimated material cost on recipes and orders, from the Auctionator addon's last auction scan when you have it installed; reagents with no price are flagged
+- Orders opens on New order when nothing is waiting for you
+
 ## 0.15.0
 
 - Crafting orders, inside the guild only

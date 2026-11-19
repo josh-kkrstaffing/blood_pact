@@ -67,9 +67,90 @@ function R.List(set, filter, nameOf)
     return rows
 end
 
+-- Every profession the guild has shared recipes for, with how many
+-- different recipes. Only members still in the roster count.
+function R.GuildProfs(st, roster)
+    local seen = {}
+    for guid, byProf in pairs(st and st.recipes or {}) do
+        if roster[guid] then
+            for prof, set in pairs(byProf) do
+                seen[prof] = seen[prof] or {}
+                for id in pairs(set) do seen[prof][id] = true end
+            end
+        end
+    end
+    local out = {}
+    for prof, ids in pairs(seen) do
+        local n = 0
+        for _ in pairs(ids) do n = n + 1 end
+        out[#out + 1] = { name = prof, count = n }
+    end
+    table.sort(out, function(a, b) return a.name < b.name end)
+    return out
+end
+
+-- Every recipe the guild knows in one profession, with who can make it.
+-- Rows: { id, name, crafters = { guid, ... } (online first), online = n }.
+function R.GuildRecipes(st, roster, prof, filter, nameOf)
+    local by = {}
+    for guid, byProf in pairs(st and st.recipes or {}) do
+        local m = roster[guid]
+        if m and byProf[prof] then
+            for id in pairs(byProf[prof]) do
+                by[id] = by[id] or {}
+                by[id][#by[id] + 1] = guid
+            end
+        end
+    end
+    local rows = {}
+    for id, crafters in pairs(by) do
+        local name = nameOf(id) or ("Recipe " .. id)
+        if not filter or filter == "" or name:lower():find(filter, 1, true) then
+            local online = 0
+            for _, guid in ipairs(crafters) do if roster[guid].online then online = online + 1 end end
+            table.sort(crafters, function(a, b)
+                local x, y = roster[a].online and 0 or 1, roster[b].online and 0 or 1
+                if x ~= y then return x < y end
+                return (roster[a].name or "") < (roster[b].name or "")
+            end)
+            rows[#rows + 1] = { id = id, name = name, crafters = crafters, online = online }
+        end
+    end
+    table.sort(rows, function(a, b)
+        if a.name ~= b.name then return a.name < b.name end
+        return a.id < b.id
+    end)
+    return rows
+end
+
 ---------------------------------------------------------------------------
 -- Game side
 ---------------------------------------------------------------------------
+-- What a recipe needs: { { item = itemID, n = quantity }, ... }, or nil when
+-- the game won't say. Cached.
+local reagents = {}
+function R.Reagents(id)
+    if reagents[id] ~= nil then return reagents[id] or nil end
+    local api = C_TradeSkillUI
+    local list
+    if api and api.GetRecipeSchematic then
+        local ok, s = pcall(api.GetRecipeSchematic, id, false)
+        if ok and type(s) == "table" and type(s.reagentSlotSchematics) == "table" then
+            list = {}
+            for _, slot in ipairs(s.reagentSlotSchematics) do
+                local first = type(slot.reagents) == "table" and slot.reagents[1]
+                local basic = slot.reagentType == nil or slot.reagentType == 1
+                if basic and slot.required ~= false and first and first.itemID and (slot.quantityRequired or 0) > 0 then
+                    list[#list + 1] = { item = first.itemID, n = slot.quantityRequired }
+                end
+            end
+            if #list == 0 then list = nil end
+        end
+    end
+    reagents[id] = list or false
+    return list
+end
+
 -- A recipe's name from its id, on this player's own game. Cached.
 local names = {}
 function R.Name(id)

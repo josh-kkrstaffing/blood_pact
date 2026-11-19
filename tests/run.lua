@@ -1042,5 +1042,45 @@ test("orders: only the right person can take each step; turnaround, late, delive
     eq(O.Span(90), "2m"); eq(O.Span(3 * 3600), "3h"); eq(O.Span(3 * 86400), "3d")
 end)
 
+test("orders: guild recipe lists, Wanted orders matched to crafters, cost estimates", function()
+    local O, Rc = ns.Orders, ns.Recipes
+    local g = newStore()
+    local A, B, V = "Player-1-MEM1", "Player-1-MEM2", "Player-1-VET"
+    insertAll(g, {
+        author(g, B, "RECIPES", { p = "Enchanting", ids = U.PackIDs({ 7418, 7420 }) }),
+        author(g, V, "RECIPES", { p = "Enchanting", ids = U.PackIDs({ 7420, 7421 }) }),
+        author(g, V, "RECIPES", { p = "Tailoring", ids = U.PackIDs({ 2385 }) }),
+        author(g, "Player-1-INIT", "RECIPES", { p = "Alchemy", ids = U.PackIDs({ 2329 }) }),
+    })
+    local wanted = author(g, A, "ORDER", { rid = 7420, p = "Enchanting", q = 1, mats = "me" })
+    local other = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 1, mats = "me" })
+    insertAll(g, { wanted, other })
+    local st = Red.Build(g)
+    local roster = { [A] = { name = "Amy", online = true }, [B] = { name = "Bob", online = false }, [V] = { name = "Vee", online = true } }
+
+    local profs = Rc.GuildProfs(st, roster)                 -- the member who left (INIT) doesn't count
+    eq(#profs, 2); eq(profs[1].name, "Enchanting"); eq(profs[1].count, 3); eq(profs[2].name, "Tailoring")
+    local names = { [7418] = "Bracer", [7420] = "Chest", [7421] = "Rod" }
+    local rows = Rc.GuildRecipes(st, roster, "Enchanting", "", function(id) return names[id] end)
+    eq(#rows, 3); eq(rows[1].name, "Bracer"); eq(#rows[1].crafters, 1); eq(rows[1].online, 0)
+    eq(rows[2].name, "Chest"); eq(#rows[2].crafters, 2); eq(rows[2].online, 1); eq(rows[2].crafters[1], V)   -- online first
+    eq(#Rc.GuildRecipes(st, roster, "Enchanting", "ro", function(id) return names[id] end), 1)
+    eq(#Rc.GuildRecipes(st, roster, "Alchemy", "", function(id) return names[id] end), 0)
+
+    -- A Wanted order shows in To craft for every crafter who shared that recipe, and nobody else.
+    eq(O.CanCraft(st, B, st.orders[wanted.id]), true); eq(O.CanCraft(st, B, st.orders[other.id]), false)
+    eq(#O.Rows(st, B, "craft"), 1); eq(#O.Rows(st, V, "craft"), 2); eq(#O.Rows(st, A, "craft"), 0)
+    eq(O.Needs(st, B), 1); eq(O.Needs(st, V), 2); eq(O.Needs(st, A), 0)
+    eq(O.Matches(st, A, st.orders[wanted.id]), false)       -- never your own
+
+    eq(O.Money(0), "0c"); eq(O.Money(45), "45c"); eq(O.Money(300), "3s"); eq(O.Money(15925), "1g 59s"); eq(O.Money(120000), "12g")
+    eq(O.Money(1259), "12s 59c")
+    local prices = { [10] = 150, [11] = 2000 }
+    local function priceOf(item) return prices[item] end
+    local total, missing, all = O.Estimate({ { item = 10, n = 1 }, { item = 11, n = 3 }, { item = 12, n = 2 } }, 2, priceOf)
+    eq(total, (150 + 6000) * 2); eq(missing, 1); eq(all, 3)
+    eq(select(1, O.Estimate(nil, 1, priceOf)), 0)
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

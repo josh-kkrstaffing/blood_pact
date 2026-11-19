@@ -166,7 +166,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "RaidWarningFrame", "ChatTypeInfo", "SOUNDKIT", "PlaySound", "PixelUtil", "GameFontNormalLarge", "GameFontNormal",
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
-    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item" }) do
+    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -243,12 +243,29 @@ local RECIPE_NAMES = { [7418] = "Enchant Bracer - Minor Health", [7420] = "Encha
     [7421] = "Runed Copper Rod", [13380] = "Enchant Shield - Lesser Spirit", [25124] = "Minor Wizard Oil" }
 local TRADE = {}   -- guid -> { prof = "Enchanting", known = { id = true }, linked = bool }
 local function tradeWindow() return TRADE[ctx.guid] end
+-- Auctionator's public price API: one reagent has an auction price, one none.
+G.Auctionator = { API = { v1 = {
+    GetAuctionPriceByItemID = function(caller, item)
+        assert(caller == "BloodPact", "Auctionator wants the caller's name")
+        return item == 10940 and 150 or nil
+    end,
+    GetVendorPriceByItemID = function() return nil end,
+} } }
 G.C_Spell = { GetSpellName = function(id) return RECIPE_NAMES[id] end }
 G.C_TradeSkillUI = {
     IsTradeSkillLinked = function() local w = tradeWindow(); return w and w.linked or false end,
     IsTradeSkillReady = function() return tradeWindow() ~= nil end,
     GetBaseProfessionInfo = function() local w = tradeWindow(); return w and { professionName = w.prof } or {} end,
     GetAllRecipeIDs = function() return tradeWindow() and { 7418, 7420, 7421, 13380, 25124 } or {} end,
+    -- 7418 needs one of item 10940 and two of 10938; an optional slot is ignored.
+    GetRecipeSchematic = function(id)
+        if id ~= 7418 then return nil end
+        return { reagentSlotSchematics = {
+            { reagentType = 1, required = true, quantityRequired = 1, reagents = { { itemID = 10940 } } },
+            { reagentType = 1, required = true, quantityRequired = 2, reagents = { { itemID = 10938 } } },
+            { reagentType = 2, required = false, quantityRequired = 1, reagents = { { itemID = 99 } } },
+        } }
+    end,
     GetRecipeInfo = function(id)
         local w = tradeWindow()
         if not w then return nil end          -- names only resolve through the spell lookup here
@@ -693,10 +710,29 @@ run(officer, "order history", function()
     local o = officer.ns.Reducer.State().orders[orderId]
     check(o and o.status == "delivered" and o.crafter == gm.guid and o.note == "after raid", "a finished order is history for the whole guild")
 end)
+run(member, "browse and price", function()
+    local ns = member.ns
+    local st = ns.Reducer.State()
+    local profs = ns.Recipes.GuildProfs(st, ns.roster.byGUID)
+    local rows = ns.Recipes.GuildRecipes(st, ns.roster.byGUID, "Enchanting", "", ns.Recipes.Name)
+    check(#profs == 1 and profs[1].name == "Enchanting" and profs[1].count == 4 and #rows == 4 and rows[1].crafters[1] == gm.guid
+        and rows[1].online == 1, "New order lists every recipe the guild has shared, with who can make it")
+    check(ns.Orders.CostText(7418, 2) == "3s+", "material cost is estimated from Auctionator's prices, flagging what has no price")
+    check(ns.Orders.CostText(7418, 2, true) == "Est. materials: 3s from Auctionator's last scan, plus 1 with no price.",
+        "the order bar says where the estimate comes from")
+    check(ns.Orders.CostText(7420, 1) == nil, "no estimate is shown when the game lists no materials")
+end)
 -- The Wanted board: only someone who shared the recipe can take it; an Officer can tidy it.
 run(member, "post wanted", function() wantedId = assert(member.ns.Orders.Create(7420, "Enchanting", 1, "crafter", "", nil)).id end)
 check(#guildChat == whispersBefore + 1, "a Wanted post whispers nobody")
 advance(10)
+check(said(gm, "New Wanted order you can craft: Enchant Chest - Minor Health for Pip."), "a Wanted order is matched to crafters who shared the recipe")
+check(not said(officer, "New Wanted order you can craft"), "and not announced to members who can't make it")
+run(gm, "matched", function()
+    local ns = gm.ns
+    local list = ns.Orders.Rows(ns.Reducer.State(), gm.guid, "craft")
+    check(#list == 1 and list[1].id == wantedId, "the matched order shows in the crafter's To craft list")
+end)
 run(officer, "can't take it", function()
     local res, why = officer.ns.Orders.Update(wantedId, "accept", 2)
     check(res == nil and why:find("shared this recipe", 1, true) ~= nil, "a member without the recipe can't take a Wanted order")

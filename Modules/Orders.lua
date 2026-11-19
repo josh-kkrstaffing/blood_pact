@@ -26,6 +26,38 @@ local ACTIVE = { open = true, accepted = true, ready = true }
 ---------------------------------------------------------------------------
 function O.IsActive(o) return ACTIVE[o.status] == true end
 
+-- Has this member shared the recipe an order asks for?
+function O.CanCraft(st, guid, o)
+    local mine = st and st.recipes[guid]
+    return (mine and mine[o.p] and mine[o.p][o.rid]) and true or false
+end
+
+-- A Wanted order this member could take: open, for anyone, not their own, and
+-- in their shared recipes.
+function O.Matches(st, guid, o)
+    return o.status == "open" and o.to == nil and o.by ~= guid and O.CanCraft(st, guid, o)
+end
+
+-- Copper as "3g 20s". Copper is dropped once there is gold.
+function O.Money(copper)
+    copper = math.max(0, math.floor((tonumber(copper) or 0) + 0.5))
+    local g, s, c = math.floor(copper / 10000), math.floor(copper % 10000 / 100), copper % 100
+    if g > 0 then return s > 0 and (g .. "g " .. s .. "s") or (g .. "g") end
+    if s > 0 then return c > 0 and (s .. "s " .. c .. "c") or (s .. "s") end
+    return c .. "c"
+end
+
+-- Estimated material cost: reagents = { { item, n } }, priceOf(item) = copper or nil.
+-- -> total for the reagents that have a price, how many have none, how many in all.
+function O.Estimate(reagents, qty, priceOf)
+    local total, missing = 0, 0
+    for _, r in ipairs(reagents or {}) do
+        local price = priceOf(r.item)
+        if price and price > 0 then total = total + price * r.n * qty else missing = missing + 1 end
+    end
+    return total, missing, #(reagents or {})
+end
+
 -- What `me` may do with an order right now. canCraft = I have shared this recipe.
 function O.Actions(o, me, isOfficer, canCraft)
     local a = {}
@@ -78,7 +110,8 @@ end
 function O.IsLate(o, now) return o.status == "accepted" and now > o.due end
 
 -- Rows for one of the four lists.
---   craft   = waiting for me to accept, or accepted by me and not handed over
+--   craft   = asked of me, accepted by me and not handed over, or on the
+--             Wanted board and in my shared recipes
 --   mine    = orders I placed that are still going
 --   wanted  = open orders any crafter may take
 --   history = finished orders, newest first
@@ -88,6 +121,7 @@ function O.Rows(st, me, which)
         local keep
         if which == "craft" then
             keep = (o.status == "open" and o.to == me) or ((o.status == "accepted" or o.status == "ready") and o.crafter == me)
+                or O.Matches(st, me, o)
         elseif which == "mine" then
             keep = o.by == me and ACTIVE[o.status]
         elseif which == "wanted" then
@@ -119,7 +153,7 @@ function O.Needs(st, me)
     local n = 0
     for _, o in pairs(st and st.orders or {}) do
         if (o.status == "open" and o.to == me) or (o.status == "accepted" and o.crafter == me)
-            or (o.status == "ready" and o.by == me) then
+            or (o.status == "ready" and o.by == me) or O.Matches(st, me, o) then
             n = n + 1
         end
     end
@@ -162,6 +196,41 @@ local function recipeLink(rid)
     return "[" .. (ns.Recipes.Name(rid) or ("Recipe " .. rid)) .. "]"
 end
 
+-- Auction prices come from the Auctionator addon when the player has it: its
+-- last scan for the item, or the vendor price it has seen. Nothing is scanned
+-- or bought by Blood Pact.
+function O.HasPrices()
+    return Auctionator ~= nil and Auctionator.API ~= nil and Auctionator.API.v1 ~= nil
+        and Auctionator.API.v1.GetAuctionPriceByItemID ~= nil
+end
+
+function O.PriceOf(item)
+    if not O.HasPrices() then return nil end
+    local api = Auctionator.API.v1
+    local ok, price = pcall(api.GetAuctionPriceByItemID, "BloodPact", item)
+    if ok and type(price) == "number" and price > 0 then return price end
+    if api.GetVendorPriceByItemID then
+        ok, price = pcall(api.GetVendorPriceByItemID, "BloodPact", item)
+        if ok and type(price) == "number" and price > 0 then return price end
+    end
+    return nil
+end
+
+-- "3g 20s", "3g 20s+" when some reagents have no price, or nil when there
+-- is nothing to go on. long = a full sentence for the order bars.
+function O.CostText(rid, qty, long)
+    if not O.HasPrices() then
+        return long and "Install the Auctionator addon to see an estimated material cost." or nil
+    end
+    local list = ns.Recipes.Reagents(rid)
+    if not list then return long and "The game didn't list this recipe's materials." or nil end
+    local total, missing, all = O.Estimate(list, qty or 1, O.PriceOf)
+    if missing == all then return long and "No auction prices for these materials yet. Scan the auction house with Auctionator." or nil end
+    if not long then return O.Money(total) .. (missing > 0 and "+" or "") end
+    return ("Est. materials: %s from Auctionator's last scan%s."):format(O.Money(total),
+        missing > 0 and (", plus " .. missing .. " with no price") or "")
+end
+
 -- Place an order. toGUID = a guild crafter, or nil for the Wanted board.
 function O.Create(rid, prof, qty, mats, note, toGUID)
     if not ns.RBAC.ICan("signup") then return nil, "Your guild rank can't place orders." end
@@ -200,8 +269,7 @@ function O.Update(id, action, hours, note)
     local o = st and st.orders[id]
     if not o then return nil, "That order is gone." end
     local me = ns.MyGUID()
-    local canCraft = st.recipes[me] and st.recipes[me][o.p] and st.recipes[me][o.p][o.rid] or false
-    local allowed = O.Actions(o, me, ns.RBAC.ICan("void"), canCraft)
+    local allowed = O.Actions(o, me, ns.RBAC.ICan("void"), O.CanCraft(st, me, o))
     if action == "cancel" and allowed.moderate and not allowed.cancel then
         return ns.Log.New("ORDER_MOD", { id = id, st = "cancel" })
     end
@@ -231,6 +299,8 @@ function O.Announce()
             local item, who = O.ItemText(o), U.Safe(nameOf(o.lastBy), 40)
             if o.status == "open" and o.to == me and was == nil then
                 ns.Print(("New crafting order from %s: %s. Type /bp, then Professions > Orders."):format(U.Safe(nameOf(o.by), 40), item))
+            elseif was == nil and O.Matches(st, me, o) then
+                ns.Print(("New Wanted order you can craft: %s for %s. Type /bp, then Professions > Orders."):format(item, U.Safe(nameOf(o.by), 40)))
             elseif o.by == me and o.status == "accepted" then
                 ns.Print(("%s accepted your order for %s, due in %s."):format(who, item, span(o.due - ns.Now())))
             elseif o.by == me and o.status == "ready" then
