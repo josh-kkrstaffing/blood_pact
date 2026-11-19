@@ -27,6 +27,8 @@ load("Modules/BiS.lua")
 ns.DKP = { GroupGUIDs = function() return {} end }
 load("Modules/Raids.lua")
 load("Modules/Officer.lua")
+ns.Char = function() return {} end
+load("Modules/Professions.lua")
 ns.Listen = function() end
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
@@ -747,6 +749,43 @@ test("readiness: each player reports their own score; sign-ups sort by it", func
     eq(rows[2].guid, "Player-1-MEM1")       -- coming, 35%
     eq(rows[3].guid, "Player-1-VET")        -- coming, no score yet: last among those coming
     eq(rows[4].guid, "Player-1-INIT")       -- maybe, even at 95%
+end)
+
+test("professions: two professions plus First Aid, Cooking and Fishing, with real levels", function()
+    local P = ns.Professions
+    local rec = P.Classify({
+        { name = "Tailoring", level = 300, primary = true }, { name = "Enchanting", level = 275, primary = true },
+        { name = "First Aid", level = 225 }, { name = "Cooking", level = 150.0 }, { name = "Fishing", level = 1 },
+        { name = "Archaeology", level = 50 }, { name = "Riding", level = 75 }, { name = "Swords", level = 300 },
+    })
+    eq(rec.p1, "Enchanting"); eq(rec.l1, 275); eq(rec.p2, "Tailoring"); eq(rec.l2, 300)
+    eq(rec.fa, 225); eq(rec.ck, 150); eq(rec.fi, 1)
+    local one = P.Classify({ { name = "Herbalism", level = 240 }, { name = "Cooking", level = 12 } })   -- known by name
+    eq(one.p1, "Herbalism"); eq(one.p2, nil); eq(one.ck, 12); eq(one.fa, nil)
+    eq(P.Same(rec, P.Classify({ { name = "Enchanting", level = 275 }, { name = "Tailoring", level = 300 },
+        { name = "First Aid", level = 225 }, { name = "Cooking", level = 150 }, { name = "Fishing", level = 1 } })), true)
+    eq(P.Same(rec, one), false)
+    eq(P.Label("Tailoring", 300), "Tailoring 300"); eq(P.Label(nil), "-")
+end)
+
+test("professions: each player's own report syncs; rows filter and sort", function()
+    local P = ns.Professions
+    local g = newStore()
+    insertAll(g, {
+        author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 275, p2 = "Herbalism", l2 = 300, fa = 300, ck = 300, fi = 10 }),
+        author(g, "Player-1-MEM2", "PROF", { p1 = "Tailoring", l1 = 300, fa = 150 }),
+        author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 300, p2 = "Herbalism", l2 = 300, fa = 300, ck = 300, fi = 10 }),
+    })
+    eq(select(2, Log.Insert(g, author(g, "Player-1-MEM1", "PROF", { p1 = "Alchemy", l1 = 9999 }), true)), "payload")
+    local st = Red.Build(g)
+    eq(st.profs["Player-1-MEM1"].l1, 300)                 -- the newer report stands
+    local roster = { ["Player-1-MEM1"] = { name = "Zed" }, ["Player-1-MEM2"] = { name = "Amy" }, ["Player-1-VET"] = { name = "Bob" } }
+    local rows = P.Rows(roster, st.profs, "", "name")
+    eq(#rows, 3); eq(rows[1].name, "Amy"); eq(rows[2].name, "Zed"); eq(rows[3].name, "Bob")   -- not shared yet: last
+    rows = P.Rows(roster, st.profs, "", "ck")
+    eq(rows[1].name, "Zed")                               -- highest Cooking first
+    rows = P.Rows(roster, st.profs, "tailor", "name")
+    eq(#rows, 1); eq(rows[1].name, "Amy")                 -- search by profession
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

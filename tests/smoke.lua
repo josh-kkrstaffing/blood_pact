@@ -206,6 +206,46 @@ G.UnitGUID = function() return ctx.guid end
 G.UnitName = function() return ctx.name end
 G.UnitClass = function() return ctx.class, ctx.class end
 G.UnitLevel = function() return ctx.level end
+-- Skills, served through a different game API for each player so that all
+-- three ways of reading them are exercised.
+local SKILLS = {
+    ["Player-1-GM"] = { api = "modern", list = { { "Tailoring", 300, true }, { "Enchanting", 280, true }, { "Fishing", 40 }, { "Cooking", 225 }, { "First Aid", 300 } } },
+    ["Player-1-OFFICER"] = { api = "classic", list = { { "Blacksmithing", 300, true }, { "Mining", 290, true }, { "First Aid", 150 }, { "Cooking", 1 } } },
+    ["Player-1-MEMBER"] = { api = "ids", list = { { "Skinning", 201, true }, { "Fishing", 75 } } },
+}
+G.GetProfessions = function()
+    local s = SKILLS[ctx.guid]
+    if not s or s.api ~= "modern" then return nil end
+    return 1, 2, nil, 3, 4, 5
+end
+G.GetProfessionInfo = function(i)
+    local e = SKILLS[ctx.guid].list[i]
+    if e then return e[1], nil, e[2], 300 end
+end
+G.GetNumSkillLines = function()
+    local s = SKILLS[ctx.guid]
+    return (s and s.api == "classic") and #s.list + 3 or 0
+end
+G.GetSkillLineInfo = function(i)
+    local list = SKILLS[ctx.guid].list
+    if i == 1 then return "Class Skills", true end
+    if i == 2 then return "Professions", true end
+    if i <= 4 then return list[i - 2][1], false, false, list[i - 2][2] end
+    if i == 5 then return "Secondary Skills", true end
+    local e = list[i - 3]
+    if e then return e[1], false, false, e[2] end
+end
+G.C_TradeSkillUI = { GetProfessionInfoBySkillLineID = function(id)
+    local s = SKILLS[ctx.guid]
+    local names = { [393] = "Skinning", [356] = "Fishing" }
+    if s and s.api == "ids" then
+        for _, e in ipairs(s.list) do
+            if names[id] == e[1] then return { skillLevel = e[2], professionName = e[1] } end
+        end
+    end
+    return { skillLevel = 0 }
+end }
+
 -- Talents in the older form: name, icon, points spent.
 local TALENTS = { WARLOCK = { { "Affliction", 5 }, { "Demonology", 40 }, { "Destruction", 6 } },
     WARRIOR = { { "Arms", 31 }, { "Fury", 20 }, { "Protection", 0 } }, ROGUE = { { "Assassination", 0 }, { "Combat", 0 }, { "Subtlety", 0 } } }
@@ -498,6 +538,20 @@ check(#guildChat == chatBefore + 1 and guildChat[#guildChat]:find("GUILD:", 1, t
     and guildChat[#guildChat]:find("Blackrock Spire", 1, true) ~= nil, "a summon request can be posted to guild chat")
 check(said(officer, "click a summoning portal"), "guildmates in the zone are asked to click")
 check(not said(member, "click a summoning portal"), "guildmates elsewhere are not")
+
+-- Professions: each player's own addon reads and shares them (after the
+-- login delay), and the Guild Master sees all three.
+advance(200)
+run(gm, "professions", function()
+    local profs = gm.ns.Reducer.State().profs
+    local mine, off, mem = profs["Player-1-GM"], profs["Player-1-OFFICER"], profs[MEMBER]
+    check(mine and mine.p1 == "Enchanting" and mine.l1 == 280 and mine.p2 == "Tailoring" and mine.l2 == 300
+        and mine.fa == 300 and mine.ck == 225 and mine.fi == 40, "professions read the modern way are right")
+    check(off and off.p1 == "Blacksmithing" and off.l1 == 300 and off.p2 == "Mining" and off.l2 == 290
+        and off.fa == 150 and off.ck == 1 and off.fi == nil, "professions read from the skills list sync to the guild")
+    check(mem and mem.p1 == "Skinning" and mem.l1 == 201 and mem.p2 == nil and mem.fi == 75,
+        "professions read by skill id sync to the guild")
+end)
 
 -- 8. Every tab again with real data, as each role.
 for _, c in ipairs({ gm, officer, member }) do

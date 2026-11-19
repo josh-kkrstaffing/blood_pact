@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "0.7.0"
+ns.VERSION = "0.8.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -17,7 +17,8 @@ end)
 function ns.On(event, fn)
     if not handlers[event] then
         handlers[event] = {}
-        frame:RegisterEvent(event)
+        -- A client that doesn't have this event just never fires it.
+        pcall(frame.RegisterEvent, frame, event)
     end
     table.insert(handlers[event], fn)
 end

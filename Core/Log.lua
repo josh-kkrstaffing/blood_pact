@@ -99,6 +99,12 @@ L.KINDS = {
         return str(d.spec, 1, 24) and isInt(d.pre, 0, 100) and isInt(d.worn, 0, 100)
             and (d.raid == nil or isInt(d.raid, 0, 100))
     end },
+    -- A player's own profession levels, read from their character.
+    PROF = { "signup", function(d)
+        local function lv(n) return n == nil or isInt(n, 0, 1000) end
+        return (d.p1 == nil or str(d.p1, 1, 24)) and (d.p2 == nil or str(d.p2, 1, 24))
+            and lv(d.l1) and lv(d.l2) and lv(d.fa) and lv(d.ck) and lv(d.fi)
+    end },
     TASK = { "roster", function(d)
         return str(d.id, 1, 96) and L.TASK_STATES[d.st] ~= nil
     end },

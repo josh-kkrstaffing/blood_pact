@@ -49,7 +49,7 @@ function Red.Build(g)
         settings = ns.U.Copy(Red.DEFAULTS), pools = {}, alts = {}, idem = {},
         recruitMsgs = nil, history = {}, lastDecay = nil,
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
-        members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {},
+        members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {},
     }
     local signups, attIdem, rosterIdem = {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
@@ -131,6 +131,8 @@ function Red.Build(g)
         elseif k == "GEAR" then
             -- Each player reports their own; the latest one stands.
             st.gear[e.a] = { spec = d.spec, pre = d.pre, worn = d.worn, raid = d.raid, t = e.t }
+        elseif k == "PROF" then
+            st.profs[e.a] = { p1 = d.p1, l1 = d.l1, p2 = d.p2, l2 = d.l2, fa = d.fa, ck = d.ck, fi = d.fi, t = e.t }
         elseif k == "TASK" then
             st.tasks[d.id] = { st = d.st, by = e.a, t = e.t }
         elseif k == "RECRUIT_MSGS" then

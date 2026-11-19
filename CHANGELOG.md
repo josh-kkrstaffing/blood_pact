@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+- Roster > Professions: every member's two professions with their skill levels, plus First Aid, Cooking and Fishing
+- Levels are read from each player's own character by their addon and shared with the guild when they change (at most once an hour)
+- Click a column to sort by it; search by player or profession name
+- A member's professions also show in their details on the Members view
+- Members who haven't run this version yet show "not shared yet"
+
 ## 0.7.0
 
 - Pre-raid BiS lists for all 28 specs (every class; Feral has cat and bear lists), ranked from FrostyBoost and ForeverSpec for every spec, plus ConquestCapped where its guide could be read
