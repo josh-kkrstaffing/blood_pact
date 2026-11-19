@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0
+## 0.4.0
 
 - New Roster tab: every member with rank, level, join date and last online; search by name
 - Guild log: joins, leaves, kicks, promotions and demotions, with who did it when the game says so
@@ -13,18 +13,22 @@
 - Tasks sync to every officer: claim one so others see it's yours, mark it done for everyone; promotions and removals close their task on their own once the guild log sees them
 - Each task copies the slash command to paste, because WoW Forever only lets officers change ranks and remove members by hand
 - Officers see a chat line at login when tasks are waiting
-- New Raids tab: Team Captains and above schedule raids (Barrow Deeps and Hyjal Summit presets) and cancel them
-- Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't; the latest answer counts
-- Attendance: taken on each boss kill while a Team Captain or above leads, or with one click
-- Standings shows attendance over the last 10 raid nights; alts count for their main
-- Past raids show who signed up and was there
-- Mock mode: /bp mock signups and /bp mock attend
 - Schedule in Eastern, Central, Mountain, Arizona, Pacific or your PC's time; everyone sees the raid in their own PC's time, with the scheduled zone beside it
 - Progression or farm checkbox per raid; boss kills that night pay the matching DKP
 - New raids are added to the in-game calendar as a guild sign-up event when your rank allows it, and your Blood Pact sign-up is copied to the calendar
 - Reminders on your own screen 30 and 15 minutes before raids you signed up for
 - Whisper sign-ups button for Team Captains and above (one click, never automatic)
 - Login message confirms the addon loaded; /bp explains if the window can't open
+- Mock mode: /bp mock roster
+
+## 0.3.0
+
+- New Raids tab: Team Captains and above schedule raids (Barrow Deeps and Hyjal Summit presets) and cancel them
+- Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't; the latest answer counts
+- Attendance: taken on each boss kill while a Team Captain or above leads, or with one click
+- Standings shows attendance over the last 10 raid nights; alts count for their main
+- Past raids show who signed up and was there
+- Mock mode: /bp mock signups and /bp mock attend
 
 ## 0.2.1
 
