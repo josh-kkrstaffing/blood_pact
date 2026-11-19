@@ -902,7 +902,6 @@ end)
 test("loot: charges become a history, by person and by raid night; voided ones are gone", function()
     local Loot = ns.Loot
     local g = newStore()
-    local function at(e, t) e.t = t; return e end
     insertAll(g, { author(g, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1", "Player-1-MEM2", "Player-1-VET" }, amt = 500, r = "manual" }) })
     local first = Log.Build(g, "Player-1-OFFICER1", "SPEND", { from = "Player-1-MEM1", amt = 60, tier = "major", item = 1001 }, NOW)
     insertAll(g, { first })
