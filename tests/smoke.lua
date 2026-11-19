@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID" }) do
+    "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID" }) do
     M[name] = noop
 end
 function M:SetSize(w, h) self._.w, self._.h = w, h end
@@ -165,7 +165,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "RaidWarningFrame", "ChatTypeInfo", "SOUNDKIT", "PlaySound", "PixelUtil", "GameFontNormalLarge", "GameFontNormal",
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
-    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os" }) do
+    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -277,6 +277,17 @@ G.UnitIsGroupAssistant = function() return false end
 G.IsInGuild = function() return true end
 G.IsInRaid = function() return false end
 G.IsInGroup = function() return false end
+-- Items: the game knows 1001 at once and 1002 only after being asked.
+local shiftDown, linked = false, {}
+local itemsAsked = {}
+G.IsShiftKeyDown = function() return shiftDown end
+G.ITEM_QUALITY_COLORS = { [4] = { r = 0.64, g = 0.21, b = 0.93 } }
+G.GetItemInfo = function(id)
+    if id == 1001 then return "Test Blade", "|cffa335ee|Hitem:1001|h[Test Blade]|h|r", 4, 60, 55, "Weapon", "Sword", 1, "INVTYPE_WEAPON", 135274 end
+    if id == 1002 and itemsAsked[id] then return "Test Cloak", "|Hitem:1002|h[Test Cloak]|h", 2, 30, 25, "Armor", "Cloth", 1, "INVTYPE_CLOAK", 133762 end
+    itemsAsked[id] = true
+    return nil
+end
 G.GetNumGroupMembers = function() return 0 end
 G.GetGuildInfo = function() return "Blood Pact" end
 G.GetNormalizedRealmName = function() return "Normal" end
@@ -312,7 +323,7 @@ G.C_Calendar = {
     AddEvent = function() calendarAdds = calendarAdds + 1 end,
     SetAbsMonth = noop, GetNumDayEvents = function() return 0 end, GetDayEvent = noop, OpenEvent = noop,
 }
-G.ChatFrameUtil = { AddMessageEventFilter = noop, SendTell = noop, InsertLink = noop }
+G.ChatFrameUtil = { AddMessageEventFilter = noop, SendTell = noop, InsertLink = function(link) linked[#linked + 1] = link end }
 G.C_ChatInfo = {
     RegisterAddonMessagePrefix = noop,
     SendChatMessage = function(msg, kind, _, target)
@@ -630,6 +641,35 @@ run(gm, "link alt", function()
     assert(ns.Roster.Unlink(MEMBER))
 end)
 
+-- Loot history: the Officer charges two items; every member can see them.
+run(officer, "charge loot", function()
+    assert(officer.ns.DKP.Award({ MEMBER }, 100, "manual", "for loot"))
+    assert(officer.ns.DKP.Spend(MEMBER, "minor", 1001))
+    assert(officer.ns.DKP.Spend(MEMBER, "off", 1002))
+end)
+advance(15)
+run(member, "loot history", function()
+    local ns = member.ns
+    local st = ns.Reducer.State()
+    local all = ns.Loot.Entries(st)
+    check(#all == 2 and #ns.Loot.For(st, all, MEMBER) == 2 and #ns.Loot.For(st, all, gm.guid) == 0,
+        "loot charges show as history for the member who got them")
+    local blade = ns.Loot.Item(1001)
+    check(blade.name == "Test Blade" and blade.quality == 4 and blade.icon == 135274 and blade.link ~= nil,
+        "item name, icon and link come from the game by id")
+    check(ns.Loot.Item(1002).name == nil, "an item the game hasn't loaded yet shows without a name")
+    fire(member, "GET_ITEM_INFO_RECEIVED", 1002, true)
+    check(ns.Loot.Item(1002).name == "Test Cloak", "and fills in once the game has it")
+    local rows = ns.Loot.Nights(all, "blade", ns.Loot.NameOf, ns.Loot.ItemName)
+    check(#rows == 2 and rows[1].header and rows[2].item == 1001, "the night-by-night list can be searched by item")
+    check(not ns.RBAC.ICan("award"), "a Member has no award rights")
+    shiftDown = true
+    ns.Loot.Click(all[#all])
+    shiftDown = false
+    ns.Loot.Click(all[#all])
+    check(#linked == 1 and linked[1]:find("item:1001", 1, true), "Shift-click links the item in chat; a plain click doesn't")
+end)
+
 -- 8. Every tab again with real data, as each role.
 for _, c in ipairs({ gm, officer, member }) do
     open(c)
@@ -637,6 +677,24 @@ for _, c in ipairs({ gm, officer, member }) do
     pressEverything(c)
     advance(3)
 end
+
+-- A Member sees Raid & Loot (for the history) but none of the officer controls.
+run(member, "member view of Raid & Loot", function()
+    local function visible(text)
+        for _, w in ipairs(member.widgets) do
+            if w._.text == text and w:IsVisible() then return true end
+        end
+        return false
+    end
+    local tab
+    for _, w in ipairs(member.widgets) do
+        if w._.text == "Raid & Loot" and w._.scripts.OnClick then tab = w end
+    end
+    check(tab ~= nil, "a Member has the Raid & Loot tab")
+    if tab then tab._.scripts.OnClick(tab, "LeftButton") end
+    check(not visible("Charge selected player") and not visible("Award") and not visible("Award and charge"),
+        "a Member sees the loot history without the award and charge controls")
+end)
 
 -- 9. Mock mode end to end on the GM's client.
 for _, cmd in ipairs({ "mock on", "mock boss", "mock award", "mock forge", "mock signups", "mock attend", "mock roster",

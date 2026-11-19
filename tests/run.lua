@@ -28,6 +28,7 @@ ns.DKP = { GroupGUIDs = function() return {} end }
 load("Modules/Raids.lua")
 load("Modules/Officer.lua")
 ns.Char = function() return {} end
+load("Modules/Loot.lua")
 load("Modules/Recipes.lua")
 load("Modules/Professions.lua")
 ns.Listen = function() end
@@ -896,6 +897,46 @@ test("roster: any column sorts both ways; empty values stay at the bottom", func
     eq(order("joined", true), "Zed Cal Bob amy")          -- ...either way
     eq(order("last", false), "amy Cal Zed Bob")           -- online first, never seen last
     eq(order("last", true), "Zed Cal amy Bob")
+end)
+
+test("loot: charges become a history, by person and by raid night; voided ones are gone", function()
+    local Loot = ns.Loot
+    local g = newStore()
+    local function at(e, t) e.t = t; return e end
+    insertAll(g, { author(g, "Player-1-OFFICER1", "AWARD", { to = { "Player-1-MEM1", "Player-1-MEM2", "Player-1-VET" }, amt = 500, r = "manual" }) })
+    local first = Log.Build(g, "Player-1-OFFICER1", "SPEND", { from = "Player-1-MEM1", amt = 60, tier = "major", item = 1001 }, NOW)
+    insertAll(g, { first })
+    insertAll(g, { Log.Build(g, "Player-1-OFFICER1", "SPEND", { from = "Player-1-MEM2", amt = 30, tier = "minor", item = 1002 }, NOW + 60) })
+    insertAll(g, { Log.Build(g, "Player-1-OFFICER2", "SPEND", { from = "Player-1-VET", amt = 10, tier = "off" }, NOW + 7 * 86400) })
+    local mistake = Log.Build(g, "Player-1-OFFICER1", "SPEND", { from = "Player-1-VET", amt = 100, tier = "bis", item = 1003 }, NOW + 7 * 86400 + 5)
+    insertAll(g, { mistake })
+    insertAll(g, { author(g, "Player-1-OFFICER1", "VOID", { target = mistake.id }) })
+    insertAll(g, { author(g, "Player-1-OFFICER1", "ALT_LINK", { alt = "Player-1-MEM2", main = "Player-1-MEM1" }) })
+    local st = Red.Build(g)
+    local all = Loot.Entries(st)
+    eq(#all, 3)                                           -- the voided charge isn't history
+    eq(all[1].to, "Player-1-VET"); eq(all[1].item, nil); eq(all[1].amt, 10); eq(all[1].by, "Player-1-OFFICER2")
+    eq(all[3].item, 1001); eq(all[3].tier, "major")       -- newest first
+    eq(#Loot.For(st, all, "Player-1-MEM1"), 2)            -- a main's loot includes the linked alt's
+    eq(#Loot.For(st, all, "Player-1-MEM2"), 2)            -- and the other way round
+    eq(#Loot.For(st, all, "Player-1-VET"), 1); eq(#Loot.For(st, all, "Player-1-INIT"), 0)
+
+    local names = { ["Player-1-MEM1"] = "Zed", ["Player-1-MEM2"] = "Amy", ["Player-1-VET"] = "Bob" }
+    local items = { [1001] = "Test Blade", [1002] = "Test Cloak" }
+    local function who(guid) return names[guid] end
+    local function what(id) return items[id] end
+    local rows = Loot.Nights(all, "", who, what)
+    eq(#rows, 5)                                          -- two nights: a header each, three items
+    eq(rows[1].header, true); eq(rows[1].count, 1); eq(rows[1].total, 10)
+    eq(rows[3].header, true); eq(rows[3].count, 2); eq(rows[3].total, 90)
+    eq(rows[3].night, ns.Time.RaidDay(NOW))
+    rows = Loot.Nights(all, "cloak", who, what)
+    eq(#rows, 2); eq(rows[2].item, 1002)                  -- search by item
+    rows = Loot.Nights(all, "bob", who, what)
+    eq(#rows, 2); eq(rows[2].to, "Player-1-VET")          -- or by player
+    eq(#Loot.Nights(all, "nobody", who, what), 0)
+    eq(Loot.NightLabel("2026-11-07"), "Nov 7, 2026"); eq(Loot.NightLabel("soon"), "soon")
+    eq(#Loot.Entries(nil), 0)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

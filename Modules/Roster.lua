@@ -167,6 +167,7 @@ end
 local W, U = ns.W, ns.U
 local view, selected, filter = "members", nil, ""
 local sortKey, sortDesc, onlineOnly = "rank", false, false
+local pane = "details"         -- right side of the Members view: "details" or "loot"
 
 local function day(t) return t and date("%b %d, %Y", t) or "-" end
 
@@ -264,11 +265,20 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
     p.list.key = "guid"
 
     -- Detail of the selected member
+    p.detailBtn = W.Button(p, "Details", 70, 18, function() pane = "details"; ns.UI.Refresh() end)
+    p.detailBtn:SetPoint("TOPLEFT", 470, -24)
+    p.lootBtn = W.Button(p, "Loot", 80, 18, function() pane = "loot"; ns.UI.Refresh() end)
+    p.lootBtn:SetPoint("TOPLEFT", 544, -24)
     p.detail = W.Text(p, "", "GameFontHighlightSmall")
-    p.detail:SetPoint("TOPLEFT", 470, -28)
+    p.detail:SetPoint("TOPLEFT", 470, -48)
     p.detail:SetWidth(240)
     p.detail:SetJustifyV("TOP")
-    p.detail:SetHeight(200)
+    p.detail:SetHeight(196)
+    -- The selected member's loot: icon, item, date, DKP. Hover for the item's stats.
+    p.loot = W.List(p, 224, 280, 20, function(row, e) ns.Loot.Render(p.loot, row, e, false) end,
+        function(e) ns.Loot.Click(e) end)
+    p.loot:Stretch(470, -48, 0, 0)
+    p.loot.key = "id"
     p.altBox = W.Edit(p, 120, 48)
     p.altBox:SetPoint("TOPLEFT", 470, -250)
     p.link = W.Button(p, "Link as alt", 100, 22, function()
@@ -336,6 +346,9 @@ end, function(p)
     p.online.label:SetShown(members)
     p.list.scroll:SetShown(members)
     p.detail:SetShown(members)
+    p.detailBtn:SetShown(false)
+    p.lootBtn:SetShown(false)
+    p.loot.scroll:SetShown(false)
     p.search:SetShown(members)
     p.log.scroll:SetShown(view == "log")
     local officer = RBAC.ICan("altlink")
@@ -372,6 +385,21 @@ end, function(p)
     p.link:SetEnabled(sel ~= nil and sel.main == nil)
     if not sel then
         p.detail:SetText("Select a member to see their alts, join date and rank history.")
+        return
+    end
+    -- Details or Loot for the selected member.
+    local loot = ns.Loot.For(st, ns.Loot.Entries(st), sel.guid)
+    p.detailBtn:SetShown(true)
+    p.lootBtn:SetShown(true)
+    p.detailBtn:SetEnabled(pane ~= "details")
+    p.lootBtn:SetEnabled(pane ~= "loot")
+    p.lootBtn:SetText("Loot (" .. #loot .. ")")
+    if pane == "loot" then
+        for _, w in ipairs({ p.altBox, p.link, p.altHint, p.unlink }) do w:SetShown(false) end
+        p.loot.scroll:SetShown(#loot > 0)
+        p.loot:SetItems(loot)
+        p.detail:SetShown(#loot == 0)
+        p.detail:SetText(U.Safe(sel.name, 48) .. " has no loot recorded yet.\n\nLoot shows here when an officer charges DKP for an item in Raid & Loot. Linked alts count together.")
         return
     end
     local known = st and st.members[sel.guid]

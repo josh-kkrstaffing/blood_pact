@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0
+
+- Loot history, built from the loot charges officers already record (who, which item, price, date); voided charges don't show
+- Roster: select a member and press Loot to see everything they've received; linked alts count together
+- Raid & Loot: a Loot history view, night by night, with search by player or item
+- Every member can open Raid & Loot now, for the history; the award and charge controls still show only for Officers and above
+- Item names, icons, quality colors and the full stats tooltip come from the game itself by item id; nothing is bundled or downloaded
+- Shift-click an item in either list to link it in chat
+
 ## 0.11.0
 
 - Roster: press Name, Rank, Lvl, Joined or Last on to sort by it; press again to flip the order (an arrow shows which way)

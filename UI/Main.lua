@@ -250,47 +250,82 @@ end)
 -- Raid tab (Officer and above): awards and loot
 ---------------------------------------------------------------------------
 local selectedTier = "major"
+local raidView, lootFilter = "work", ""
 
-UI.AddTab("raid", "Raid & Loot", "award", function(p)
+-- Everyone can open this tab for the loot history; only Officers and above
+-- see the award and charge controls (and the actions check the role again).
+UI.AddTab("raid", "Raid & Loot", "view", function(p)
     local D = ns.DKP
-    local h1 = W.Text(p, "Award everyone in your group", "GameFontNormal")
+    p.workBtn = W.Button(p, "Award and charge", 130, 22, function() raidView = "work"; UI.Refresh() end)
+    p.workBtn:SetPoint("TOPLEFT", 0, 0)
+    p.histBtn = W.Button(p, "Loot history", 110, 22, function() raidView = "history"; UI.Refresh() end)
+    p.histBtn:SetPoint("TOPLEFT", 134, 0)
+
+    -- Loot history, night by night.
+    local h = CreateFrame("Frame", nil, p)
+    h:SetPoint("TOPLEFT", 0, -30)
+    h:SetPoint("BOTTOMRIGHT", 0, 0)
+    p.hist = h
+    W.Text(h, "Search", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -5)
+    p.histSearch = W.Edit(h, 150, 30)
+    p.histSearch:SetPoint("TOPLEFT", 44, -1)
+    p.histSearch:SetScript("OnTextChanged", function(self)
+        lootFilter = (self:GetText() or ""):lower()
+        UI.Refresh()
+    end)
+    p.histCount = W.Text(h, "", "GameFontDisableSmall")
+    p.histCount:SetPoint("TOPLEFT", 206, -5)
+    p.history = W.List(h, 690, 280, 20, function(row, e) ns.Loot.Render(p.history, row, e, true) end,
+        function(e) ns.Loot.Click(e) end)
+    p.history:Stretch(0, -28, 0, 0)
+    p.history.key = "id"
+    p.histEmpty = W.Text(h, "", "GameFontHighlightSmall")
+    p.histEmpty:SetPoint("TOPLEFT", 4, -36)
+    p.histEmpty:SetWidth(600)
+
+    -- Award and charge (Officers and above).
+    local a = CreateFrame("Frame", nil, p)
+    a:SetPoint("TOPLEFT", 0, -30)
+    a:SetPoint("BOTTOMRIGHT", 0, 0)
+    p.work = a
+    local h1 = W.Text(a, "Award everyone in your group", "GameFontNormal")
     h1:SetPoint("TOPLEFT", 0, 0)
 
-    p.onTime = W.Button(p, "On-time bonus", 150, 22, function()
+    p.onTime = W.Button(a, "On-time bonus", 150, 22, function()
         UI.Try("On-time bonus awarded.", D.AwardGroup, "ontime")
     end)
     p.onTime:SetPoint("TOPLEFT", 0, -22)
-    p.fullRaid = W.Button(p, "Full-raid bonus", 150, 22, function()
+    p.fullRaid = W.Button(a, "Full-raid bonus", 150, 22, function()
         UI.Try("Full-raid bonus awarded.", D.AwardGroup, "fullraid")
     end)
     p.fullRaid:SetPoint("LEFT", p.onTime, "RIGHT", 8, 0)
 
-    p.prog = W.Check(p, "Progression night", function(on)
+    p.prog = W.Check(a, "Progression night", function(on)
         ns.db.ui.progression = on
     end)
     p.prog:SetPoint("TOPLEFT", 0, -50)
     p.prog.label:SetWidth(290)
     p.prog.label:SetWordWrap(false)
-    p.auto = W.Check(p, "Auto-award raid bosses while I lead or assist", function(on)
+    p.auto = W.Check(a, "Auto-award raid bosses while I lead or assist", function(on)
         ns.db.ui.autoBossAward = on
     end)
     p.auto:SetPoint("TOPLEFT", 0, -74)
 
-    local h2 = W.Text(p, "Custom award", "GameFontNormal")
+    local h2 = W.Text(a, "Custom award", "GameFontNormal")
     h2:SetPoint("TOPLEFT", 0, -108)
-    local l1 = W.Text(p, "Names, comma-separated (blank = whole group)", "GameFontHighlightSmall")
+    local l1 = W.Text(a, "Names, comma-separated (blank = whole group)", "GameFontHighlightSmall")
     l1:SetPoint("TOPLEFT", 0, -128)
-    p.names = W.Edit(p, 300, 240)
+    p.names = W.Edit(a, 300, 240)
     p.names:SetPoint("TOPLEFT", 6, -142)
-    local l2 = W.Text(p, "DKP (- to deduct)", "GameFontHighlightSmall")
+    local l2 = W.Text(a, "DKP (- to deduct)", "GameFontHighlightSmall")
     l2:SetPoint("TOPLEFT", 0, -168)
-    p.amount = W.Edit(p, 60, 6)
+    p.amount = W.Edit(a, 60, 6)
     p.amount:SetPoint("TOPLEFT", 6, -182)
-    local l3 = W.Text(p, "Reason", "GameFontHighlightSmall")
+    local l3 = W.Text(a, "Reason", "GameFontHighlightSmall")
     l3:SetPoint("TOPLEFT", 110, -168)
-    p.note = W.Edit(p, 190, 120)
+    p.note = W.Edit(a, 190, 120)
     p.note:SetPoint("TOPLEFT", 116, -182)
-    p.award = W.Button(p, "Award", 100, 22, function()
+    p.award = W.Button(a, "Award", 100, 22, function()
         local guids, missing = {}, {}
         local text = p.names:GetText() or ""
         if text:match("^%s*$") then
@@ -313,24 +348,24 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
         UI.Try("Custom award sent.", D.Award, guids, tonumber(p.amount:GetText()), "manual", p.note:GetText())
     end, "accent")
     p.award:SetPoint("TOPLEFT", 0, -210)
-    p.undo = W.Button(p, "Undo my last award or charge", 210, 22, function()
+    p.undo = W.Button(a, "Undo my last award or charge", 210, 22, function()
         UI.Try("Your last award or charge was voided.", D.UndoMine)
     end)
     p.undo:SetPoint("LEFT", p.award, "RIGHT", 8, 0)
 
     -- Loot (right side)
-    local h3 = W.Text(p, "Charge loot: fixed price, highest DKP wins ties", "GameFontNormal")
+    local h3 = W.Text(a, "Charge loot: fixed price, highest DKP wins ties", "GameFontNormal")
     h3:SetPoint("TOPLEFT", 340, 0)
-    local l4 = W.Text(p, "Item (shift-click it here, or type its ID)", "GameFontHighlightSmall")
+    local l4 = W.Text(a, "Item (shift-click it here, or type its ID)", "GameFontHighlightSmall")
     l4:SetPoint("TOPLEFT", 340, -20)
-    p.item = W.Edit(p, 300, 255)
+    p.item = W.Edit(a, 300, 255)
     p.item:SetPoint("TOPLEFT", 346, -34)
     UI.lootEdit = p.item
 
     p.tierButtons = {}
     local tiers = { { "bis", "BiS" }, { "major", "Major" }, { "minor", "Minor" }, { "off", "Off" } }
     for i, t in ipairs(tiers) do
-        local b = W.Button(p, t[2], 72, 22, function()
+        local b = W.Button(a, t[2], 72, 22, function()
             selectedTier = t[1]
             tabs.raid.refresh(p)
         end)
@@ -340,13 +375,13 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
         p.tierButtons[i] = b
     end
 
-    p.lootList = W.List(p, 280, 210, 18, function(row, item)
+    p.lootList = W.List(a, 280, 210, 18, function(row, item)
         p.lootList.Col(row, 1, 4, 200):SetText(U.Safe(item.name, 40))
         p.lootList.Col(row, 2, 210, 60, "RIGHT"):SetText(item.bal)
     end)
     p.lootList.scroll:SetPoint("TOPLEFT", 340, -88)
     p.lootList.key = "guid"
-    p.charge = W.Button(p, "Charge selected player", 180, 22, function()
+    p.charge = W.Button(a, "Charge selected player", 180, 22, function()
         local who = p.lootList.selected
         if not who then UI.Say("Pick the winner in the list first.") return end
         UI.Try(("Charged %s."):format(U.Safe(who.name, 40)), D.Spend, who.guid, selectedTier, D.ItemIDFrom(p.item:GetText()))
@@ -354,6 +389,26 @@ UI.AddTab("raid", "Raid & Loot", "award", function(p)
     p.charge:SetPoint("TOPLEFT", 340, -304)
 end, function(p)
     local st = ns.Reducer.State()
+    local can = RBAC.ICan("award")
+    if not can then raidView = "history" end
+    local history = raidView == "history"
+    p.workBtn:SetShown(can)
+    p.histBtn:SetShown(can)
+    p.workBtn:SetEnabled(history)
+    p.histBtn:SetEnabled(not history)
+    p.work:SetShown(not history)
+    p.hist:SetShown(history)
+    if history then
+        local all = ns.Loot.Entries(st)
+        local rows = ns.Loot.Nights(all, lootFilter, ns.Loot.NameOf, ns.Loot.ItemName)
+        local shown = 0
+        for _, r in ipairs(rows) do if not r.header then shown = shown + 1 end end
+        p.history:SetItems(rows)
+        p.histCount:SetText(shown == #all and (#all .. (#all == 1 and " item" or " items")) or (shown .. " of " .. #all .. " items"))
+        p.histEmpty:SetShown(#all == 0)
+        p.histEmpty:SetText("No loot recorded yet. It shows here when an officer charges DKP for an item.")
+        return
+    end
     if not st then return end
     local s = st.settings
     p.onTime:SetText(("On-time bonus (+%d)"):format(s.onTime))
