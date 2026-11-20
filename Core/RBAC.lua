@@ -25,6 +25,7 @@ R.ACTIONS = {
     devtools    = "admin",
     settings    = "gm",
     decay       = "gm",
+    reset       = "gm",           -- wipe DKP or crafting orders and start fresh
     award       = "officer",
     spend       = "officer",
     void        = "officer",

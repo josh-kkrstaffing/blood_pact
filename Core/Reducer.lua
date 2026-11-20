@@ -27,6 +27,15 @@ local function before(x, y)
     return x.s < y.s
 end
 
+Red.Before = before
+
+-- What each kind of reset wipes. DKP takes its loot history and attendance
+-- with it; orders take the Wanted board with them.
+Red.RESET_KINDS = {
+    dkp = { AWARD = true, SPEND = true, VOID = true, DECAY = true, UNDECAY = true, ATTEND = true },
+    orders = { ORDER = true, ORDER_ST = true, ORDER_MAIL = true, ORDER_MOD = true },
+}
+
 local cache, dirty = nil, true
 function Red.Invalidate() dirty = true end
 
@@ -36,6 +45,23 @@ function Red.Build(g)
         if e.ok and not e.u and not e.bad then list[#list + 1] = e end
     end
     table.sort(list, before)
+
+    -- The latest reset of each kind: records of that kind from before it don't count.
+    local resets, cut = {}, {}
+    for i, e in ipairs(list) do
+        if e.k == "RESET" then resets[e.d.what], cut[e.d.what] = e, i end
+    end
+    local skip = {}
+    for what, at in pairs(cut) do
+        for i = 1, at - 1 do
+            if Red.RESET_KINDS[what][list[i].k] then skip[i] = true end
+        end
+    end
+    do
+        local kept = {}
+        for i, e in ipairs(list) do if not skip[i] then kept[#kept + 1] = e end end
+        list = kept
+    end
 
     -- A void cancels an award or a spend, whenever it arrives. An undo-decay
     -- (Guild Master only) cancels a decay the same way.
@@ -50,6 +76,7 @@ function Red.Build(g)
         recruitMsgs = nil, history = {}, lastDecay = nil,
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
         members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {}, pvp = {}, orders = {},
+        resets = resets,          -- [what] = the reset record now in force
     }
     local signups, picks, attIdem, rosterIdem = {}, {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end

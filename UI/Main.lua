@@ -5,6 +5,7 @@ local UI = {}
 ns.UI = UI
 
 local W, U, RBAC = ns.W, ns.U, ns.RBAC
+local date = date or os.date   -- WoW global; os.date in tests
 local tabs, order = {}, {}
 local frame, roleText, statusText, activeKey
 
@@ -590,6 +591,7 @@ local SETTING_GROUPS = {
         { "inactWatch", "Inactive days: Watch" }, { "inactInactive", "Inactive days: Inactive" },
         { "inactCleanup", "Inactive days: Cleanup" }, { "promoDays", "Initiate promo: days (0 = off)" },
         { "promoRaids", "Initiate promo: raids" } } },
+    { key = "wipe", title = "5. Wipe data and start fresh", rows = {}, extra = 96 },
 }
 
 UI.AddTab("settings", "Settings", "settings", function(p)
@@ -661,10 +663,49 @@ UI.AddTab("settings", "Settings", "settings", function(p)
     p.undoDecay:SetPoint("LEFT", p.decay, "RIGHT", 8, 0)
     p.last = W.Text(db, "", "GameFontDisableSmall")
     p.last:SetPoint("TOPLEFT", 4, -64)
+
+    -- Wiping takes two clicks, like decay. The old records stay in the log
+    -- but stop counting in every guild member's game.
+    local wb = p.wipeFold.body
+    local wipeHint = W.Text(wb, "For clearing out test data. Everyone in the guild sees the wipe once their addon is updated and synced.", "GameFontDisableSmall")
+    wipeHint:SetPoint("TOPLEFT", 4, -2)
+    wipeHint:SetWidth(690)
+    p.wipeBtns = {}
+    for i, what in ipairs({ "dkp", "orders" }) do
+        local label = what == "dkp" and "Wipe DKP, loot and attendance" or "Wipe crafting orders and Wanted board"
+        local b
+        b = W.Button(wb, label, 280, 22, function()
+            if GetTime() - (b.armed or -10) > 5 then
+                b.armed = GetTime()
+                b:SetText("Click again to wipe")
+                UI.Say("This wipes " .. ns.DKP.RESET_LABEL[what] .. " for the whole guild. Click again within 5 seconds to confirm.")
+                return
+            end
+            b.armed = -10
+            b:SetText(label)
+            UI.Try("Wiped " .. ns.DKP.RESET_LABEL[what] .. " for the whole guild.", ns.DKP.Reset, what)
+        end)
+        b:SetPoint("TOPLEFT", 4 + (i - 1) * 290, -24)
+        b.what, b.label = what, label
+        p.wipeBtns[i] = b
+    end
+    p.wipeLast = W.Text(wb, "", "GameFontDisableSmall")
+    p.wipeLast:SetPoint("TOPLEFT", 4, -56)
+    p.wipeLast:SetWidth(690)
     p.place()
 end, function(p)
     local st = ns.Reducer.State()
     if not st then return end
+    local parts = {}
+    for _, what in ipairs({ "dkp", "orders" }) do
+        local r = st.resets and st.resets[what]
+        if r then parts[#parts + 1] = ("%s last wiped %s by %s."):format(what == "dkp" and "DKP" or "Orders",
+            date("%b %d, %Y", r.t), U.Safe(ns.NameForGUID(r.a) or "?", 40)) end
+    end
+    p.wipeLast:SetText(#parts > 0 and table.concat(parts, "  ") or "Nothing has been wiped yet.")
+    for _, b in ipairs(p.wipeBtns) do
+        if GetTime() - (b.armed or -10) > 5 then b:SetText(b.label) end
+    end
     for key, e in pairs(p.edits) do
         if not e:HasFocus() then e:SetText(tostring(st.settings[key])) end
     end

@@ -132,9 +132,12 @@ function D.UndoMine()
     for _, e in pairs(g.log) do
         if e.k == "VOID" then voided[e.d.target] = true end
     end
+    local st = Red.State()
+    local reset = st and st.resets and st.resets.dkp
     local best
     for _, e in pairs(g.log) do
-        if e.ok and e.a == me and (e.k == "AWARD" or e.k == "SPEND") and not voided[e.id] then
+        if e.ok and e.a == me and (e.k == "AWARD" or e.k == "SPEND") and not voided[e.id]
+            and not (reset and Red.Before(e, reset)) then       -- wiped records can't be undone
             if not best or e.s > best.s then best = e end
         end
     end
@@ -166,4 +169,14 @@ function D.Standings()
         return a.name < b.name
     end)
     return rows
+end
+
+-- Guild Master: wipe DKP (balances, loot history, decays, attendance) or
+-- crafting orders (orders and the Wanted board), everywhere, and start fresh.
+-- The old records stay in the log but stop counting.
+D.RESET_LABEL = { dkp = "DKP, loot history and attendance", orders = "crafting orders and the Wanted board" }
+function D.Reset(what)
+    if not RBAC.ICan("reset") then return nil, "Only the Guild Master can wipe data." end
+    if not D.RESET_LABEL[what] then return nil, "Nothing to wipe." end
+    return Log.New("RESET", { what = what })
 end

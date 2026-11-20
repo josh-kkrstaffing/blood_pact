@@ -1516,5 +1516,45 @@ test("tickets: what a report must hold, who it may reach, and how staff copies m
     for _, c2 in ipairs(T.CATS) do eq(#T.CAT_SHORT[c2[1]] * 6.2 <= narrow.cat[2], true) end   -- every short name fits the narrowest list
 end)
 
+test("reset: the Guild Master wipes DKP or orders; later records count again", function()
+    local g = newStore()
+    local GM, OFF, A, B = "Player-1-GM", "Player-1-OFFICER1", "Player-1-MEM1", "Player-1-MEM2"
+    local raid = author(g, "Player-1-CAPT", "RAID", { title = "Test", raid = "Barrow Deeps", at = NOW, size = 10 })
+    local award = author(g, OFF, "AWARD", { to = { A }, amt = 50, r = "manual" })
+    local spend = author(g, OFF, "SPEND", { from = A, amt = 20, item = 1234, tier = "bis" })
+    local order = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 1, mats = "crafter" })
+    insertAll(g, { raid, award, spend, order })
+    insertAll(g, { author(g, OFF, "ATTEND", { who = { A, B }, day = "2026-12-09", idem = "test1" }) })
+    local st = Red.Build(g)
+    eq(st.pools[A].bal, 30); eq(#st.history, 2); eq(st.orders[order.id] ~= nil, true)
+    local attended = st.attendance[A] ~= nil
+
+    -- Only the Guild Master may wipe.
+    eq(select(2, Log.Insert(g, author(g, OFF, "RESET", { what = "dkp" }), true)), "forbidden")
+    eq(select(2, Log.Insert(g, author(g, GM, "RESET", { what = "everything" }), true)), "payload")
+
+    insertAll(g, { author(g, GM, "RESET", { what = "dkp" }) })
+    st = Red.Build(g)
+    eq(st.pools[A], nil); eq(#st.history, 0); eq(st.resets.dkp ~= nil, true)
+    if attended then eq(st.attendance[A], nil) end                          -- attendance goes with DKP
+    eq(st.orders[order.id] ~= nil, true)                                    -- orders are untouched
+    eq(st.raids[raid.id] ~= nil, true)                                      -- raids and sign-ups stay
+
+    -- DKP earned after the wipe counts.
+    insertAll(g, { author(g, OFF, "AWARD", { to = { B }, amt = 10, r = "manual" }) })
+    st = Red.Build(g)
+    eq(st.pools[B].bal, 10); eq(st.pools[A], nil)
+
+    insertAll(g, { author(g, GM, "RESET", { what = "orders" }) })
+    st = Red.Build(g)
+    eq(st.orders[order.id], nil); eq(st.pools[B].bal, 10)
+    local fresh = author(g, A, "ORDER", { rid = 7421, p = "Enchanting", q = 2, mats = "crafter" })
+    insertAll(g, { fresh })
+    eq(Red.Build(g).orders[fresh.id].q, 2)
+
+    -- The records are still in the log: nothing is deleted.
+    eq(g.log[award.id] ~= nil and g.log[order.id] ~= nil, true)
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

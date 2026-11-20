@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.4
+
+- Settings > "5. Wipe data and start fresh" (Guild Master and above): two buttons, each needing two clicks
+  - "Wipe DKP, loot and attendance" clears every balance, the loot history, decays and raid attendance
+  - "Wipe crafting orders and Wanted board" clears every order, open or finished
+- The wipe reaches every guild member's game through the normal sync. Anything recorded after it counts as normal
+- Raids, sign-ups, the roster, alts, professions, recipes, settings and tickets are not touched
+- The old records stay in the log and simply stop counting, so a wipe by mistake can be undone in a later version if ever needed
+
 ## 1.0.3
 
 - Roster: a "How do I share my PvP rank?" button at the bottom right. Hover it for the steps: open Character > Player vs. Player, and Blood Pact shares the rank a moment later (or type /bp pvp)

@@ -1816,6 +1816,45 @@ run(member, "pvp how-to", function()
 end)
 check(said(member, "To share your PvP rank: open Character > Player vs. Player."), "a click repeats the steps")
 
+-- Wiping test data: the Guild Master wipes DKP and crafting orders for everyone.
+run(gm, "before wipe", function()
+    local st = gm.ns.Reducer.State()
+    local orders, pools = 0, 0
+    for _ in pairs(st.orders) do orders = orders + 1 end
+    for _ in pairs(st.pools) do pools = pools + 1 end
+    check(orders > 0 and pools > 0, "there is test DKP and there are test orders to wipe")
+end)
+run(officer, "officer can't wipe", function()
+    check(select(2, officer.ns.DKP.Reset("dkp")) == "Only the Guild Master can wipe data.", "an Officer can't wipe data")
+end)
+open(gm)
+clickText(gm, "Settings")
+run(gm, "wipe buttons", function()
+    local f
+    for _, w in ipairs(gm.widgets) do
+        if rawget(w, "body") and rawget(w, "title") and w.title:GetText() == "5. Wipe data and start fresh" then f = w end
+    end
+    check(f ~= nil, "Settings has a Wipe data group")
+    if not f.open then f:GetScript("OnClick")(f, "LeftButton") end
+    for _, w in ipairs(gm.widgets) do
+        if w._.kind == "Button" and rawget(w, "what") then
+            w:GetScript("OnClick")(w, "LeftButton")
+            check(w:GetText() == "Click again to wipe", "the first click only asks to confirm")
+            w:GetScript("OnClick")(w, "LeftButton")
+        end
+    end
+end)
+advance(10)
+for _, c in ipairs({ gm, officer, member }) do
+    run(c, "after wipe", function()
+        local st = c.ns.Reducer.State()
+        check(next(st.orders) == nil and next(st.pools) == nil and #st.history == 0,
+            "after the wipe, every guild member's game shows no DKP, loot history or orders")
+        check(st.resets.dkp and st.resets.orders, "and knows when it was wiped")
+    end)
+end
+check(said(gm, "Wiped crafting orders and the Wanted board for the whole guild."), "the Guild Master is told it worked")
+
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
     local ns = gm.ns
