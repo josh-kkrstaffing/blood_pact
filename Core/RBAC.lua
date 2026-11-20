@@ -30,6 +30,7 @@ R.ACTIONS = {
     void        = "officer",
     altlink     = "officer",
     recruitEdit = "officer",
+    tickets     = "captain",      -- read and work the guild's tickets
     recruit     = "captain",
     schedule    = "captain",
     roster      = "captain",

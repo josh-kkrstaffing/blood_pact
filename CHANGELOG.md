@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.26.0
+
+- Tickets: a new tab where any guild member can report a problem with a player: language or harassment, cheating or botting, ninja looting or a loot dispute, breaking guild rules, breaking the game's rules, a scam or the guild bank, or something else. Three steps: what kind, who, what happened
+- Team Captains and above get a queue: Open, Assigned to me and Resolved. Working a ticket is three steps too: take it, add notes, resolve it with an outcome (no action needed, spoke with the player, warning given, loot corrected, removed from the guild, reported to Blizzard). A resolved ticket can be reopened
+- The reporter sees where their ticket stands under "My tickets" and gets a chat line when it changes. They see the status and outcome, never the staff notes
+- Tickets are private to staff. They are whispered addon to addon only to Team Captains and above and are never put in the guild's shared log, so other members' games hold no copy. A ticket about a Team Captain or above is never sent to that person
+- Staff games keep each other's copies in step, so a Team Captain who was offline catches up from a colleague. If no staff are online, a new ticket waits and goes out when one logs in
+- Limits: 5 open tickets per member, one every 30 seconds, 300 letters each. Resolved tickets are dropped after 90 days
+- New permission "tickets" (Team Captain and above). The tab strip is a little tighter so ten tabs fit
+
 ## 0.25.1
 
 - The window can now be dragged much smaller. Its smallest size follows the tab you are on and which sections are folded: with everything folded, most tabs go well under the old 800 x 500

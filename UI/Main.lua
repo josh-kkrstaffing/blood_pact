@@ -11,8 +11,9 @@ local frame, roleText, statusText, activeKey
 -- Left to right, in the order a guild does things: bring people in, know
 -- who they are, get them ready (professions, gear), sign them up, get them
 -- to the raid, run it and hand out loot, then see where everyone stands.
--- The guild's rules come last. A tab the player's rank can't use is skipped.
-local TAB_ORDER = { recruit = 1, roster = 2, profs = 3, bis = 4, raids = 5, summon = 6, raid = 7, standings = 8, settings = 9 }
+-- Problems between players (Tickets) and the guild's rules come last. A tab
+-- the player's rank can't use is skipped.
+local TAB_ORDER = { recruit = 1, roster = 2, profs = 3, bis = 4, raids = 5, summon = 6, raid = 7, standings = 8, tickets = 9, settings = 10 }
 UI.TAB_ORDER = TAB_ORDER
 
 function UI.AddTab(key, label, action, build, refresh)
@@ -87,7 +88,7 @@ function UI.FitWindow()
         local ok, h, w = pcall(t.need, t.panel)
         if ok then needH, needW = h, w end
     end
-    local minW, minH = UI.MinSize(needH, needW)
+    local minW, minH = UI.MinSize(needH, math.max(tonumber(needW) or 0, UI.tabStripW or 0))
     if frame.SetResizeBounds then
         frame:SetResizeBounds(minW, minH, MAX_W, MAX_H)
     elseif frame.SetMinResize then
@@ -138,6 +139,7 @@ function UI.Refresh()
             if t.panel then t.panel:Hide() end
         end
     end
+    UI.tabStripW = x + 10            -- the window never goes narrower than its tabs
     if not activeKey and ns.db and ns.db.ui and tabs[ns.db.ui.tab] then activeKey = ns.db.ui.tab end
     if not activeKey or not allowed(tabs[activeKey]) then activeKey = firstAllowed end
     if activeKey then selectTab(activeKey) end
@@ -278,7 +280,7 @@ local function build()
         t.button = W.Button(frame, t.label, 96, 30, function() selectTab(key) end, "tab")
         local fs = t.button:GetFontString()
         local textWidth = fs and fs:GetStringWidth() or 0
-        t.button:SetWidth(math.max(60, math.floor(textWidth + 0.5) + 26))
+        t.button:SetWidth(math.max(54, math.floor(textWidth + 0.5) + 18))
         t.panel = CreateFrame("Frame", nil, frame)
         t.panel:SetPoint("TOPLEFT", 20, -80)
         t.panel:SetPoint("BOTTOMRIGHT", -20, 40)

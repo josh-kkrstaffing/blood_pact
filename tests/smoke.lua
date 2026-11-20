@@ -1592,7 +1592,8 @@ run(gm, "window fits the tab", function()
     local leader = fold(gm, "Schedule a raid and leader tools")
     if leader.open then leader:GetScript("OnClick")(leader, "LeftButton") end
     local w, h = UI.FitWindow()
-    check(w == UI.MIN_W and h == 132 + 58 + 30 + UI.CHROME_H and h < 500, "with the leader tools folded, the Raids tab lets the window go well under its old 500")
+    check(w == math.max(UI.MIN_W, UI.tabStripW) and h == 132 + 58 + 30 + UI.CHROME_H and h < 500,
+        "with the leader tools folded, the Raids tab lets the window go well under its old 500, and never narrower than its tabs")
     frame:SetSize(w, h)                                            -- the player drags it down to the smallest
     leader:GetScript("OnClick")(leader, "LeftButton")              -- then opens the section
     local _, h2 = UI.FitWindow()
@@ -1605,7 +1606,7 @@ end)
 clickText(gm, "Roster")
 run(gm, "roster is the widest tab", function()
     local w = gm.ns.UI.FitWindow()
-    check(w == 800, "the Roster keeps the width its columns need")
+    check(w == math.max(800, gm.ns.UI.tabStripW), "the Roster keeps the width its columns need")
 end)
 clickText(gm, "Professions")
 run(gm, "tabs without a say keep the old height", function()
@@ -1626,6 +1627,133 @@ run(member, "member raids tab", function()
     local leader = fold(member, "Schedule a raid and leader tools")
     check(leader ~= nil and not leader:IsVisible(), "a Member doesn't see the leader tools at all")
 end)
+
+-- Tickets: a Member reports a problem; Team Captains and above work it. Tickets
+-- travel by whisper to staff only and never touch the guild's shared log.
+advance(60)
+local ticketId, staffTicketId
+run(member, "report", function()
+    local T = member.ns.Tickets
+    check(select(2, T.Submit(nil, "Vela", "Kept swearing at people in raid chat all night.")) == "Pick what kind of problem it is.", "a ticket needs a kind")
+    check(select(2, T.Submit("lang", "Pip", "Kept swearing at people in raid chat all night.")) == "A ticket can't be about yourself.", "a ticket can't be about yourself")
+    check(select(2, T.Submit("lang", "Vela", "bad")) == "Say what happened, in a sentence or two.", "a ticket needs a sentence about what happened")
+    ticketId = T.Submit("lang", "Vela", "Kept swearing at people in raid chat all night.")
+    check(type(ticketId) == "string", "a Member can send a ticket")
+    check(select(2, T.Submit("loot", "Vela", "Rolled need on the tank trinket as a mage.")) == "You just sent one. Give it half a minute.", "tickets can't be sent in a burst")
+end)
+advance(8)
+run(gm, "ticket arrives", function()
+    local t = gm.ns.Tickets.Store()[ticketId]
+    check(t ~= nil and t.by == MEMBER and t.status == "new" and t.about == "Vela" and t.cat == "lang", "a Team Captain or above receives the ticket")
+    check(said(gm, "New ticket from Pip: Language or harassment, about Vela. Type /bp and open Tickets."), "and is told a ticket came in")
+end)
+run(officer, "every staff member has it", function()
+    check(officer.ns.Tickets.Store()[ticketId] ~= nil, "the other staff online get it too")
+end)
+run(member, "sent and private", function()
+    local ns = member.ns
+    check(ns.Tickets.Mine()[ticketId].sent == true, "the reporter sees it was delivered")
+    check(next(ns.Tickets.Store()) == nil, "a Member's game holds no staff copy of any ticket")
+    check(not ns.U.Encode(ns.G().log):find("swearing", 1, true), "the ticket is not in the guild's shared log")
+    check(select(2, ns.Tickets.Take(ticketId)) == "Only Team Captains and above manage tickets.", "a Member can't manage tickets")
+end)
+-- Work it: take, note, resolve. The reporter hears the status, never the notes.
+run(gm, "take it", function() assert(gm.ns.Tickets.Take(ticketId)) end)
+advance(8)
+check(said(member, "Your ticket about Vela is now: In progress."), "the reporter is told when someone takes the ticket")
+run(officer, "note it", function()
+    local t = officer.ns.Tickets.Store()[ticketId]
+    check(t.status == "work" and t.owner == gm.guid, "the other staff see who took it")
+    assert(officer.ns.Tickets.AddNote(ticketId, "Raid leader confirms, has screenshots."))
+end)
+advance(8)
+run(gm, "resolve it", function()
+    local t = gm.ns.Tickets.Store()[ticketId]
+    check(#t.notes == 1 and t.notes[1].by == officer.guid, "staff notes reach the other staff")
+    check(gm.ns.Tickets.Resolve(ticketId, "nonsense") == nil, "resolving needs an outcome from the list")
+    assert(gm.ns.Tickets.Resolve(ticketId, "warn"))
+end)
+advance(8)
+check(said(member, "Your ticket about Vela is now: Resolved (Warning given)."), "the reporter is told the outcome")
+check(not said(member, "screenshots"), "the reporter never sees the staff notes")
+run(officer, "resolved everywhere", function()
+    local t = officer.ns.Tickets.Store()[ticketId]
+    check(t.status == "done" and t.outcome == "warn" and #t.notes == 1, "the resolution reaches the other staff with the notes intact")
+end)
+-- Forgeries: a Member can't change a ticket, and nothing on the guild channel counts.
+run(member, "forge", function()
+    local ns = member.ns
+    local fake = { id = ticketId, by = MEMBER, at = 1, cat = "lang", about = "Vela", text = "x", status = "new", v = 99, ut = 9e9, ub = MEMBER, notes = {} }
+    ns.Comm.Send("WHISPER", "Binky Bee", ns.U.Encode({ t = "TU", k = fake }))
+    ns.Sync.SendLive({ t = "TN", id = MEMBER .. "/123", at = 1, cat = "cheat", about = "Vela", text = "Sent on the guild channel by mistake." })
+end)
+advance(8)
+run(gm, "forgery ignored", function()
+    local st = gm.ns.Tickets.Store()
+    check(st[ticketId].status == "done" and st[ticketId].v < 99, "a ticket update from someone who isn't staff is ignored")
+    check(st[MEMBER .. "/123"] == nil, "a ticket sent on the guild channel is ignored")
+end)
+-- A ticket about a staff member never reaches that person, not even when staff sync.
+advance(40)
+run(member, "report staff", function()
+    staffTicketId = assert(member.ns.Tickets.Submit("rules", "grim tusk", "Benched me from the raid for no reason and laughed."))
+end)
+advance(8)
+run(officer, "not shown to its subject", function() officer.ns.Tickets.Sync(true) end)
+advance(8)
+run(gm, "subject excluded", function()
+    check(gm.ns.Tickets.Store()[staffTicketId] ~= nil, "a ticket about an Officer reaches the other staff")
+    check(officer.ns.Tickets.Store()[staffTicketId] == nil, "and is never sent to the Officer it is about, even when staff sync")
+end)
+-- A staff member who missed changes catches up from a colleague.
+run(officer, "missed it", function()
+    officer.ns.Tickets.Store()[ticketId] = nil
+    officer.ns.Tickets.Sync(true)
+end)
+advance(8)
+run(officer, "caught up", function()
+    local t = officer.ns.Tickets.Store()[ticketId]
+    check(t ~= nil and t.status == "done" and #t.notes == 1, "staff who missed a ticket get it from a colleague")
+end)
+-- A reporter who missed the news asks where their tickets stand.
+run(gm, "work the second", function() assert(gm.ns.Tickets.Take(staffTicketId)) end)
+advance(8)
+run(member, "missed the news", function()
+    member.ns.Tickets.Mine()[staffTicketId].st = "new"
+    check(member.ns.Tickets.AskStatus(true), "the reporter can ask where their tickets stand")
+end)
+advance(8)
+run(member, "status caught up", function()
+    check(member.ns.Tickets.Mine()[staffTicketId].st == "work", "and gets the current status back")
+end)
+-- A Team Captain or above reporting: it goes straight into the queue.
+run(gm, "staff report", function()
+    local id = assert(gm.ns.Tickets.Submit("other", "", "The guild bank tab two is full of junk again."))
+    check(gm.ns.Tickets.Store()[id] ~= nil and gm.ns.Tickets.Mine()[id].sent, "a staff member's own ticket goes straight into the queue")
+end)
+advance(8)
+-- The tab: staff land on the queue, everyone else on the report form.
+open(gm)
+check(clickText(gm, "Tickets"), "the Tickets tab opens")
+clickText(gm, "Queue (2)")                                 -- an earlier pass may have left another view showing
+run(gm, "queue view", function()
+    local seen = {}
+    for _, w in ipairs(gm.widgets) do if w._.kind == "Button" and w:IsVisible() then seen[w._.text] = true end end
+    check(seen["Queue (2)"] and seen["Open (2)"] and seen["Resolved (1)"] and seen["Report a problem"],
+        "staff see the queue with what is open and what is resolved")
+end)
+open(member)
+clickText(member, "Tickets")
+clickText(member, "Report a problem")
+run(member, "report view", function()
+    local seen = {}
+    for _, w in ipairs(member.widgets) do if w._.kind == "Button" and w:IsVisible() then seen[w._.text] = true end end
+    check(seen["Report a problem"] and seen["My tickets (2)"] and not seen["Queue (2)"] and not seen["Queue"] and seen["Send ticket"],
+        "a Member sees the report form and their own tickets, and no queue")
+end)
+pressEverything(gm)
+pressEverything(member)
+advance(10)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

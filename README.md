@@ -69,14 +69,20 @@ The defaults follow a published example setup (Raidium, "How to Build a Fair DKP
 | --- | --- | --- |
 | Guild Master | Rank 1 (top) | Everything below, plus settings and decay |
 | Officer | Rank 2 | Award, charge, undo, link alts, edit recruiting messages |
-| Team Captain | Rank 3 | Use the Recruit tab |
-| Veteran, Member, Initiate | Ranks 4-6 | View standings |
+| Team Captain | Rank 3 | Use the Recruit tab, schedule raids and select sign-ups, read and work tickets |
+| Veteran, Member, Initiate | Ranks 4-6 | View standings, sign up for raids, send tickets and see their own |
 
 Every client checks every record against the guild roster before accepting it, so editing your own copy of the addon can't grant you anything in anyone else's game. The addon's developer has a support role, listed in `Core/RBAC.lua`.
 
 ## Fair play
 
 Blood Pact never plays the game for you. It does not automate combat, movement, targeting or spells. Every /who search, whisper and guild invite starts from your own click (the one exception is the summon messages, below, which follow a warlock's own Ritual of Summoning cast and can be switched off): WoW Forever does not allow addons or macros to send guild invites at all, so you invite through Blizzard's own right-click menu.
+
+## Tickets
+
+Any member can report a problem with a player from the Tickets tab: what kind of problem, who it is about, and what happened. Team Captains and above work the reports from a queue: take it, add notes, resolve it with an outcome. The reporter sees the status of their own tickets, never the staff notes.
+
+Tickets are not part of the guild's shared log. They are sent by addon whisper only to Team Captains and above, who keep each other's copies in step the same way, so no other member's game holds a copy. A ticket about a Team Captain or above is never sent to that person. Tickets stay in the saved data of the staff members' own game clients and go nowhere else. They are the guild's own follow-up and don't replace reporting a player to Blizzard.
 
 ## Privacy
 

@@ -40,6 +40,7 @@ ns.Sync = { Handle = function() end }
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
 load("Modules/SummonQueue.lua")
+load("Modules/Tickets.lua")
 load("Modules/SummonCall.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
@@ -1413,6 +1414,83 @@ test("roster: classes counted, sliced for the pie, sorted and messaged", functio
     local names = Ro.Audience(rows, { ["1"] = true, ["2"] = true }, "2", 40)
     eq(table.concat(names, ","), "Zed")                                 -- online, and never yourself
     eq(#Ro.Audience(rows, { ["1"] = true, ["2"] = true, ["3"] = true }, "x", 2), 2)   -- capped
+end)
+
+test("tickets: what a report must hold, who it may reach, and how staff copies merge", function()
+    local T = ns.Tickets
+    local d = T.Clean("lang", "  Solo   Kill ", " Kept swearing at   people in raid chat. ")
+    eq(d.about, "Solo Kill"); eq(d.text, "Kept swearing at people in raid chat."); eq(d.cat, "lang")
+    eq(select(2, T.Clean("nope", "X", "long enough text")), "Pick what kind of problem it is.")
+    eq(select(2, T.Clean("loot", "", "long enough text")), "Say who it is about.")
+    eq(T.Clean("other", "", "long enough text").about, "")                    -- "Something else" needs no name
+    eq(select(2, T.Clean("loot", "X", "short")), "Say what happened, in a sentence or two.")
+    eq(T.Clean("loot", "X", ("x"):rep(T.MAX_TEXT + 1)), nil)
+    eq(T.Clean("loot", ("n"):rep(T.MAX_ABOUT + 1), "long enough text"), nil)
+
+    local id = T.NewId("Player-1-MEM1", 1000.7)
+    eq(id, "Player-1-MEM1/1000"); eq(T.IdBy(id), "Player-1-MEM1"); eq(T.IdBy("nonsense"), nil)
+
+    local function ticket(over)
+        local t = { id = id, by = "Player-1-MEM1", byName = "Pip", at = 1000, cat = "lang", about = "Solo Kill", text = "Kept swearing.",
+            status = "new", v = 1, ut = 1000, ub = "Player-1-MEM1", notes = {} }
+        for k, v in pairs(over or {}) do t[k] = v end
+        return t
+    end
+    eq(T.Sanitize(ticket()).status, "new")
+    eq(T.Sanitize(ticket({ by = "Player-1-OTHER" })), nil)                    -- the reporter is part of the id
+    eq(T.Sanitize(ticket({ status = "deleted" })), nil); eq(T.Sanitize(ticket({ cat = "x" })), nil)
+    eq(T.Sanitize(ticket({ text = ("x"):rep(T.MAX_TEXT + 1) })), nil); eq(T.Sanitize("junk"), nil)
+    eq(T.Sanitize(ticket({ outcome = "made up" })).outcome, nil)
+    local many = {}
+    for i = 1, T.MAX_NOTES + 5 do many[i] = { by = "G", at = i, text = "n" .. i } end
+    many[2] = { by = "G", at = 2, text = ("x"):rep(T.MAX_NOTE + 1) }           -- too long: dropped
+    eq(#T.Sanitize(ticket({ notes = many })).notes, T.MAX_NOTES - 1)
+
+    -- Two staff copies: the later state wins, and notes from both are kept.
+    local store = { [id] = ticket({ notes = { { by = "A", at = 1100, text = "asked the raid leader" } } }) }
+    local changed, isNew = T.Merge(store, ticket({ status = "work", owner = "B", v = 2, ut = 1200, ub = "B",
+        notes = { { by = "B", at = 1150, text = "spoke to them" } } }))
+    eq(changed, true); eq(isNew, false)
+    eq(store[id].status, "work"); eq(store[id].owner, "B"); eq(#store[id].notes, 2); eq(store[id].notes[1].by, "A")
+    changed = T.Merge(store, ticket({ status = "new", v = 1, ut = 1000 }))    -- an older copy changes nothing
+    eq(changed, false); eq(store[id].status, "work")
+    eq(select(2, T.Merge(store, ticket({ id = "Player-1-MEM2/5", by = "Player-1-MEM2" }))), true)
+    eq(T.Newer({ v = 2, ut = 1, ub = "A" }, { v = 1, ut = 9, ub = "Z" }), true)
+    eq(T.Newer({ v = 2, ut = 5, ub = "A" }, { v = 2, ut = 5, ub = "B" }), false)
+
+    -- What one staff member offers another, and never a ticket about that person.
+    local s2 = { a = ticket({ id = "a", v = 3, notes = { {}, {} } }), b = ticket({ id = "b", v = 1, aboutGuid = "Player-1-OFFICER1" }) }
+    local dg = T.Digest(s2, "Player-1-OFFICER1")
+    eq(dg.a, "3:2"); eq(dg.b, nil); eq(T.Digest(s2).b, "1:0")
+    local send, want = T.Diff(s2, { a = "2:9" }, "Player-1-OFFICER1")
+    eq(table.concat(send, ","), "a"); eq(want, false)                         -- mine is newer; "b" is never offered
+    send, want = T.Diff(s2, { a = "3:2", c = "1:0" })
+    eq(table.concat(send, ","), "b"); eq(want, true)                          -- they lack b, I lack c
+    send, want = T.Diff(s2, { a = "3:3", b = "1:0" })
+    eq(#send, 0); eq(want, true)                                              -- they hold a newer note
+    local old = { a = ticket({ id = "a", status = "done", ut = 100 }), b = ticket({ id = "b", status = "new", ut = 100 }) }
+    eq(T.Digest(old, nil, 500).a, nil); eq(T.Digest(old, nil, 500).b, "1:0")    -- long-settled tickets aren't compared
+    send, want = T.Diff(old, { a = "1:0" }, nil, 500)
+    eq(table.concat(send, ","), "b"); eq(want, false)
+
+    local roster = {
+        gm = { name = "Gm", online = true, rankIndex = 0 }, off = { name = "Off", online = true, rankIndex = 1 },
+        cap = { name = "Cap", online = false, rankIndex = 2 }, mem = { name = "Mem", online = true, rankIndex = 4 },
+        me = { name = "Me", online = true, rankIndex = 2 },
+    }
+    local staff = function(g) return roster[g].rankIndex <= 2 end
+    local to = T.Recipients(roster, staff, "me", nil)
+    eq(#to, 2); eq(to[1].guid, "gm"); eq(to[2].guid, "off")                    -- online staff, highest rank first, never me
+    to = T.Recipients(roster, staff, "mem", "off")
+    eq(#to, 2); eq(to[1].guid, "gm"); eq(to[2].guid, "me")                     -- never the person the ticket is about
+
+    local q = { a = ticket({ id = "a", at = 5, status = "new" }), b = ticket({ id = "b", at = 9, status = "work", owner = "me" }),
+        c = ticket({ id = "c", at = 7, status = "done", ut = 100 }) }
+    eq(#T.Rows(q, "open", "me"), 2); eq(T.Rows(q, "open", "me")[1].id, "b")    -- newest first
+    eq(#T.Rows(q, "mine", "me"), 1); eq(#T.Rows(q, "done", "me"), 1)
+    local c = T.Counts(q, "me")
+    eq(c.open, 2); eq(c.new, 1); eq(c.mine, 1); eq(c.done, 1)
+    eq(T.Prune(q, 100 + T.KEEP_DONE + 1), 1); eq(q.c, nil); eq(q.a ~= nil, true)   -- old resolved tickets go; open ones never
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))
