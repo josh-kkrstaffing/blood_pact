@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2
+
+- Roster: a Zone column showing where each member is. For someone offline it shows where the game last saw them, greyed out. Press the heading to sort by zone
+- The Roster's smallest width is now 910 so the new column fits; the Classes, Details and Loot pane moves right with it
+
 ## 1.0.1
 
 - Professions: a "How do I share my recipes?" button at the bottom of the Crafters view. Hover it for the steps: open Character > Professions, click the link bubble on each profession, and Blood Pact records the recipes and shares them with the guild

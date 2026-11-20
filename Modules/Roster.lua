@@ -255,6 +255,7 @@ function R.Sort(rows, key, desc)
         if key == "name" then return r.name:lower() end
         if key == "level" then return r.level end
         if key == "class" then return (r.classLabel or ""):lower() end
+        if key == "zone" then return r.zone ~= "" and r.zone:lower() or nil end
         if key == "joined" then return r.joined end
         if key == "last" then return r.lastKey end
         return r.ri
@@ -286,6 +287,7 @@ function R.Rows(st)
             if st then level = ns.Officer.Level(ns.Officer.ActiveDays(st, ns.roster.byGUID, guid, ns.Now()), st.settings) end
             rows[#rows + 1] = { guid = guid, name = nm, rank = m.rank or "", ri = m.rankIndex or 9, level = m.level or 0,
                 class = m.class or "UNKNOWN", classLabel = R.ClassLabel(m.class, m.classLabel),
+                zone = type(m.zone) == "string" and m.zone or "", online = m.online and true or false,
                 joined = known and known.joined, main = main, activity = level,
                 lastKey = m.online and -1 or m.offlineDays,       -- smaller = seen more recently
                 pvp = st and st.pvp[guid],
@@ -309,7 +311,7 @@ function R.Need(p)
             h = 48 + 196 + (RBAC.ICan("altlink") and (8 + p.altFold:Height()) or 0)
         end
     end
-    return h, 800
+    return h, 910
 end
 
 function R.SetClassFilter(token) classFilter = token end
@@ -368,7 +370,7 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
     -- Press a column to sort by it; press it again to flip the order.
     p.head = {}
     for _, h in ipairs({ { "Name", "name", 0, 144 }, { "Rank", "rank", 146, 92 }, { "Class", "class", 240, 70 },
-        { "Lvl", "level", 312, 38 }, { "Joined", "joined", 352, 74 }, { "Last on", "last", 428, 62 } }) do
+        { "Lvl", "level", 312, 38 }, { "Zone", "zone", 352, 110 }, { "Joined", "joined", 464, 74 }, { "Last on", "last", 540, 62 } }) do
         local b = W.SortButton(p, h[1], h[4], function()
             if sortKey == h[2] then sortDesc = not sortDesc else sortKey, sortDesc = h[2], false end
             ns.UI.Refresh()
@@ -377,7 +379,7 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         b.key = h[2]
         p.head[#p.head + 1] = b
     end
-    p.list = W.List(p, 490, 310, 16, function(row, r)
+    p.list = W.List(p, 602, 310, 16, function(row, r)
         -- PvP rank badge to the left of the name; hover the row for the rank's name.
         if not row.badge then
             row.badge = row:CreateTexture(nil, "ARTWORK")
@@ -397,24 +399,26 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         class:SetText(U.Safe(r.classLabel, 16))
         class:SetTextColor(classColor(r.class))
         p.list.Col(row, 3, 317, 32):SetText(r.level)
-        p.list.Col(row, 4, 357, 70):SetText(day(r.joined))
-        p.list.Col(row, 5, 433, 54):SetText(r.last)
+        -- Where they are now; for someone offline, where the game last saw them, greyed.
+        p.list.Col(row, 7, 357, 104):SetText(r.zone == "" and "" or (r.online and U.Safe(r.zone, 30) or ("|cff808080" .. U.Safe(r.zone, 30) .. "|r")))
+        p.list.Col(row, 4, 469, 70):SetText(day(r.joined))
+        p.list.Col(row, 5, 545, 54):SetText(r.last)
     end, function(r) selected = r.guid; ns.UI.Refresh() end)
     p.list:Stretch(0, -44, nil, 0)
     p.list.key = "guid"
 
     -- Detail of the selected member
     p.classBtn = W.Button(p, "Classes", 70, 18, function() pane = "classes"; ns.UI.Refresh() end)
-    p.classBtn:SetPoint("TOPLEFT", 520, -24)
+    p.classBtn:SetPoint("TOPLEFT", 632, -24)
     p.detailBtn = W.Button(p, "Details", 70, 18, function() pane = "details"; ns.UI.Refresh() end)
-    p.detailBtn:SetPoint("TOPLEFT", 594, -24)
+    p.detailBtn:SetPoint("TOPLEFT", 706, -24)
     p.lootBtn = W.Button(p, "Loot", 80, 18, function() pane = "loot"; ns.UI.Refresh() end)
-    p.lootBtn:SetPoint("TOPLEFT", 668, -24)
+    p.lootBtn:SetPoint("TOPLEFT", 780, -24)
 
     -- Classes: a pie of the guild by class, a legend to filter with, and a
     -- message to the online members of the chosen class.
     local cp = CreateFrame("Frame", nil, p)
-    cp:SetPoint("TOPLEFT", 520, -48)
+    cp:SetPoint("TOPLEFT", 632, -48)
     cp:SetSize(240, 300)
     p.classPane = cp
     cp.pie = CreateFrame("Frame", nil, cp)
@@ -481,18 +485,18 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
     cp.msgHint:SetWidth(240)
 
     p.detail = W.Text(p, "", "GameFontHighlightSmall")
-    p.detail:SetPoint("TOPLEFT", 520, -48)
+    p.detail:SetPoint("TOPLEFT", 632, -48)
     p.detail:SetWidth(240)
     p.detail:SetJustifyV("TOP")
     p.detail:SetHeight(196)
     -- The selected member's loot: icon, item, date, DKP. Hover for the item's stats.
     p.loot = W.List(p, 224, 280, 20, function(row, e) ns.Loot.Render(p.loot, row, e, false) end,
         function(e) ns.Loot.Click(e) end)
-    p.loot:Stretch(520, -48, 0, 0)
+    p.loot:Stretch(632, -48, 0, 0)
     p.loot.key = "id"
     -- Linking alts is an occasional officer job: it folds away under the details.
     p.altFold = W.Accordion(p, "Link or unlink an alt", 240, 78, "rosterAlts")
-    p.altFold:SetPoint("TOPLEFT", 520, -250)
+    p.altFold:SetPoint("TOPLEFT", 632, -250)
     local ab = p.altFold.body
     p.altBox = W.Edit(ab, 120, 48)
     p.altBox:SetPoint("TOPLEFT", 0, 0)
