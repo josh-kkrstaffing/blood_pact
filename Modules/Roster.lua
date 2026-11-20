@@ -295,6 +295,23 @@ function R.Rows(st)
     return R.Sort(rows, sortKey, sortDesc)
 end
 
+-- Room the tab needs, and the window width: the Roster is the widest tab.
+-- The right-hand pane decides the height: the class chart, or a member's
+-- details with the alt tools under them (Officers), open or folded.
+function R.Need(p)
+    local h = 200
+    if view == "members" then
+        if pane == "classes" then
+            h = RBAC.ICan("schedule") and 300 or 215
+        elseif pane == "loot" then
+            h = 170
+        else
+            h = 48 + 196 + (RBAC.ICan("altlink") and (8 + p.altFold:Height()) or 0)
+        end
+    end
+    return h, 800
+end
+
 function R.SetClassFilter(token) classFilter = token end
 function R.ClassFilter() return classFilter end
 
@@ -695,3 +712,5 @@ end, function(p)
     end
     p.detail:SetText(table.concat(lines, "\n"))
 end)
+
+ns.UI.Need("roster", R.Need)

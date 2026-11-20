@@ -1583,6 +1583,34 @@ run(gm, "settings groups", function()
     end
     check(n == 4 and not decay:IsVisible(), "each group holds its own values")
 end)
+-- The window may be dragged smaller when a tab's sections are folded, and grows to show one that is opened.
+clickText(gm, "Raids")
+run(gm, "window fits the tab", function()
+    local UI = gm.ns.UI
+    local frame
+    for _, w in ipairs(gm.widgets) do if rawget(w, "feedback") and rawget(w, "about") then frame = w end end
+    local leader = fold(gm, "Schedule a raid and leader tools")
+    if leader.open then leader:GetScript("OnClick")(leader, "LeftButton") end
+    local w, h = UI.FitWindow()
+    check(w == UI.MIN_W and h == 132 + 58 + 30 + UI.CHROME_H and h < 500, "with the leader tools folded, the Raids tab lets the window go well under its old 500")
+    frame:SetSize(w, h)                                            -- the player drags it down to the smallest
+    leader:GetScript("OnClick")(leader, "LeftButton")              -- then opens the section
+    local _, h2 = UI.FitWindow()
+    check(h2 == h + leader.bodyHeight + 6 and frame:GetHeight() == h2, "opening a section grows the window just enough to show it")
+    leader:GetScript("OnClick")(leader, "LeftButton")
+    check(select(2, UI.FitWindow()) == h and frame:GetHeight() == h2, "folding it again lets the window shrink, without moving it by itself")
+    check(select(2, UI.MinSize(10)) == UI.MIN_H and select(2, UI.MinSize(nil)) == UI.DEFAULT_NEED + UI.CHROME_H and UI.MinSize(100, 5000) == 1600,
+        "the smallest size never goes under the window's own frame or over its largest size")
+end)
+clickText(gm, "Roster")
+run(gm, "roster is the widest tab", function()
+    local w = gm.ns.UI.FitWindow()
+    check(w == 800, "the Roster keeps the width its columns need")
+end)
+clickText(gm, "Professions")
+run(gm, "tabs without a say keep the old height", function()
+    check(select(2, gm.ns.UI.FitWindow()) == 500, "a tab that hasn't been reworked keeps the old smallest height")
+end)
 run(member, "member sees no leader tools", function()
     open(member)
 end)

@@ -54,6 +54,53 @@ function UI.Try(okMsg, fn, ...)
     return res
 end
 
+-- The window can be dragged as small as the open tab allows. Each tab says
+-- how much room it needs right now (UI.Need); a tab with its sections folded
+-- needs less, so the window can go smaller. Opening a section, or switching
+-- to a tab that needs more, grows the window just enough to show it.
+local MIN_W, MIN_H, MAX_W, MAX_H = 760, 280, 1600, 1100
+local CHROME_H = 120            -- title bar, tab strip and the status line under the tab
+local DEFAULT_NEED = 380        -- a tab that doesn't say gets the old fixed height
+UI.MIN_W, UI.MIN_H, UI.CHROME_H, UI.DEFAULT_NEED = MIN_W, MIN_H, CHROME_H, DEFAULT_NEED
+
+-- fn(panel) -> height the tab's content needs, and optionally the window width
+function UI.Need(key, fn)
+    if tabs[key] then tabs[key].need = fn end
+end
+
+-- Smallest window for a tab. Pure: (content height, window width) -> w, h
+function UI.MinSize(needH, needW)
+    local w = math.min(MAX_W, math.max(MIN_W, math.floor(tonumber(needW) or MIN_W)))
+    local h = math.min(MAX_H, math.max(MIN_H, math.floor(tonumber(needH) or DEFAULT_NEED) + CHROME_H))
+    return w, h
+end
+
+local saveLayout
+
+-- Set the window's smallest size from the open tab, and grow it if it is
+-- now too small to show that tab.
+function UI.FitWindow()
+    if not frame then return end
+    local t = activeKey and tabs[activeKey]
+    local needH, needW
+    if t and t.need and t.panel then
+        local ok, h, w = pcall(t.need, t.panel)
+        if ok then needH, needW = h, w end
+    end
+    local minW, minH = UI.MinSize(needH, needW)
+    if frame.SetResizeBounds then
+        frame:SetResizeBounds(minW, minH, MAX_W, MAX_H)
+    elseif frame.SetMinResize then
+        frame:SetMinResize(minW, minH)
+    end
+    local w, h = frame:GetWidth() or minW, frame:GetHeight() or minH
+    if w < minW or h < minH then
+        frame:SetSize(math.max(w, minW), math.max(h, minH))
+        if saveLayout then saveLayout() end
+    end
+    return minW, minH
+end
+
 local function selectTab(key)
     activeKey = key
     if ns.db and ns.db.ui then ns.db.ui.tab = key end      -- reopen on the tab last used
@@ -63,6 +110,7 @@ local function selectTab(key)
     end
     local t = tabs[key]
     if t and t.refresh then t.refresh(t.panel) end
+    UI.FitWindow()
 end
 
 function UI.Refresh()
@@ -95,9 +143,7 @@ function UI.Refresh()
     if activeKey then selectTab(activeKey) end
 end
 
-local MIN_W, MIN_H, MAX_W, MAX_H = 800, 500, 1600, 1100
-
-local function saveLayout()
+saveLayout = function()
     if not (frame and ns.db) then return end
     local point, _, rel, x, y = frame:GetPoint(1)
     ns.db.ui.frame = { w = math.floor(frame:GetWidth() + 0.5), h = math.floor(frame:GetHeight() + 0.5),
@@ -107,7 +153,9 @@ end
 local function build()
     frame = CreateFrame("Frame", "BloodPactMainFrame", UIParent)
     local saved = ns.db.ui.frame
-    frame:SetSize(math.max(saved and saved.w or MIN_W, MIN_W), math.max(saved and saved.h or MIN_H, MIN_H))
+    -- A new window opens at a comfortable size; a saved one comes back as it was
+    -- (the open tab then grows it if it needs more room).
+    frame:SetSize(math.max(saved and saved.w or 800, MIN_W), math.max(saved and saved.h or 500, MIN_H))
     if saved and saved.point then
         frame:SetPoint(saved.point, UIParent, saved.rel or saved.point, saved.x or 0, saved.y or 0)
     else
@@ -312,6 +360,8 @@ end, function(p)
     p.list:SetItems(rows)
 end)
 
+UI.Need("standings", function() return 130 end)
+
 ---------------------------------------------------------------------------
 -- Raid tab (Officer and above): awards and loot
 ---------------------------------------------------------------------------
@@ -502,6 +552,13 @@ end, function(p)
     p.lootList:SetItems(items)
 end)
 
+-- The history is just a list. Awarding needs the left column down to the
+-- custom-award section, open or folded.
+UI.Need("raid", function(p)
+    if raidView == "history" or not RBAC.ICan("award") then return 150 end
+    return 30 + 194 + p.customFold:Height() + 6
+end)
+
 -- Shift-click an item while the loot box has focus puts its link there.
 local function insertLink(link)
     if UI.lootEdit and UI.lootEdit:HasFocus() and type(link) == "string" then
@@ -608,4 +665,11 @@ end, function(p)
     if GetTime() - p.armed > 5 then p.decay:SetText(("Run %d%% decay now"):format(st.settings.decayPct)) end
     p.undoDecay:SetEnabled(st.lastDecay ~= nil)
     p.last:SetText(st.lastDecay and ("Last decay: " .. date("%b %d, %Y", st.lastDecay.t)) or "Decay has not been run yet.")
+end)
+
+-- The groups, whichever is open, and the Save button under them.
+UI.Need("settings", function(p)
+    local h = 34
+    for _, f in ipairs(p.folds) do h = h + f:Height() + 6 end
+    return h + 6 + 22 + 8
 end)

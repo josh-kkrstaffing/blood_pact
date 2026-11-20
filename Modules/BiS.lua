@@ -305,3 +305,5 @@ end, function(p)
         .. "). Raid leaders see it on your sign-ups. No raid lists yet: the raid loot isn't published.")
     p.list:SetItems(rows)
 end)
+
+ns.UI.Need("bis", function() return 82 + 76 + 20 end)

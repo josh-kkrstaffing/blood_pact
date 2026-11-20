@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25.1
+
+- The window can now be dragged much smaller. Its smallest size follows the tab you are on and which sections are folded: with everything folded, most tabs go well under the old 800 x 500
+- Opening a section, or switching to a tab that needs more room, grows the window just enough to show it. Folding a section never moves the window by itself
+- The smallest width is back to 760 on every tab except Roster, which keeps the 800 its columns need. Professions keeps the old smallest height for now
+
 ## 0.25.0
 
 - Raid & Loot now follows a raid night: "1. Start of the raid" (on-time bonus, progression and auto-award switches), "2. Loot: charge the winner", "3. End of the raid" (full-raid bonus, undo). "Custom award or deduction" folds away, and the winner list fills the height of the window

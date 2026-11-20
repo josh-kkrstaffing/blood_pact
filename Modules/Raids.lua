@@ -570,6 +570,12 @@ ns.On("PLAYER_LOGIN", function()
     if C_Timer and C_Timer.NewTicker then C_Timer.NewTicker(30, R.CheckReminders) end
 end)
 
+-- Room the tab needs: the raid's details, a few sign-ups, and the leader
+-- tools, open or folded (Team Captain and above).
+ns.UI.Need("raids", function(p)
+    return 132 + 58 + (RBAC.ICan("schedule") and (p.fold:Height() + 8) or 0)
+end)
+
 -- A chat line when you are given a raid spot or it is taken back.
 local seenPick, pickPrimed, pickQueued = {}, false, false
 function R.AnnouncePicks()

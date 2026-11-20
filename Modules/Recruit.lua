@@ -396,3 +396,9 @@ ns.On("CHAT_MSG_WHISPER", function(text, sender, _, _, _, _, _, _, _, _, _, guid
     ns.Print(("%s asked for a guild invite. Type /bp, open Recruit and click their name."):format(U.Safe(U.ShortName(sender), 40)))
     if ns.UI and ns.UI.IsOpen and ns.UI.IsOpen() then ns.UI.RefreshSoon() end
 end)
+
+-- Room the tab needs: the message buttons, the message (open or folded),
+-- the scan row, a few names, and the replies at the bottom.
+ns.UI.Need("recruit", function(p)
+    return 48 + p.msgFold:Height() + 10 + 76 + 58 + 116
+end)

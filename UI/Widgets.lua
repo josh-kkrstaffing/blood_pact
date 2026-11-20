@@ -328,6 +328,8 @@ function W.Accordion(parent, title, width, bodyHeight, key, onToggle, startOpen)
         if folds and key then folds[key] = a.open end
         draw()
         if onToggle and not quiet then onToggle(a.open) end
+        -- The window may now be allowed to go smaller, or need to grow to show this.
+        if not quiet and ns.UI and ns.UI.FitWindow then ns.UI.FitWindow() end
     end
     -- Room this section takes below its top edge, header included.
     function a:Height() return a.open and (22 + 6 + a.bodyHeight) or 22 end

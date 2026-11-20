@@ -548,3 +548,10 @@ end, function(p)
             .. S.HELPERS .. " more group members to click the portal.")
     end
 end)
+
+-- Room the tab needs. A warlock: a few requests, the buttons, and the ask
+-- section, open or folded. Everyone else: the ask block, then the requests.
+ns.UI.Need("summon", function(p)
+    if p.asWarlock then return 20 + 40 + 62 + p.askFold:Height() + 8 end
+    return 162 + 20 + 40 + 62
+end)

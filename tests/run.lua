@@ -20,7 +20,7 @@ load("Core/RBAC.lua")
 load("Core/Log.lua")
 load("Core/Reducer.lua")
 ns.On = function() end
-ns.UI = { AddTab = function() end }
+ns.UI = { AddTab = function() end, Need = function() end }
 ns.W = {}
 load("Modules/BiSData.lua")
 load("Modules/BiS.lua")
