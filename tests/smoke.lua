@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
+    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
     M[name] = noop
 end
 -- Secure buttons and the frames that hold them are locked while their owner
@@ -128,6 +128,7 @@ function M:SetEnabled(v)
 end
 function M:IsEnabled() return self._.enabled end
 function M:CreateTexture() return widget("Texture", self) end
+function M:CreateLine() return widget("Line", self) end
 function M:CreateFontString() return widget("FontString", self) end
 function M:HasFocus() return false end
 function M:SetChecked(v) self._.checked = v and true or false end
@@ -380,7 +381,8 @@ G.GetGuildRosterInfo = function(i)
     if not m then return nil end
     local c = clients[m[7]]
     local online = c ~= nil and c.online
-    return m[1] .. REALM, m[3], m[2], m[5], m[4], m[6], "", "", online, 0, m[4], 0, 0, false, false, 0, m[7]
+    local label = m[4]:sub(1, 1) .. m[4]:sub(2):lower()            -- the class as the game displays it
+    return m[1] .. REALM, m[3], m[2], m[5], label, m[6], "", "", online, 0, m[4], 0, 0, false, false, 0, m[7]
 end
 G.GetGuildRosterLastOnline = function() return 0, 0, 3, 5 end
 G.GetInventoryItemLink = function(_, slot)
@@ -1433,6 +1435,53 @@ check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHIS
 clickText(gm, "Social")
 pressEverything(gm)
 advance(10)
+
+-- Roster by class: a class column, a pie with a legend to filter by, and a message to one class.
+open(gm)
+check(clickText(gm, "Roster"), "the Roster tab opens")
+advance(2)
+clickText(gm, "Members")                                   -- an earlier pass may have left the guild log showing
+check(clickText(gm, "Classes"), "the Roster has a Classes view")
+run(gm, "class pie", function()
+    local ns = gm.ns
+    local cp
+    for _, w in ipairs(gm.widgets) do if rawget(w, "spokes") and rawget(w, "rows") then cp = w end end
+    check(cp ~= nil and cp:IsVisible() and #cp.spokes == ns.Roster.PIE_SPOKES, "the pie is drawn on the Roster screen")
+    local shown, legend = 0, {}
+    for _, b in ipairs(cp.rows) do
+        if b:IsShown() then shown = shown + 1; legend[#legend + 1] = b.name:GetText() .. " " .. b.num:GetText() end
+    end
+    check(shown == 4 and table.concat(legend, " | ") == "Mage 1  25% | Rogue 1  25% | Warlock 1  25% | Warrior 1  25%",
+        "the legend lists each class with its count and share")
+    local rows = ns.Roster.Rows(ns.Reducer.State())
+    check(#rows == 4 and rows[1].classLabel ~= nil, "every roster row carries its class")
+    -- Click Rogue in the legend: only rogues are listed.
+    for _, b in ipairs(cp.rows) do
+        if b.class == "ROGUE" then b:GetScript("OnClick")(b, "LeftButton") end
+    end
+    rows = ns.Roster.Rows(ns.Reducer.State())
+    check(ns.Roster.ClassFilter() == "ROGUE" and #rows == 1 and rows[1].name == "Pip", "clicking a class lists only its members")
+    check(cp.send:IsEnabled() and cp.send:GetText() == "Whisper 1 online Rogue", "the message button says who it will reach")
+end)
+local classTells = #guildChat
+run(gm, "message the class", function()
+    local R = gm.ns.Roster
+    check(R.MessageClass("") == nil, "an empty message isn't sent")
+    check(R.MessageClass("Rogues: I need a lockbox opened, please.") == 1, "one click whispers the online members of that class")
+    R.SetClassFilter("MAGE")
+    check(select(2, R.MessageClass("Mages: I need water.")) == "Nobody of that class is online.", "nobody online in the class means nothing is sent")
+    R.SetClassFilter(nil)
+    check(select(2, R.MessageClass("hello")) == "Pick a class first.", "a message needs a class picked, so it can't go to the whole guild")
+end)
+check(#guildChat == classTells + 1 and guildChat[#guildChat] == "WHISPER:Pip:Rogues: I need a lockbox opened, please.", "the whisper goes to that class only")
+run(member, "class message gate", function()
+    member.ns.Roster.SetClassFilter("WARLOCK")
+    check(select(2, member.ns.Roster.MessageClass("hi")) == "Only Team Captains and above can message a class.", "a Member can't message a class")
+    member.ns.Roster.SetClassFilter(nil)
+end)
+pressEverything(gm)
+run(gm, "clear class filter", function() gm.ns.Roster.SetClassFilter(nil) end)
+advance(5)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

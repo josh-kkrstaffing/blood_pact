@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.23.0
+
+- Roster: a Class column, in each class's colour. Press the Class heading to sort by it
+- Roster > Classes: a pie chart of the guild by class with a legend showing each class's count and share. "Online only" switches the chart to who is on right now
+- Click a class in the legend to list only its members; click it again to show everyone
+- Team Captains and above can message one class: pick the class, type the message, and one click whispers each online member of it (40 at most). It only works with a class picked, so it can't go to the whole guild
+- The window's smallest width is a little wider (800) so the new column fits
+
 ## 0.22.2
 
 - Inside battlegrounds and instances WoW Forever refuses chat sent by addons. Blood Pact now notices the refusal instead of reporting the message as sent

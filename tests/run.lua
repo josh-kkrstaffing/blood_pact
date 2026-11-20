@@ -1377,5 +1377,43 @@ test("recruit: who is asking for an invite", function()
     eq(#list, Rc.MAX_REPLIES)
 end)
 
+test("roster: classes counted, sliced for the pie, sorted and messaged", function()
+    local Ro = ns.Roster
+    eq(Ro.ClassLabel("WARLOCK"), "Warlock"); eq(Ro.ClassLabel("MAGE", "Magier"), "Magier"); eq(Ro.ClassLabel(nil), "Unknown")
+    local roster = {
+        a = { class = "MAGE", classLabel = "Mage", online = true }, b = { class = "MAGE", online = false },
+        c = { class = "MAGE", online = true }, d = { class = "WARLOCK", online = true },
+        e = { class = "ROGUE", online = false }, f = { online = true },
+    }
+    local counts, total = Ro.ClassCounts(roster, false)
+    eq(total, 6); eq(#counts, 4)
+    eq(counts[1].class, "MAGE"); eq(counts[1].n, 3); eq(counts[1].pct, 50); eq(counts[1].label, "Mage")
+    eq(counts[2].label, "Rogue"); eq(counts[3].label, "Unknown"); eq(counts[4].label, "Warlock")   -- ties by name
+    counts, total = Ro.ClassCounts(roster, true)                       -- online only
+    eq(total, 4); eq(counts[1].n, 2); eq(#counts, 3)
+    eq(select(2, Ro.ClassCounts({}, false)), 0)
+
+    -- The pie: every wedge has a class, in the legend's order, in proportion.
+    counts, total = Ro.ClassCounts(roster, false)
+    local slices = Ro.Slices(counts, total, 120)
+    eq(#slices, 120); eq(slices[1], "MAGE"); eq(slices[60], "MAGE"); eq(slices[61], "ROGUE"); eq(slices[120], "WARLOCK")
+    local n = {}
+    for _, c in ipairs(slices) do n[c] = (n[c] or 0) + 1 end
+    eq(n.MAGE, 60); eq(n.ROGUE, 20); eq(n.UNKNOWN, 20); eq(n.WARLOCK, 20)
+    local tiny = Ro.Slices({ { class = "A", n = 999 }, { class = "B", n = 1 } }, 1000, 120)
+    eq(#tiny, 120); eq(tiny[120], "B")                                 -- one member in a thousand still shows
+    eq(#Ro.Slices({}, 0, 120), 0)
+
+    local rows = { { guid = "1", name = "Zed", classLabel = "Mage" }, { guid = "2", name = "Amy", classLabel = "Warlock" },
+        { guid = "3", name = "Bob", classLabel = "Mage" } }
+    local order = {}
+    for i, r in ipairs(Ro.Sort(rows, "class", false)) do order[i] = r.name end
+    eq(table.concat(order, ","), "Bob,Zed,Amy")                         -- by class, then by name
+
+    local names = Ro.Audience(rows, { ["1"] = true, ["2"] = true }, "2", 40)
+    eq(table.concat(names, ","), "Zed")                                 -- online, and never yourself
+    eq(#Ro.Audience(rows, { ["1"] = true, ["2"] = true, ["3"] = true }, "x", 2), 2)   -- capped
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

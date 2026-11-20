@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "0.22.2"
+ns.VERSION = "0.23.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -108,7 +108,7 @@ function ns.RebuildRoster()
     local n = GetNumGuildMembers() or 0
     local seen = 0
     for i = 1, n do
-        local name, rankName, rankIndex, level, _, zone, _, _, isOnline, _, class, _, _, _, _, _, guid = GetGuildRosterInfo(i)
+        local name, rankName, rankIndex, level, classLabel, zone, _, _, isOnline, _, class, _, _, _, _, _, guid = GetGuildRosterInfo(i)
         if name and guid then
             seen = seen + 1
             local days
@@ -118,7 +118,8 @@ function ns.RebuildRoster()
             end
             -- name is what people see and type; full is the form the game sent.
             byGUID[guid] = { name = ns.U.ShortName(name), full = name, rank = rankName, rankIndex = rankIndex,
-                level = level, class = class, online = isOnline, offlineDays = days, zone = zone }
+                level = level, class = class, classLabel = type(classLabel) == "string" and classLabel ~= "" and classLabel or nil,
+                online = isOnline, offlineDays = days, zone = zone }
             addAlias(byName, name, guid)
         end
     end

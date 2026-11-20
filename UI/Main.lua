@@ -89,7 +89,7 @@ function UI.Refresh()
     if activeKey then selectTab(activeKey) end
 end
 
-local MIN_W, MIN_H, MAX_W, MAX_H = 760, 500, 1600, 1100
+local MIN_W, MIN_H, MAX_W, MAX_H = 800, 500, 1600, 1100
 
 local function saveLayout()
     if not (frame and ns.db) then return end
@@ -101,7 +101,7 @@ end
 local function build()
     frame = CreateFrame("Frame", "BloodPactMainFrame", UIParent)
     local saved = ns.db.ui.frame
-    frame:SetSize(saved and saved.w or MIN_W, saved and saved.h or MIN_H)
+    frame:SetSize(math.max(saved and saved.w or MIN_W, MIN_W), math.max(saved and saved.h or MIN_H, MIN_H))
     if saved and saved.point then
         frame:SetPoint(saved.point, UIParent, saved.rel or saved.point, saved.x or 0, saved.y or 0)
     else
