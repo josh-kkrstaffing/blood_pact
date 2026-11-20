@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0
+
+Blood Pact is out of beta. This is the first full release.
+
+- "Made by Kitch" now shows in the corner of the window, on the About page, in `/bp about` and in the game's addon list
+- Recruit stays Team Captain and above only: the zone scan checks the player's rank itself, on top of the tab being hidden
+- Everything from the 0.x betas is included: DKP and loot, raid sign-ups with selection, the Roster with its class chart, professions and crafting orders with mail, BiS Check, the warlock summon queue, recruiting, tickets, and the glass look with folding sections
+
 ## 0.26.3
 
 - Recruit stays Team Captain and above only: the zone scan now checks the player's rank itself, on top of the tab being hidden, and tests cover every rank

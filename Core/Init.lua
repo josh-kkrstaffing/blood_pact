@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "0.26.3"
+ns.VERSION = "1.0.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -156,6 +156,7 @@ end
 -- Who makes this addon, and where to find them. Shown in the About panel,
 -- by /bp about, and once in chat the first time the addon runs.
 ns.ABOUT = {
+    author = "Kitch",
     guild = "Blood Pact",
     home = "US East PvP Horde",
     discord = "https://discord.gg/hfCKk6kED",
@@ -164,7 +165,7 @@ function ns.AboutLines()
     local a = ns.ABOUT
     return {
         "Blood Pact v" .. ns.VERSION .. ", a free guild management addon for WoW Forever.",
-        ("Made by the %s guild, %s."):format(a.guild, a.home),
+        ("Made by %s, of the %s guild, %s."):format(a.author, a.guild, a.home),
         "Join us on Discord: " .. a.discord,
     }
 end
@@ -173,7 +174,7 @@ ns.On("PLAYER_LOGIN", function()
     ns.Print("v" .. ns.VERSION .. " loaded. Type /bp or /bloodpact to open.")
     if ns.db and ns.db.ui and not ns.db.ui.aboutSeen then
         ns.db.ui.aboutSeen = true
-        ns.Print(("Made by the %s guild, %s. Type /bp about to find us."):format(ns.ABOUT.guild, ns.ABOUT.home))
+        ns.Print(("Made by %s, of the %s guild, %s. Type /bp about to find us."):format(ns.ABOUT.author, ns.ABOUT.guild, ns.ABOUT.home))
     end
     if C_GuildInfo and C_GuildInfo.GuildRoster then C_GuildInfo.GuildRoster() end
 end)

@@ -1,8 +1,8 @@
 # Blood Pact
 
-Made by the **Blood Pact** guild, US East PvP Horde, on WoW Forever. Looking for a guild or want to follow the addon? Join us on Discord: https://discord.gg/hfCKk6kED
+Made by **Kitch**, of the **Blood Pact** guild, US East PvP Horde, on WoW Forever. Looking for a guild or want to follow the addon? Join us on Discord: https://discord.gg/hfCKk6kED
 
-Guild DKP, standings, loot charging and recruiting for **World of Warcraft: Forever**. Free, open source, and no website or account needed.
+Guild management for **World of Warcraft: Forever**: DKP and loot, raid sign-ups, roster, professions and crafting orders, BiS check, warlock summons, recruiting and tickets. Free, open source, and no website or account needed.
 
 > Blood Pact is a fan-made addon. It is not made, endorsed, sponsored or supported by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.
 
@@ -101,4 +101,4 @@ Blood Pact sends **no data outside the game**. It has no website, server or data
 
 ## Credits and licenses
 
-All code is original to Blood Pact and released under the MIT License (see LICENSE). It bundles no third-party libraries, images, sounds or game files; window frames and icons are the game's own built-in UI textures, referenced by path.
+Made by Kitch. All code is original to Blood Pact and released under the MIT License (see LICENSE). It bundles no third-party libraries, images, sounds or game files; window frames and icons are the game's own built-in UI textures, referenced by path.

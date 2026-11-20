@@ -6,6 +6,7 @@ ignore:
   - .github
   - .luacheckrc
   - LAUNCH.md
+  - CURSEFORGE.md
 
 manual-changelog:
   filename: CHANGELOG.md

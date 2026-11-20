@@ -602,7 +602,7 @@ local gm = newClient(1)
 local officer = newClient(2)
 advance(5)
 check(said(gm, "loaded. Type /bp"), "login message")
-check(said(gm, "Made by the Blood Pact guild, US East PvP Horde. Type /bp about to find us."), "the first login says who makes the addon")
+check(said(gm, "Made by Kitch, of the Blood Pact guild, US East PvP Horde. Type /bp about to find us."), "the first login says who makes the addon")
 check(gm.ns.roster.loaded and gm.ns.roster.complete, "roster loads and is complete")
 check(gm.ns.RBAC.RoleOf(gm.guid) == "gm" and officer.ns.RBAC.RoleOf(officer.guid) == "officer", "roles from ranks")
 
@@ -1848,6 +1848,20 @@ end)
 -- About: who makes it and where to join.
 slash(member, "about")
 check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/bp about gives the Discord link")
+check(said(member, "Made by Kitch, of the Blood Pact guild, US East PvP Horde."), "/bp about says who made it")
+run(member, "credit in the window", function()
+    open(member)
+    local places, visible = 0, 0
+    for _, w in ipairs(member.widgets) do
+        if w._.kind == "FontString" and w._.text == "Made by Kitch" then
+            places = places + 1
+            if w:IsVisible() then visible = visible + 1 end
+        end
+    end
+    check(visible >= 1, "the window's corner says who made it")
+    check(places == 2, "and so does the About page")
+    check(member.ns.VERSION == "1.0.0", "this is the 1.0.0 release")
+end)
 run(member, "about panel", function()
     local seen = false
     for _, w in ipairs(member.widgets) do
