@@ -127,6 +127,7 @@ function M:SetEnabled(v)
     if s and was ~= self._.enabled then s(self) end
 end
 function M:IsEnabled() return self._.enabled end
+function M:SetParent(parent) locked(self, "SetParent"); self._.parent = parent end
 function M:CreateTexture() return widget("Texture", self) end
 function M:CreateLine() return widget("Line", self) end
 function M:CreateFontString() return widget("FontString", self) end
@@ -1536,8 +1537,61 @@ run(gm, "folding sections", function()
     check(fold(gm, "Link or unlink an alt") ~= nil and fold(gm, "Read or edit the message") ~= nil,
         "the Roster's alt tools and the recruiting message fold too")
 end)
+clickText(gm, "Summon")
+run(gm, "summon layout for a warlock", function()
+    local askFold = fold(gm, "Need a summon yourself? Ask another warlock")
+    local askAny
+    for _, w in ipairs(gm.widgets) do if w._.text == "Ask any warlock" then askAny = w end end
+    check(askFold ~= nil and askFold:IsVisible() and askFold.open == false and not askAny:IsVisible(),
+        "a warlock's Summon tab leads with the requests; asking another warlock is folded away")
+    askFold:GetScript("OnClick")(askFold, "LeftButton")
+    check(askAny:IsVisible() and askAny._.parent._.parent == askFold.body, "opening it shows the ask buttons inside the section")
+    askFold:GetScript("OnClick")(askFold, "LeftButton")
+end)
+clickText(gm, "Raid & Loot")
+clickText(gm, "Award and charge")
+run(gm, "raid night order", function()
+    local custom = fold(gm, "Custom award or deduction")
+    local seen = {}
+    for _, w in ipairs(gm.widgets) do
+        if w._.kind == "FontString" and w:IsVisible() then seen[w._.text] = true end
+    end
+    check(seen["1. Start of the raid"] and seen["3. End of the raid"] and seen["2. Loot: charge the winner (fixed price, highest DKP wins ties)"],
+        "Raid & Loot is laid out in the order of a raid night")
+    check(custom ~= nil and custom:IsVisible() and custom.open == false, "custom awards are folded away until needed")
+end)
+clickText(gm, "Settings")
+run(gm, "settings groups", function()
+    local titles = { "1. Earning DKP", "2. Loot prices", "3. Decay", "4. Inactivity and Initiate promotion" }
+    local folds, open = {}, 0
+    for i, t in ipairs(titles) do
+        folds[i] = fold(gm, t)
+        if folds[i] and folds[i].open then open = open + 1 end
+    end
+    check(#folds == 4 and open <= 1, "Settings are grouped in the order the rules apply, with at most one group open")
+    if folds[3].open then folds[3]:GetScript("OnClick")(folds[3], "LeftButton") end
+    folds[3]:GetScript("OnClick")(folds[3], "LeftButton")
+    check(folds[3].open and not folds[1].open and not folds[2].open and not folds[4].open, "opening one group closes the others, so the tab always fits")
+    local decay
+    for _, w in ipairs(gm.widgets) do if w._.kind == "Button" and w._.text:find("^Run %d+%% decay now") then decay = w end end
+    check(decay ~= nil and decay:IsVisible(), "the decay buttons live in the Decay group")
+    folds[1]:GetScript("OnClick")(folds[1], "LeftButton")
+    check(folds[1].open and not folds[3].open, "the group just opened takes over")
+    local n = 0
+    for _, w in ipairs(gm.widgets) do
+        if w._.kind == "EditBox" and w._.parent == folds[1].body then n = n + 1 end
+    end
+    check(n == 4 and not decay:IsVisible(), "each group holds its own values")
+end)
 run(member, "member sees no leader tools", function()
     open(member)
+end)
+clickText(member, "Summon")
+run(member, "summon layout for everyone else", function()
+    local askFold = fold(member, "Need a summon yourself? Ask another warlock")
+    local askAny
+    for _, w in ipairs(member.widgets) do if w._.text == "Ask any warlock" then askAny = w end end
+    check(askFold ~= nil and not askFold:IsVisible() and askAny:IsVisible(), "a player who isn't a warlock gets the ask buttons at the top, with nothing folded")
 end)
 clickText(member, "Raids")
 run(member, "member raids tab", function()

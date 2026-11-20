@@ -273,7 +273,8 @@ end
 --   acc.body       put the section's widgets in here
 --   acc:SetOpen(v) open or close it
 --   onToggle(open) called after every change, to move whatever sits around it
-function W.Accordion(parent, title, width, bodyHeight, key, onToggle)
+--   startOpen      open until the player closes it (most start closed)
+function W.Accordion(parent, title, width, bodyHeight, key, onToggle, startOpen)
     local a = CreateFrame("Button", nil, parent)
     a:SetSize(width, 22)
     W.Fill(a, { 1, 1, 1, 0.05 })
@@ -332,7 +333,7 @@ function W.Accordion(parent, title, width, bodyHeight, key, onToggle)
     function a:Height() return a.open and (22 + 6 + a.bodyHeight) or 22 end
     a:SetScript("OnClick", function() a:SetOpen(not a.open) end)
     local folds = saved()
-    a.open = (folds and key and folds[key]) or false
+    if folds and key and folds[key] ~= nil then a.open = folds[key] and true or false else a.open = startOpen and true or false end
     draw()
     return a
 end

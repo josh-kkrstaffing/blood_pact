@@ -354,22 +354,18 @@ UI.AddTab("raid", "Raid & Loot", "view", function(p)
     a:SetPoint("TOPLEFT", 0, -30)
     a:SetPoint("BOTTOMRIGHT", 0, 0)
     p.work = a
-    local h1 = W.Text(a, "Award everyone in your group", "GameFontNormal")
+    -- Left side, in the order of a raid night: the start, then the end.
+    -- Boss kills pay on their own in between, and loot is on the right.
+    local h1 = W.Text(a, "1. Start of the raid", "GameFontNormal")
     h1:SetPoint("TOPLEFT", 0, 0)
-
     p.onTime = W.Button(a, "On-time bonus", 150, 22, function()
         UI.Try("On-time bonus awarded.", D.AwardGroup, "ontime")
     end)
     p.onTime:SetPoint("TOPLEFT", 0, -22)
-    p.fullRaid = W.Button(a, "Full-raid bonus", 150, 22, function()
-        UI.Try("Full-raid bonus awarded.", D.AwardGroup, "fullraid")
-    end)
-    p.fullRaid:SetPoint("LEFT", p.onTime, "RIGHT", 8, 0)
-
     p.prog = W.Check(a, "Progression night", function(on)
         ns.db.ui.progression = on
     end)
-    p.prog:SetPoint("TOPLEFT", 0, -50)
+    p.prog:SetPoint("TOPLEFT", 0, -52)
     p.prog.label:SetWidth(290)
     p.prog.label:SetWordWrap(false)
     p.auto = W.Check(a, "Auto-award raid bosses while I lead or assist", function(on)
@@ -377,21 +373,34 @@ UI.AddTab("raid", "Raid & Loot", "view", function(p)
     end)
     p.auto:SetPoint("TOPLEFT", 0, -74)
 
-    local h2 = W.Text(a, "Custom award", "GameFontNormal")
-    h2:SetPoint("TOPLEFT", 0, -108)
-    local l1 = W.Text(a, "Names, comma-separated (blank = whole group)", "GameFontHighlightSmall")
-    l1:SetPoint("TOPLEFT", 0, -128)
-    p.names = W.Edit(a, 300, 240)
-    p.names:SetPoint("TOPLEFT", 6, -142)
-    local l2 = W.Text(a, "DKP (- to deduct)", "GameFontHighlightSmall")
-    l2:SetPoint("TOPLEFT", 0, -168)
-    p.amount = W.Edit(a, 60, 6)
-    p.amount:SetPoint("TOPLEFT", 6, -182)
-    local l3 = W.Text(a, "Reason", "GameFontHighlightSmall")
-    l3:SetPoint("TOPLEFT", 110, -168)
-    p.note = W.Edit(a, 190, 120)
-    p.note:SetPoint("TOPLEFT", 116, -182)
-    p.award = W.Button(a, "Award", 100, 22, function()
+    local hEnd = W.Text(a, "3. End of the raid", "GameFontNormal")
+    hEnd:SetPoint("TOPLEFT", 0, -106)
+    p.fullRaid = W.Button(a, "Full-raid bonus", 150, 22, function()
+        UI.Try("Full-raid bonus awarded.", D.AwardGroup, "fullraid")
+    end)
+    p.fullRaid:SetPoint("TOPLEFT", 0, -128)
+    p.undo = W.Button(a, "Undo my last award or charge", 210, 22, function()
+        UI.Try("Your last award or charge was voided.", D.UndoMine)
+    end)
+    p.undo:SetPoint("TOPLEFT", 0, -158)
+
+    -- A hand-typed award or deduction is the exception, so it folds away.
+    p.customFold = W.Accordion(a, "Custom award or deduction", 320, 112, "raidCustom")
+    p.customFold:SetPoint("TOPLEFT", 0, -194)
+    local cb = p.customFold.body
+    local l1 = W.Text(cb, "Names, comma-separated (blank = whole group)", "GameFontHighlightSmall")
+    l1:SetPoint("TOPLEFT", 0, 0)
+    p.names = W.Edit(cb, 300, 240)
+    p.names:SetPoint("TOPLEFT", 6, -14)
+    local l2 = W.Text(cb, "DKP (- to deduct)", "GameFontHighlightSmall")
+    l2:SetPoint("TOPLEFT", 0, -40)
+    p.amount = W.Edit(cb, 60, 6)
+    p.amount:SetPoint("TOPLEFT", 6, -54)
+    local l3 = W.Text(cb, "Reason", "GameFontHighlightSmall")
+    l3:SetPoint("TOPLEFT", 110, -40)
+    p.note = W.Edit(cb, 190, 120)
+    p.note:SetPoint("TOPLEFT", 116, -54)
+    p.award = W.Button(cb, "Award", 100, 22, function()
         local guids, missing = {}, {}
         local text = p.names:GetText() or ""
         if text:match("^%s*$") then
@@ -413,14 +422,10 @@ UI.AddTab("raid", "Raid & Loot", "view", function(p)
         end
         UI.Try("Custom award sent.", D.Award, guids, tonumber(p.amount:GetText()), "manual", p.note:GetText())
     end, "accent")
-    p.award:SetPoint("TOPLEFT", 0, -210)
-    p.undo = W.Button(a, "Undo my last award or charge", 210, 22, function()
-        UI.Try("Your last award or charge was voided.", D.UndoMine)
-    end)
-    p.undo:SetPoint("LEFT", p.award, "RIGHT", 8, 0)
+    p.award:SetPoint("TOPLEFT", 0, -84)
 
     -- Loot (right side)
-    local h3 = W.Text(a, "Charge loot: fixed price, highest DKP wins ties", "GameFontNormal")
+    local h3 = W.Text(a, "2. Loot: charge the winner (fixed price, highest DKP wins ties)", "GameFontNormal")
     h3:SetPoint("TOPLEFT", 340, 0)
     local l4 = W.Text(a, "Item (shift-click it here, or type its ID)", "GameFontHighlightSmall")
     l4:SetPoint("TOPLEFT", 340, -20)
@@ -445,14 +450,14 @@ UI.AddTab("raid", "Raid & Loot", "view", function(p)
         p.lootList.Col(row, 1, 4, 200):SetText(U.Safe(item.name, 40))
         p.lootList.Col(row, 2, 210, 60, "RIGHT"):SetText(item.bal)
     end)
-    p.lootList.scroll:SetPoint("TOPLEFT", 340, -88)
+    p.lootList:Stretch(340, -88, nil, 30)       -- fills the height; the charge button sits under it
     p.lootList.key = "guid"
     p.charge = W.Button(a, "Charge selected player", 180, 22, function()
         local who = p.lootList.selected
         if not who then UI.Say("Pick the winner in the list first.") return end
         UI.Try(("Charged %s."):format(U.Safe(who.name, 40)), D.Spend, who.guid, selectedTier, D.ItemIDFrom(p.item:GetText()))
     end, "accent")
-    p.charge:SetPoint("TOPLEFT", 340, -304)
+    p.charge:SetPoint("BOTTOMLEFT", 340, 0)
 end, function(p)
     local st = ns.Reducer.State()
     local can = RBAC.ICan("award")
@@ -509,39 +514,74 @@ if ChatFrameUtil and ChatFrameUtil.InsertLink then hooksecurefunc(ChatFrameUtil,
 ---------------------------------------------------------------------------
 -- Settings tab (Guild Master and ADMIN)
 ---------------------------------------------------------------------------
-local SETTING_ROWS = {
-    { "onTime", "On-time bonus" }, { "fullRaid", "Full-raid bonus" },
-    { "bossFarm", "Boss kill (farm)" }, { "bossProg", "Boss kill (progression)" },
-    { "decayPct", "Decay %" },
-    { "priceBis", "Price: best-in-slot" }, { "priceMajor", "Price: major upgrade" },
-    { "priceMinor", "Price: minor upgrade" }, { "priceOff", "Price: off spec" },
-    { "inactWatch", "Inactive days: Watch" }, { "inactInactive", "Inactive days: Inactive" },
-    { "inactCleanup", "Inactive days: Cleanup" }, { "promoDays", "Initiate promo: days (0 = off)" },
-    { "promoRaids", "Initiate promo: raids" },
+-- Groups in the order the rules apply: earn, spend, decay, then who stays.
+local SETTING_GROUPS = {
+    { key = "earn", title = "1. Earning DKP", rows = {
+        { "onTime", "On-time bonus" }, { "fullRaid", "Full-raid bonus" },
+        { "bossFarm", "Boss kill (farm)" }, { "bossProg", "Boss kill (progression)" } } },
+    { key = "prices", title = "2. Loot prices", rows = {
+        { "priceBis", "Price: best-in-slot" }, { "priceMajor", "Price: major upgrade" },
+        { "priceMinor", "Price: minor upgrade" }, { "priceOff", "Price: off spec" } } },
+    { key = "decay", title = "3. Decay", rows = { { "decayPct", "Decay %" } }, extra = 58 },
+    { key = "people", title = "4. Inactivity and Initiate promotion", rows = {
+        { "inactWatch", "Inactive days: Watch" }, { "inactInactive", "Inactive days: Inactive" },
+        { "inactCleanup", "Inactive days: Cleanup" }, { "promoDays", "Initiate promo: days (0 = off)" },
+        { "promoRaids", "Initiate promo: raids" } } },
 }
 
 UI.AddTab("settings", "Settings", "settings", function(p)
     local intro = W.Text(p, "Rules for this guild. DKP defaults follow a published example and inactivity days start at ForeverGuildManager's 30/60/90; set your own here.", "GameFontHighlightSmall")
     intro:SetPoint("TOPLEFT", 0, 0)
     intro:SetWidth(700)
-    p.edits = {}
-    for i, r in ipairs(SETTING_ROWS) do
-        local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
-        local fs = W.Text(p, r[2], "GameFontHighlight")
-        fs:SetPoint("TOPLEFT", col * 350, -30 - row * 30)
-        local e = W.Edit(p, 60, 5)
-        e:SetPoint("TOPLEFT", col * 350 + 220, -26 - row * 30)
-        p.edits[r[1]] = e
+    p.edits, p.folds = {}, {}
+    -- The groups stack; opening one closes the others, so the tab always fits.
+    function p.place()
+        local y = -34
+        for _, f in ipairs(p.folds) do
+            f:ClearAllPoints()
+            f:SetPoint("TOPLEFT", 0, y)
+            y = y - f:Height() - 6
+        end
+        p.save:ClearAllPoints()
+        p.save:SetPoint("TOPLEFT", 0, y - 6)
+    end
+    for gi, g in ipairs(SETTING_GROUPS) do
+        local lines = math.ceil(#g.rows / 2)
+        local fold
+        fold = W.Accordion(p, g.title, 700, lines * 30 + (g.extra or 0), "settings_" .. g.key, function(open)
+            if open then
+                for _, other in ipairs(p.folds) do
+                    if other ~= fold and other.open then other:SetOpen(false, true) end
+                end
+            end
+            p.place()
+        end, gi == 1)
+        p.folds[gi] = fold
+        p[g.key .. "Fold"] = fold
+        for i, r in ipairs(g.rows) do
+            local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
+            local fs = W.Text(fold.body, r[2], "GameFontHighlight")
+            fs:SetPoint("TOPLEFT", col * 350 + 4, -6 - row * 30)
+            local e = W.Edit(fold.body, 60, 5)
+            e:SetPoint("TOPLEFT", col * 350 + 224, -2 - row * 30)
+            p.edits[r[1]] = e
+        end
+    end
+    -- Only one group may start open, whatever was saved.
+    local seen = false
+    for _, f in ipairs(p.folds) do
+        if f.open and seen then f:SetOpen(false, true) end
+        seen = seen or f.open
     end
     p.save = W.Button(p, "Save settings", 140, 22, function()
         local values = {}
         for key, e in pairs(p.edits) do values[key] = e:GetText() end
         UI.Try("Settings saved and shared with the guild.", ns.DKP.SaveSettings, values)
     end, "accent")
-    p.save:SetPoint("TOPLEFT", 0, -250)
     -- Decay touches every balance, so it takes two clicks.
+    local db = p.decayFold.body
     p.armed = -10
-    p.decay = W.Button(p, "Run decay now", 170, 22, function()
+    p.decay = W.Button(db, "Run decay now", 170, 22, function()
         if GetTime() - p.armed > 5 then
             p.armed = GetTime()
             p.decay:SetText("Click again to confirm")
@@ -551,13 +591,14 @@ UI.AddTab("settings", "Settings", "settings", function(p)
         p.armed = -10
         UI.Try("Decay applied to every balance.", ns.DKP.Decay)
     end)
-    p.decay:SetPoint("LEFT", p.save, "RIGHT", 8, 0)
-    p.undoDecay = W.Button(p, "Undo last decay", 140, 22, function()
+    p.decay:SetPoint("TOPLEFT", 4, -34)
+    p.undoDecay = W.Button(db, "Undo last decay", 140, 22, function()
         UI.Try("The last decay was undone for everyone.", ns.DKP.UndoDecay)
     end)
     p.undoDecay:SetPoint("LEFT", p.decay, "RIGHT", 8, 0)
-    p.last = W.Text(p, "", "GameFontDisableSmall")
-    p.last:SetPoint("TOPLEFT", 0, -282)
+    p.last = W.Text(db, "", "GameFontDisableSmall")
+    p.last:SetPoint("TOPLEFT", 4, -64)
+    p.place()
 end, function(p)
     local st = ns.Reducer.State()
     if not st then return end

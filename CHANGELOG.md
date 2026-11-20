@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.25.0
+
+- Raid & Loot now follows a raid night: "1. Start of the raid" (on-time bonus, progression and auto-award switches), "2. Loot: charge the winner", "3. End of the raid" (full-raid bonus, undo). "Custom award or deduction" folds away, and the winner list fills the height of the window
+- Summon is laid out for what you do there. A warlock sees the summon requests first, then the buttons to act on them; "Need a summon yourself? Ask another warlock" folds away at the bottom. Everyone else still gets the warlock list and the ask buttons at the top
+- Settings are grouped in the order the rules apply: 1. Earning DKP, 2. Loot prices, 3. Decay (with the decay buttons), 4. Inactivity and Initiate promotion. Opening one group closes the others, so the tab always fits
+- Standings, Professions and BiS Check already lead with their list and are unchanged
+
 ## 0.24.0
 
 - A new look: every Blood Pact window is a pane of dark glass that lets a little of the game world show through, with a pale haze that is brightest at the top, hairline edges and tinted buttons and fields

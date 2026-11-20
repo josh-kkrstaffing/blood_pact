@@ -361,8 +361,14 @@ local function ago(seconds)
 end
 
 ns.UI.AddTab("summon", "Summon", "view", function(p)
-    W.Text(p, "Warlocks online", "GameFontNormal"):SetPoint("TOPLEFT", 0, 0)
-    p.locks = W.List(p, 390, 130, 18, function(row, w)
+    -- Asking for a summon: who can do it, and the buttons to ask. For most
+    -- players this is the top of the tab. A warlock works from the requests
+    -- first, so for them it folds away at the bottom (see p.place).
+    local ask = CreateFrame("Frame", nil, p)
+    ask:SetSize(710, 150)
+    p.ask = ask
+    W.Text(ask, "Warlocks online", "GameFontNormal"):SetPoint("TOPLEFT", 0, 0)
+    p.locks = W.List(ask, 390, 130, 18, function(row, w)
         p.locks.Col(row, 1, 4, 130):SetText(U.Safe(U.ShortName(w.name), 30) .. " |cff808080" .. w.level .. "|r")
         p.locks.Col(row, 2, 136, 130):SetText(U.Safe(w.zone, 30))
         p.locks.Col(row, 3, 268, 120):SetText(w.ready and ("|cff40ff40can summon|r (" .. #w.near .. " there)")
@@ -372,18 +378,17 @@ ns.UI.AddTab("summon", "Summon", "view", function(p)
     p.locks.key = "guid"
     -- Warlocks: the click-to-summon list (Modules/SummonQueue.lua).
     p.queue = W.Button(p, "Open summon queue", 140, 18, function() ns.SummonQueue.Show(false) end)
-    p.queue:SetPoint("TOPLEFT", 250, 2)
+    p.queue:SetPoint("TOPRIGHT", -8, 2)
 
-    -- Asking for a summon
-    W.Text(p, "Need a summon?", "GameFontNormal"):SetPoint("TOPLEFT", 430, 0)
-    W.Text(p, "Where to (optional)", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 430, -22)
-    p.note = W.Edit(p, 270, 60)
+    W.Text(ask, "Need a summon?", "GameFontNormal"):SetPoint("TOPLEFT", 430, 0)
+    W.Text(ask, "Where to (optional)", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 430, -22)
+    p.note = W.Edit(ask, 270, 60)
     p.note:SetPoint("TOPLEFT", 430, -38)
-    p.askAny = W.Button(p, "Ask any warlock", 132, 22, function()
+    p.askAny = W.Button(ask, "Ask any warlock", 132, 22, function()
         ns.UI.Try("Asked every warlock in the guild.", S.Request, p.note:GetText(), nil)
     end, "accent")
     p.askAny:SetPoint("TOPLEFT", 430, -66)
-    p.askOne = W.Button(p, "Ask selected", 132, 22, function()
+    p.askOne = W.Button(ask, "Ask selected", 132, 22, function()
         local w = p.locks.selected
         if not w then ns.UI.Say("Pick a warlock in the list first.") return end
         local who = U.Safe(U.ShortName(w.name), 30)
@@ -397,16 +402,16 @@ ns.UI.AddTab("summon", "Summon", "view", function(p)
         end
     end)
     p.askOne:SetPoint("TOPLEFT", 568, -66)
-    p.cancel = W.Button(p, "Cancel my request", 132, 22, function()
+    p.cancel = W.Button(ask, "Cancel my request", 132, 22, function()
         S.Cancel()
         ns.UI.Say("Your summon request was cancelled.")
     end)
     p.cancel:SetPoint("TOPLEFT", 430, -92)
-    p.chat = W.Button(p, "Post in guild chat", 132, 22, function()
+    p.chat = W.Button(ask, "Post in guild chat", 132, 22, function()
         ns.UI.Try("Posted one line in guild chat.", S.PostToGuildChat, p.note:GetText())
     end)
     p.chat:SetPoint("TOPLEFT", 568, -92)
-    p.status = W.Text(p, "", "GameFontHighlightSmall")
+    p.status = W.Text(ask, "", "GameFontHighlightSmall")
     p.status:SetPoint("TOPLEFT", 430, -122)
     p.status:SetWidth(280)
 
@@ -422,13 +427,41 @@ ns.UI.AddTab("summon", "Summon", "view", function(p)
         p.board.Col(row, 5, 522, 160):SetText(r.by and ("|cff40ff40" .. U.Safe(nameOf(r.by), 30) .. " is on it|r")
             or (r.to and ("asked " .. U.Safe(nameOf(r.to), 30)) or "asked everyone"))
     end, function() ns.UI.Refresh() end)
-    p.board:Stretch(0, -182, 0, 62)
     p.board.key = "from"
 
     local foot = CreateFrame("Frame", nil, p)
-    foot:SetPoint("BOTTOMLEFT", 0, 0)
-    foot:SetPoint("BOTTOMRIGHT", 0, 0)
     foot:SetHeight(56)
+    p.foot = foot
+
+    -- Where things go depends on what the player does here.
+    --   Everyone else: ask at the top, the requests below.
+    --   A warlock: requests at the top, then the buttons to act on them;
+    --   asking another warlock folds away at the bottom.
+    p.askFold = W.Accordion(p, "Need a summon yourself? Ask another warlock", 700, 150, "summonAsk", function() p.place(p.asWarlock) end)
+    function p.place(warlock)
+        p.asWarlock = warlock and true or false
+        local under = 0
+        p.askFold:SetShown(p.asWarlock)
+        ask:ClearAllPoints()
+        if p.asWarlock then
+            p.askFold:ClearAllPoints()
+            p.askFold:SetPoint("BOTTOMLEFT", 0, p.askFold:Height() - 22)
+            under = p.askFold:Height() + 8
+            ask:SetParent(p.askFold.body)
+            ask:SetPoint("TOPLEFT", 0, 0)
+        else
+            ask:SetParent(p)
+            ask:SetPoint("TOPLEFT", 0, 0)
+        end
+        ask:Show()
+        local top = p.asWarlock and 0 or -162
+        p.boardTitle:ClearAllPoints()
+        p.boardTitle:SetPoint("TOPLEFT", 0, top)
+        foot:ClearAllPoints()
+        foot:SetPoint("BOTTOMLEFT", 0, under)
+        foot:SetPoint("BOTTOMRIGHT", 0, under)
+        p.board:Stretch(0, top - 20, 0, under + 62)
+    end
     p.start = W.Button(foot, "Invite for summon", 150, 22, function()
         local r = p.board.selected
         if not r then ns.UI.Say("Pick a request in the list first.") return end
@@ -457,6 +490,7 @@ ns.UI.AddTab("summon", "Summon", "view", function(p)
     p.hint = W.Text(foot, "", "GameFontDisableSmall")
     p.hint:SetPoint("TOPLEFT", 0, -30)
     p.hint:SetPoint("RIGHT", 0, 0)
+    p.place(false)
 end, function(p)
     -- Zones come from the guild roster; ask for a fresh one now and then.
     if not ns.mock and GetTime() - lastRosterAsk > 15 and C_GuildInfo and C_GuildInfo.GuildRoster then
@@ -484,6 +518,7 @@ end, function(p)
     end
 
     local lock = iAmWarlock() or (ns.mock and true)
+    if p.asWarlock ~= (lock and true or false) then p.place(lock) end
     local sel = p.board.selected
     p.queue:SetShown(iAmWarlock())
     p.start:SetShown(lock)
