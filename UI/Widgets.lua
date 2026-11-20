@@ -244,7 +244,7 @@ function W.Check(parent, label, onClick)
     return c
 end
 
--- Scrolling list. render(row, item) fills a row; onClick(item) on click.
+-- Scrolling list. render(row, item) fills a row; onClick(item, mouseButton) on click.
 -- Only the rows that fit on screen exist, so a 1,000-member guild costs the
 -- same as a 20-member one. Set list.key (a field name such as "guid") to keep
 -- the selection when the items are rebuilt.
@@ -287,10 +287,10 @@ function W.List(parent, width, height, rowHeight, render, onClick)
         row.sel:SetColorTexture(W.C.accent[1], W.C.accent[2], W.C.accent[3], 0.28)
         row.cols = {}
         row:RegisterForClicks("AnyUp")
-        row:SetScript("OnClick", function(self)
+        row:SetScript("OnClick", function(self, button)
             list.selected = self.item
             for _, r in ipairs(rows) do r.sel:SetShown(r.item ~= nil and r.item == list.selected) end
-            if onClick then onClick(self.item) end
+            if onClick then onClick(self.item, button) end
         end)
         rows[#rows + 1] = row
         return row

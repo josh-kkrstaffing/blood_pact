@@ -441,7 +441,26 @@ G.C_GuildInfo = { GuildRoster = function()
     local c = ctx
     addTimer(0.1, function() fire(c, "GUILD_ROSTER_UPDATE") end)
 end }
-G.C_FriendList = { SendWho = noop, SetWhoToUi = noop, GetNumWhoResults = function() return 0 end, GetWhoInfo = noop }
+-- /who: each search answers a moment later with what the "server" has for it.
+local WHO_DATA = {
+    ['z-"Durotar" 1-4'] = { total = 60,
+        { fullName = "Newbie One-Normal", level = 3, classStr = "Warrior", area = "Durotar", fullGuildName = "" },
+        { fullName = "Guilded Gus-Normal", level = 4, classStr = "Mage", area = "Durotar", fullGuildName = "Other Guild" },
+        { fullName = "Fresh Troll-Normal", level = 2, classStr = "Hunter", area = "Durotar" } },
+    ['z-"Durotar" 5-8'] = {
+        { fullName = "Newbie One-Normal", level = 5, classStr = "Warrior", area = "Durotar", fullGuildName = "" },
+        { fullName = "Razor Hill Rex-Normal", level = 7, classStr = "Shaman", area = "Durotar", fullGuildName = "" } },
+    ['z-"Mulgore" 1-4'] = { { fullName = "Moo Two-Normal", level = 1, classStr = "Druid", area = "Mulgore", fullGuildName = "" } },
+}
+local whoAsked, whoNow = {}, {}
+G.C_FriendList = { SetWhoToUi = noop,
+    SendWho = function(q)
+        local c = ctx
+        whoAsked[#whoAsked + 1] = c.name .. ":" .. q
+        addTimer(0.5, function() whoNow[c.guid] = WHO_DATA[q] or {}; fire(c, "WHO_LIST_UPDATE") end)
+    end,
+    GetNumWhoResults = function() local r = whoNow[ctx.guid] or {}; return #r, r.total or #r end,
+    GetWhoInfo = function(i) return (whoNow[ctx.guid] or {})[i] end }
 G.C_PartyInfo = { InviteUnit = function(name) invites[#invites + 1] = name end }
 G.C_DateAndTime = { GetCurrentCalendarTime = function()
     local t = os.date("!*t", BASE + math.floor(clock))
@@ -1090,6 +1109,93 @@ pressEverything(gm)
 run(member, "cancel board request", function() member.ns.Summon.Cancel() end)
 GROUPS[gm.guid], GROUPS[officer.guid] = nil, nil
 advance(5)
+
+-- Recruiting: search a starting zone a few levels at a time, then whisper with one click.
+local function clickText(c, text, button)
+    for _, w in ipairs(c.widgets) do
+        if w._.text == text and w._.scripts.OnClick and w._.enabled and w:IsVisible() then
+            inCtx(c, "click " .. text, w._.scripts.OnClick, w, button or "LeftButton")
+            return true
+        end
+    end
+    return false
+end
+local function clickRow(c, name, button)
+    for _, w in ipairs(c.widgets) do
+        if rawget(w, "item") and w.item.name == name and w:IsVisible() then
+            inCtx(c, "click row " .. name, w._.scripts.OnClick, w, button or "LeftButton")
+            return true
+        end
+    end
+    return false
+end
+open(gm)
+check(clickText(gm, "Recruit"), "the Guild Master has the Recruit tab")
+advance(10)
+local rp = gm.ns.recruitPanel
+run(gm, "starting zones", function()
+    local zones = {}
+    for i, b in ipairs(rp.zoneButtons) do zones[i] = b:GetText() end
+    check(table.concat(zones, ",") == "Durotar,Mulgore,Tirisfal Glades,Zephras Isle", "a Horde recruiter gets the Horde starting zones, by region")
+end)
+check(clickText(gm, "Durotar"), "a starting zone can be searched")
+check(whoAsked[#whoAsked] == 'Binky Bee:z-"Durotar" 1-4', "the search covers the zone's first few levels")
+local askedBefore = #whoAsked
+clickText(gm, "Mulgore")                                   -- too soon after the last search
+check(#whoAsked == askedBefore, "a second search inside a few seconds isn't sent")
+advance(6)
+run(gm, "first band", function()
+    check(#rp.list.items == 2 and rp.list.items[1].name == "Newbie One-Normal" and rp.list.items[2].name == "Fresh Troll-Normal",
+        "only unguilded players are listed")
+    check(rp.found:GetText() == "2 unguilded in Durotar so far (levels 1-4 searched). The game listed only 3 of 60 players. Click it again for levels 5-8.",
+        "the result says what was searched, what the game cut off, and what the next click does")
+end)
+clickText(gm, "Durotar")
+check(whoAsked[#whoAsked] == 'Binky Bee:z-"Durotar" 5-8', "clicking the zone again searches the next levels")
+advance(6)
+run(gm, "second band", function()
+    check(#rp.list.items == 3 and rp.list.items[3].name == "Razor Hill Rex-Normal", "new names are added to the list, each once")
+end)
+-- One click on a name whispers the picked message to that player.
+clickText(gm, "Social")                                    -- an earlier pass left another message picked
+local before = #guildChat
+check(clickRow(gm, "Newbie One-Normal"), "a name in the list can be clicked")
+local tell = guildChat[#guildChat] or ""
+check(#guildChat == before + 1 and tell:find("WHISPER:Newbie One:Hey! Blood Pact is recruiting on WoW Forever.", 1, true) == 1,
+    "one click whispers that player the Social message")
+clickRow(gm, "Newbie One-Normal")
+check(#guildChat == before + 1, "a second click on the same name doesn't whisper again")
+shiftDown = true
+clickRow(gm, "Newbie One-Normal")
+shiftDown = false
+check(#guildChat == before + 2, "Shift-click sends it again on purpose")
+clickRow(gm, "Fresh Troll-Normal", "RightButton")
+check(#guildChat == before + 2, "right-click opens a whisper to type and sends nothing")
+check(clickText(gm, "Raiding"), "another message can be picked")
+clickRow(gm, "Razor Hill Rex-Normal")
+tell = guildChat[#guildChat] or ""
+check(#guildChat == before + 3 and tell:find("WHISPER:Razor Hill Rex:Blood Pact is building raid teams", 1, true) == 1,
+    "the whisper carries whichever message is picked")
+run(gm, "edited message", function()
+    rp.box:SetText("Custom pitch for you")
+    rp.box:GetScript("OnTextChanged")(rp.box, true)
+    gm.ns.UI.Refresh()
+    check(rp.box:GetText() == "Custom pitch for you", "an edited message stays in the box")
+end)
+clickRow(gm, "Fresh Troll-Normal")
+check((guildChat[#guildChat] or "") == "WHISPER:Fresh Troll:Custom pitch for you", "an edited message is what gets sent")
+run(member, "member can't recruit", function()
+    local ok, why = member.ns.Recruit.Whisper("Newbie One-Normal", "hi")
+    check(ok == nil and why == "Your guild rank can't recruit.", "a Member can't send recruiting whispers")
+end)
+clickText(gm, "Mulgore")
+advance(6)
+run(gm, "new zone", function()
+    check(#rp.list.items == 1 and rp.list.items[1].name == "Moo Two-Normal", "a different zone starts a fresh list")
+end)
+clickText(gm, "Social")
+pressEverything(gm)
+advance(10)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

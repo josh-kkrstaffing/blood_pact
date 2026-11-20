@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.0
+
+- Recruit: search your faction's starting zones without travelling there. Horde gets Durotar and Mulgore (Kalimdor), Tirisfal Glades (Eastern Kingdoms) and Zephras Isle (Skyborne); Alliance gets its own four
+- Each click on a zone searches a few levels at a time (1-4, then 5-8, then 9-12) and adds the unguilded players it finds to the list, because the game lists only about 50 players per search. The result line says when the game cut a list short
+- Recruit: click a name and that player is whispered the picked message (Social, Raiding or Crafting), one whisper per click. Right-click opens a whisper to type your own
+- A name you've whispered is marked "whispered" until you log out, and a second click doesn't send again; Shift-click sends it again on purpose
+- The picked message is marked, and an edit you make in the box stays there and is what gets sent
+- Blood Pact still never whispers or searches on its own: every search and every whisper is one click
+
 ## 0.18.0
 
 - Summon queue for warlocks: anyone types "123" in raid, party or guild chat, or whispers it to the warlock, and their name joins a small list on the warlock's screen

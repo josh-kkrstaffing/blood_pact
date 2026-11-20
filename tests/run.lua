@@ -38,6 +38,7 @@ ns.Listen = function() end
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
 load("Modules/Summon.lua")
+load("Modules/Recruit.lua")
 load("Modules/SummonQueue.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
@@ -1218,6 +1219,37 @@ test("summon queue: the keyword, one place per name, and group units", function(
 
     eq(Q.Prune(list, 100 + Q.TTL + 1), 1); eq(#list, 2); eq(list[1].name, "Vela")
     eq(Q.Remove(list, list[1]), true); eq(Q.Remove(list, {}), false); eq(#list, 1)
+end)
+
+test("recruit: starting zones by region, level bands, unguilded only", function()
+    local Rc = ns.Recruit
+    local function zones(faction)
+        local out = {}
+        for _, g in ipairs(Rc.Regions(faction)) do out[#out + 1] = g.region .. "=" .. table.concat(g.zones, "+") end
+        return table.concat(out, " | ")
+    end
+    eq(zones("Horde"), "Kalimdor=Durotar+Mulgore | Eastern Kingdoms=Tirisfal Glades | Skyborne=Zephras Isle")
+    eq(zones("Alliance"), "Kalimdor=Teldrassil | Eastern Kingdoms=Elwynn Forest+Dun Morogh | Skyborne=Zephras Isle")
+    eq(zones(nil), zones("Horde"))
+    local all = {}                                           -- seven starting zones in all
+    for _, f in ipairs({ "Horde", "Alliance" }) do
+        for _, g in ipairs(Rc.Regions(f)) do for _, z in ipairs(g.zones) do all[z] = true end end
+    end
+    local n = 0
+    for _ in pairs(all) do n = n + 1 end
+    eq(n, 7)
+
+    eq(Rc.Query("Durotar"), 'z-"Durotar"'); eq(Rc.Query("Tirisfal Glades", { 5, 8 }), 'z-"Tirisfal Glades" 5-8')
+    eq(Rc.NextBand(nil, nil, "Durotar"), 1); eq(Rc.NextBand("Durotar", 1, "Durotar"), 2)
+    eq(Rc.NextBand("Durotar", #Rc.BANDS, "Durotar"), 1)      -- after the last band, start over
+    eq(Rc.NextBand("Durotar", 2, "Mulgore"), 1)              -- a new zone starts at the first band
+    eq(Rc.BANDS[1][1], 1); eq(Rc.BANDS[#Rc.BANDS][2], 12)    -- level 1 to 12, no gaps
+    for i = 2, #Rc.BANDS do eq(Rc.BANDS[i][1], Rc.BANDS[i - 1][2] + 1) end
+
+    local list = {}
+    eq(Rc.Merge(list, { { name = "A", guild = "" }, { name = "B", guild = "Some Guild" }, { name = "C" }, { guild = "" } }), 2)
+    eq(Rc.Merge(list, { { name = "A" }, { name = "D", level = 7, class = "Mage", area = "Durotar" } }), 1)
+    eq(#list, 3); eq(list[1].name, "A"); eq(list[2].name, "C"); eq(list[3].level, 7)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

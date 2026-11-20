@@ -13,7 +13,7 @@ Guild DKP, standings, loot charging and recruiting for **World of Warcraft: Fore
 - **Loot.** Fixed-price charging by tier (best-in-slot, major, minor, off spec). The raid list is sorted by DKP so the highest balance wins ties. Balances can't go below zero.
 - **Decay.** The Guild Master runs a percentage decay on every positive balance.
 - **Undo.** Officers can void their own last award or charge. Nothing is ever deleted; corrections are recorded.
-- **Recruit tab** (Team Captain and above). Three shared recruiting messages, a copy box, and a one-click /who scan of your zone that lists players without a guild. Click a name to open a whisper; you paste and send it yourself.
+- **Recruit tab** (Team Captain and above). Three shared recruiting messages (Social, Raiding, Crafting) and a /who scan that lists players without a guild: your own zone, or one of your faction's starting zones, searched a few levels per click. Click a name to whisper that player the picked message, one whisper per click; right-click opens a whisper to type your own. Nothing is searched or whispered without a click.
 
 ## Roster
 
