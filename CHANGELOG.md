@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.0
+
+- Raids: signing up now asks for a spot; it doesn't hold one. A Team Captain or above clicks a name in the sign-up list to select that player, and clicks again to take the spot back
+- The raid shows "Selected 3/10" with the selected tanks, healers and damage dealers, and how many are still waiting. Selected players sort to the top and show "Selected" in green
+- A raid can't be over-filled: once every spot is taken, someone has to be unselected first. Answering "Can't" gives a spot back
+- Players get a line on screen when they are selected, and a chat line if the spot is taken back
+- Once a raid has been selected, the 30 and 15 minute reminders and "Whisper sign-ups" go only to the selected players
+- Summon: if you invite someone while in a group you don't lead, the leader is asked to invite them instead, with one whisper from your click. "Invite for summon" does the same in one whisper for everyone it would have invited
+
 ## 0.19.0
 
 - Recruit: search your faction's starting zones without travelling there. Horde gets Durotar and Mulgore (Kalimdor), Tirisfal Glades (Eastern Kingdoms) and Zephras Isle (Skyborne); Alliance gets its own four

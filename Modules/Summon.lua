@@ -234,13 +234,57 @@ function S.PostToGuildChat(note)
     return true
 end
 
+-- The player who can invite to my group when I can't: its leader. nil when
+-- I'm not grouped, or I lead or assist and can invite myself.
+function S.Leader()
+    if not (IsInGroup and IsInGroup()) then return nil end
+    if UnitIsGroupLeader("player") or UnitIsGroupAssistant("player") then return nil end
+    local raid = IsInRaid and IsInRaid()
+    for i = 1, raid and 40 or 4 do
+        local unit = (raid and "raid" or "party") .. i
+        if UnitIsGroupLeader(unit) then
+            local name = UnitName(unit)
+            if type(name) == "string" and name ~= "" then return name end
+        end
+    end
+    return nil
+end
+
+-- What to whisper the leader. Pure.
+function S.SuggestText(names)
+    local list = table.concat(names, ", ", 1, math.min(#names, 5))
+    return ("Could you invite %s to the group? I'm summoning. (sent with Blood Pact)"):format(list):sub(1, 255)
+end
+
+-- One whisper to my group's leader asking them to invite these players.
+function S.Suggest(names, leader)
+    if ns.mock then return true end
+    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
+    if not send or not pcall(send, S.SuggestText(names), "WHISPER", nil, U.ShortName(leader)) then
+        return nil, "Ask " .. leader .. " to invite " .. table.concat(names, ", ") .. "."
+    end
+    return true
+end
+
+-- Invite a guild member to my group. When I'm in a group I don't lead, the
+-- invite is suggested to the leader instead: the game's own suggestion where
+-- it has one, and one whisper so they know why.
+-- -> true, "suggested" (and the leader's name), or nil and what to do by hand
 local invitedByHand = {}
-function S.Invite(guid)
+function S.Invite(guid, quiet)
     local name = nameOf(guid)
     invitedByHand[#invitedByHand + 1] = name
     if ns.mock then return true end
+    local leader = S.Leader()
     local fn = (C_PartyInfo and C_PartyInfo.InviteUnit) or InviteUnit
-    if not fn or not pcall(fn, name) then return nil, "Type /invite " .. name end
+    local sent = fn and pcall(fn, name)
+    if leader then
+        if quiet then return "suggested", leader end      -- the caller sends one whisper for several names
+        local ok, why = S.Suggest({ name }, leader)
+        if not ok then return nil, why end
+        return "suggested", leader
+    end
+    if not sent then return nil, "Type /invite " .. name end
     return true
 end
 
@@ -254,12 +298,11 @@ ns.Listen("ACTION_BLOCKED", function(func)
 end)
 
 -- Warlock, one click: invite the asker and, if needed, two helpers from your
--- zone, and tell the asker you're on it.
+-- zone, and tell the asker you're on it. In a group you don't lead, the
+-- invites are suggested to its leader.
 function S.Start(request)
     if not iAmWarlock() and not ns.mock then return nil, "Only a warlock of level 20 or higher can summon." end
-    if not ns.mock and IsInGroup() and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
-        return nil, "Only your group's leader can invite. Ask them, or leave the group first."
-    end
+    local leader = not ns.mock and S.Leader() or nil
     local me = ns.MyGUID()
     invitedByHand = {}
     local grouped, others = {}, 0
@@ -270,16 +313,24 @@ function S.Start(request)
     local helpers = S.PickHelpers(ns.roster.byGUID, me, request.from, grouped, S.offers[me], S.HELPERS - others)
     local invited = {}
     if not grouped[request.from] then
-        S.Invite(request.from)
+        S.Invite(request.from, true)
         invited[#invited + 1] = nameOf(request.from)
     end
     for _, guid in ipairs(helpers) do
-        S.Invite(guid)
+        S.Invite(guid, true)
         invited[#invited + 1] = nameOf(guid)
     end
     post({ t = "SA", who = request.from })
     local short = S.HELPERS - others - #helpers
-    local msg = #invited > 0 and ("Invited " .. table.concat(invited, ", ") .. ".") or "Everyone is already in your group."
+    local msg
+    if #invited == 0 then
+        msg = "Everyone is already in your group."
+    elseif leader then
+        local ok, why = S.Suggest(invited, leader)
+        msg = ok and ("You don't lead this group, so " .. U.Safe(leader, 40) .. " was asked to invite " .. table.concat(invited, ", ") .. ".") or why
+    else
+        msg = "Invited " .. table.concat(invited, ", ") .. "."
+    end
     if short > 0 then
         msg = msg .. (" You still need %d more to click: press Ask for clickers."):format(short)
     else

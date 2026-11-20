@@ -51,7 +51,7 @@ function Red.Build(g)
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
         members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {}, pvp = {}, orders = {},
     }
-    local signups, attIdem, rosterIdem = {}, {}, {}
+    local signups, picks, attIdem, rosterIdem = {}, {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
     local function pool(guid)
         local key = mainOf(guid)
@@ -203,7 +203,7 @@ function Red.Build(g)
             st.recruitMsgs = d.msgs
         elseif k == "RAID" then
             st.raids[e.id] = { id = e.id, title = d.title, raid = d.raid, at = d.at, size = d.size,
-                n = d.n, tz = d.tz, prog = d.prog or false, author = e.a, signups = {} }
+                n = d.n, tz = d.tz, prog = d.prog or false, author = e.a, signups = {}, picked = {} }
         elseif k == "RAID_CANCEL" then
             if st.raids[d.ev] then st.raids[d.ev].cancelled = true end
         elseif k == "SIGNUP" then
@@ -211,6 +211,10 @@ function Red.Build(g)
             if e.t > (st.lastSeen[e.a] or 0) then st.lastSeen[e.a] = e.t end
             signups[d.ev] = signups[d.ev] or {}
             signups[d.ev][e.a] = { st = d.st, role = d.role, n = d.n }
+        elseif k == "RAID_PICK" then
+            -- The latest word on each player wins.
+            picks[d.ev] = picks[d.ev] or {}
+            picks[d.ev][d.who] = d.on and e.a or nil
         elseif k == "ATTEND" then
             if not attIdem[d.idem] then
                 attIdem[d.idem] = true
@@ -227,6 +231,10 @@ function Red.Build(g)
     for ev, people in pairs(signups) do
         local r = st.raids[ev]
         if r then r.signups = people end
+    end
+    for ev, chosen in pairs(picks) do
+        local r = st.raids[ev]
+        if r then r.picked = chosen end       -- [guid] = who selected them
     end
 
     -- Each main's alts, for activity checks.

@@ -1252,5 +1252,79 @@ test("recruit: starting zones by region, level bands, unguilded only", function(
     eq(#list, 3); eq(list[1].name, "A"); eq(list[2].name, "C"); eq(list[3].level, 7)
 end)
 
+test("raid: a sign-up asks for a spot; a Team Captain or above selects who gets one", function()
+    local g = newStore()
+    local Rd = ns.Raids
+    local r = author(g, "Player-1-CAPT", "RAID", { title = "BD", raid = "Barrow Deeps", at = NOW + 3600, size = 5 })
+    insertAll(g, { r })
+    local A, B, V, I = "Player-1-MEM1", "Player-1-MEM2", "Player-1-VET", "Player-1-INIT"
+    insertAll(g, {
+        author(g, A, "SIGNUP", { ev = r.id, st = "yes", role = "tank" }),
+        author(g, B, "SIGNUP", { ev = r.id, st = "yes", role = "healer" }),
+        author(g, V, "SIGNUP", { ev = r.id, st = "maybe", role = "dps" }),
+        author(g, I, "SIGNUP", { ev = r.id, st = "no" }),
+    })
+    local st = Red.Build(g)
+    local raid = st.raids[r.id]
+    local c = Rd.Summary(st, raid)
+    eq(c.yes, 2); eq(c.picked, 0); eq(c.waiting, 2); eq(c.sel.tank, 0)        -- nobody holds a spot yet
+    eq(Rd.CanPick(raid, A, true, NOW), true)
+    eq(Rd.CanPick(raid, V, true, NOW), true)                                 -- a Maybe can be selected
+    eq(select(2, Rd.CanPick(raid, I, true, NOW)), "They haven't signed up for this raid.")
+    eq(select(2, Rd.CanPick(raid, "Player-1-GM", true, NOW)), "They haven't signed up for this raid.")
+    eq(select(2, Rd.CanPick(raid, A, false, NOW)), "They aren't selected.")
+    eq(select(2, Rd.CanPick(nil, A, true, NOW)), "That raid is gone.")
+    eq(select(2, Rd.CanPick(raid, A, true, NOW + 3600 + 7 * 3600)), "That raid is over.")
+
+    -- A Member can't select; a Team Captain can.
+    eq(select(2, Log.Insert(g, author(g, A, "RAID_PICK", { ev = r.id, who = A, on = true }), true)), "forbidden")
+    insertAll(g, { author(g, "Player-1-CAPT", "RAID_PICK", { ev = r.id, who = A, on = true }) })
+    insertAll(g, { author(g, "Player-1-OFFICER1", "RAID_PICK", { ev = r.id, who = V, on = true }) })
+    st = Red.Build(g); raid = st.raids[r.id]
+    local rows
+    c, rows = Rd.Summary(st, raid)
+    eq(c.picked, 2); eq(c.waiting, 1); eq(c.sel.tank, 1); eq(c.sel.dps, 1); eq(c.sel.healer, 0)
+    eq(rows[1].picked, true); eq(rows[2].picked, true); eq(rows[3].guid, B); eq(rows[3].picked, false)   -- selected first
+    eq(Rd.IsPicked(raid, A), true); eq(Rd.IsPicked(raid, B), false)
+    eq(select(2, Rd.CanPick(raid, A, true, NOW)), "They are already selected.")
+
+    -- Reminders go to the selected once the raid has been selected.
+    eq(#Rd.DueReminders(st, A, NOW + 1800, {}), 1); eq(#Rd.DueReminders(st, B, NOW + 1800, {}), 0)
+
+    -- Answering "Can't" gives the spot back; unselecting does too.
+    insertAll(g, { author(g, A, "SIGNUP", { ev = r.id, st = "no" }) })
+    insertAll(g, { author(g, "Player-1-CAPT", "RAID_PICK", { ev = r.id, who = V, on = false }) })
+    st = Red.Build(g); raid = st.raids[r.id]
+    c = Rd.Summary(st, raid)
+    eq(c.picked, 0); eq(Rd.IsPicked(raid, A), false); eq(Rd.IsPicked(raid, V), false); eq(Rd.PickedCount(raid), 0)
+    eq(#Rd.DueReminders(st, B, NOW + 1800, {}), 1)                           -- nobody selected: everyone signed up again
+
+    -- A full raid takes no more.
+    local g2 = newStore()
+    local small = author(g2, "Player-1-CAPT", "RAID", { title = "BD", raid = "Barrow Deeps", at = NOW + 3600, size = 5 })
+    insertAll(g2, { small })
+    local five = { "Player-1-GM", "Player-1-OFFICER1", "Player-1-OFFICER2", "Player-1-CAPT", "Player-1-VET" }
+    for _, who in ipairs(five) do
+        insertAll(g2, { author(g2, who, "SIGNUP", { ev = small.id, st = "yes", role = "dps" }) })
+        insertAll(g2, { author(g2, "Player-1-CAPT", "RAID_PICK", { ev = small.id, who = who, on = true }) })
+    end
+    insertAll(g2, { author(g2, A, "SIGNUP", { ev = small.id, st = "yes", role = "dps" }) })
+    st = Red.Build(g2)
+    eq(Rd.PickedCount(st.raids[small.id]), 5)
+    eq(select(2, Rd.CanPick(st.raids[small.id], A, true, NOW)), "All 5 spots are taken. Unselect someone first.")
+    eq(Rd.CanPick(st.raids[small.id], "Player-1-VET", false, NOW), true)
+
+    for _, bad in ipairs({ { ev = r.id, who = A }, { ev = r.id, on = true }, { who = A, on = true }, { ev = r.id, who = A, on = "yes" } }) do
+        eq(select(2, Log.Insert(g, author(g, "Player-1-CAPT", "RAID_PICK", bad), true)), "payload")
+    end
+end)
+
+test("summon: the whisper that asks a group leader to invite", function()
+    local S = ns.Summon
+    eq(S.SuggestText({ "Vela" }), "Could you invite Vela to the group? I'm summoning. (sent with Blood Pact)")
+    eq(S.SuggestText({ "Vela", "Pip", "Grim Tusk" }), "Could you invite Vela, Pip, Grim Tusk to the group? I'm summoning. (sent with Blood Pact)")
+    eq(#S.SuggestText({ ("x"):rep(120), ("y"):rep(120), ("z"):rep(120) }) <= 255, true)
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end

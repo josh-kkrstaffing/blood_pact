@@ -79,6 +79,11 @@ L.KINDS = {
         return str(d.ev, 1, 80) and L.SIGNUP_STATUS[d.st] ~= nil
             and (d.role == nil or L.ROLES[d.role] ~= nil) and optNote(d.n)
     end },
+    -- A Team Captain or above gives a signed-up player a raid spot, or takes
+    -- it back. Its own kind, so older versions keep it without counting it.
+    RAID_PICK = { "schedule", function(d)
+        return str(d.ev, 1, 80) and isGUID(d.who) and type(d.on) == "boolean"
+    end },
     ATTEND = { "schedule", function(d)
         if type(d.who) ~= "table" or #d.who < 1 or #d.who > 60 then return false end
         for _, g in ipairs(d.who) do if not isGUID(g) then return false end end

@@ -105,7 +105,9 @@ function M.Command(arg)
         for i, role in ipairs(plan) do fakeEvent(i, "SIGNUP", { ev = r.id, st = "yes", role = role }, true) end
         fakeEvent(12, "SIGNUP", { ev = r.id, st = "maybe", role = "dps" }, true)
         fakeEvent(13, "SIGNUP", { ev = r.id, st = "no" }, true)
-        ns.Print("13 fake guildmates answered the sign-up for " .. r.title .. ".")
+        -- A fake Officer selects the first tank, healer and damage dealer.
+        for _, i in ipairs({ 1, 3, 6 }) do fakeEvent(1, "RAID_PICK", { ev = r.id, who = fakeGUID(i), on = true }, true) end
+        ns.Print("13 fake guildmates answered the sign-up for " .. r.title .. ", and 3 were selected.")
     elseif arg == "roster" then
         -- A fake Officer records some guild changes.
         local day = date("!%Y-%m-%d")

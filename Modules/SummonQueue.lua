@@ -309,7 +309,11 @@ local function build()
             local e = b.entry
             if not (e and e.guid) then return end
             local ok, why = ns.Summon.Invite(e.guid)
-            ns.Print(ok and ("Invited " .. U.Safe(e.name, 40) .. ".") or (why or "The game didn't send the invite."))
+            if ok == "suggested" then
+                ns.Print(("You don't lead this group, so %s was asked to invite %s."):format(U.Safe(why, 40), U.Safe(e.name, 40)))
+            else
+                ns.Print(ok and ("Invited " .. U.Safe(e.name, 40) .. ".") or (why or "The game didn't send the invite."))
+            end
         end)
         b.inv:SetPoint("TOPLEFT", 150, y - 1)
         b.inv:SetFrameLevel(b:GetFrameLevel() + 2)

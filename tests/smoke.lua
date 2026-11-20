@@ -334,7 +334,11 @@ G.GetTalentTabInfo = function(i)
     local t = (TALENTS[ctx.class] or {})[i]
     if t then return t[1], nil, t[2] end
 end
-G.UnitIsGroupLeader = function() return false end
+local LEADERS = {}   -- LEADERS[guid] = the guid leading that player's group
+G.UnitIsGroupLeader = function(unit)
+    local lead = LEADERS[ctx.guid]
+    return lead ~= nil and lead == unitGuid(unit)
+end
 G.UnitIsGroupAssistant = function() return false end
 G.IsInGuild = function() return true end
 G.IsInRaid = function() local g = GROUPS[ctx.guid]; return g ~= nil and g.raid == true end
@@ -689,6 +693,40 @@ run(gm, "sign-up arrives", function()
     check(r and r.signups[MEMBER] and r.signups[MEMBER].role == "dps", "a member's sign-up syncs back")
 end)
 check(calendarAdds >= 1, "the raid goes on the in-game calendar")
+-- Signing up asks for a spot; a Team Captain or above selects who gets one.
+local raidId
+run(member, "not selected yet", function()
+    local ns = member.ns
+    local st = ns.Reducer.State()
+    raidId = next(st.raids)
+    local r = st.raids[raidId]
+    local c = ns.Raids.Summary(st, r)
+    check(c.yes == 1 and c.picked == 0 and c.waiting == 1 and not ns.Raids.IsPicked(r, MEMBER), "a sign-up alone doesn't hold a raid spot")
+    local res, why = ns.Raids.Pick(raidId, MEMBER, true)
+    check(res == nil and why == "Only Team Captains and above select the raid.", "a Member can't select themselves")
+end)
+run(gm, "select", function()
+    local ns = gm.ns
+    check(select(2, ns.Raids.Pick(raidId, officer.guid, true)) == "They haven't signed up for this raid.", "only someone who signed up can be selected")
+    assert(ns.Raids.Pick(raidId, MEMBER, true))
+    check(ns.Raids.Pick(raidId, MEMBER, true) == nil, "selecting twice does nothing")
+end)
+advance(5)
+check(said(member, "You're selected for Opening night,") and said(member, ", as DPS."), "the player is told when they are selected")
+run(officer, "selection synced", function()
+    local st = officer.ns.Reducer.State()
+    local c, rows = officer.ns.Raids.Summary(st, st.raids[raidId])
+    check(c.picked == 1 and c.waiting == 0 and c.sel.dps == 1 and rows[1].guid == MEMBER and rows[1].picked, "the selection syncs to the whole guild")
+    assert(officer.ns.Raids.Pick(raidId, MEMBER, false))          -- any Team Captain or above can take it back
+end)
+advance(5)
+check(said(member, "You're no longer selected for Opening night. You're still signed up."), "and told when the spot is taken back")
+run(gm, "select again", function() assert(gm.ns.Raids.Pick(raidId, MEMBER, true)) end)
+advance(5)
+run(member, "selected", function()
+    local st = member.ns.Reducer.State()
+    check(member.ns.Raids.IsPicked(st.raids[raidId], MEMBER), "the latest word on a player stands")
+end)
 
 -- 7. Summon board: the member asks, the warlock is alerted and invites.
 local chatAtAsk = #guildChat
@@ -1003,6 +1041,7 @@ run(gm, "mailbox closed", function() check(not mailPanel(gm):IsShown(), "closing
 -- The summon queue. The GM is a warlock, in a party with the Officer and the Member.
 GROUPS[gm.guid] = { officer.guid, MEMBER }
 GROUPS[officer.guid] = { gm.guid, MEMBER }
+LEADERS[gm.guid], LEADERS[officer.guid] = gm.guid, gm.guid
 local function chat(c, event, text, from, guid)
     fire(c, event, text, from .. REALM, "", "", from, "", 0, 0, "", 0, 1, guid)
 end
@@ -1047,8 +1086,16 @@ run(gm, "queue", function()
     check(pip.info:GetText() == "summoning", "the row shows the summon has started")
     check(vela:IsShown() and vela:GetAttribute("unit") == nil and secureClick(gm, vela, "LeftButton") == "nothing" and vela.inv:IsShown(),
         "a guildmate outside the group can't be summoned yet and gets an Invite button")
+    local tells = #guildChat
     vela.inv:GetScript("OnClick")(vela.inv, "LeftButton")
-    check(invites[#invites] == "Vela", "the Invite button invites them, from the warlock's click")
+    check(invites[#invites] == "Vela" and #guildChat == tells, "the Invite button invites them, from the warlock's click")
+    -- The Officer leads instead: the invite is suggested to them.
+    LEADERS[gm.guid] = officer.guid
+    vela.inv:GetScript("OnClick")(vela.inv, "LeftButton")
+    check(#guildChat == tells + 1 and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Vela to the group? I'm summoning. (sent with Blood Pact)",
+        "when the warlock doesn't lead the group, the leader is asked to invite, with one whisper")
+    check(said(gm, "You don't lead this group, so Grim Tusk was asked to invite Vela."), "and the warlock is told so")
+    LEADERS[gm.guid] = gm.guid
     check(not f.rows[3]:IsShown(), "unused rows stay hidden")
 end)
 -- In combat the game locks the list: a new request waits, and nothing breaks.
@@ -1106,8 +1153,17 @@ run(gm, "queue cleared", function()
 end)
 chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
 pressEverything(gm)
+-- "Invite for summon" on the Summon tab, in a group the warlock doesn't lead.
+LEADERS[gm.guid] = officer.guid
+run(gm, "start without leading", function()
+    local tells = #guildChat
+    local msg = gm.ns.Summon.Start({ from = "Player-1-VET", zone = "Orgrimmar", at = gm.ns.Now() })
+    check(msg and msg:find("You don't lead this group, so Grim Tusk was asked to invite Vela.", 1, true) == 1 and #guildChat == tells + 1,
+        "Invite for summon asks the leader too, in one whisper")
+end)
 run(member, "cancel board request", function() member.ns.Summon.Cancel() end)
 GROUPS[gm.guid], GROUPS[officer.guid] = nil, nil
+LEADERS[gm.guid], LEADERS[officer.guid] = nil, nil
 advance(5)
 
 -- Recruiting: search a starting zone a few levels at a time, then whisper with one click.

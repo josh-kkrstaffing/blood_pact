@@ -1,5 +1,6 @@
 -- Blood Pact: raid sign-ups and attendance.
 -- Team Captains and above schedule raids and take attendance; everyone signs up.
+-- Signing up asks for a spot. A Team Captain or above selects who gets one.
 -- Everything is a log event, so it syncs like DKP and no website is needed.
 -- Raid nights are grouped by a shared "raid day" so officers in different
 -- time zones agree (see Time.RaidDay).
@@ -15,7 +16,7 @@ R.PRESETS = {
     { label = "Hyjal Summit", raid = "Hyjal Summit", size = 20 },
 }
 R.ROLE_LABEL = { tank = "Tank", healer = "Healer", dps = "DPS" }
-R.STATUS_LABEL = { yes = "Coming", maybe = "Maybe", no = "Can't" }
+R.STATUS_LABEL = { yes = "Signed up", maybe = "Maybe", no = "Can't" }
 
 R.RaidDay = ns.Time.RaidDay
 
@@ -108,6 +109,48 @@ function R.SignUp(id, status, role)
     return Log.New("SIGNUP", { ev = id, st = status, role = role })
 end
 
+-- Does this player hold a spot? Selected by a Team Captain or above, and
+-- still signed up (an answer of "Can't" gives the spot back).
+function R.IsPicked(r, guid)
+    local s = r.signups[guid]
+    return (r.picked and r.picked[guid] ~= nil and s ~= nil and s.st ~= "no") or false
+end
+
+function R.PickedCount(r)
+    local n = 0
+    for guid in pairs(r.picked or {}) do
+        if R.IsPicked(r, guid) then n = n + 1 end
+    end
+    return n
+end
+
+-- May a spot be given (on = true) or taken back? Pure. -> true, or nil and why
+function R.CanPick(r, guid, on, now)
+    if not r or r.cancelled then return nil, "That raid is gone." end
+    if r.at < now - 6 * 3600 then return nil, "That raid is over." end
+    if not on then
+        if not (r.picked and r.picked[guid]) then return nil, "They aren't selected." end
+        return true
+    end
+    local s = r.signups[guid]
+    if not s or s.st == "no" then return nil, "They haven't signed up for this raid." end
+    if R.IsPicked(r, guid) then return nil, "They are already selected." end
+    local n = R.PickedCount(r)
+    if n >= r.size then
+        return nil, ("All %d spots are taken. Unselect someone first."):format(r.size)
+    end
+    return true
+end
+
+-- Team Captain or above: give a signed-up player a spot, or take it back.
+function R.Pick(id, guid, on)
+    if not RBAC.ICan("schedule") then return nil, "Only Team Captains and above select the raid." end
+    local st = Red.State()
+    local ok, why = R.CanPick(st and st.raids[id], guid, on, ns.Now())
+    if not ok then return nil, why end
+    return Log.New("RAID_PICK", { ev = id, who = guid, on = on and true or false })
+end
+
 function R.TakeAttendance(reason)
     if not RBAC.ICan("schedule") then return nil, "Only Team Captains and above take attendance." end
     local who = ns.DKP.GroupGUIDs()
@@ -153,20 +196,32 @@ function R.List(st, now)
 end
 
 -- Head counts and rows for one raid. present = attendance for that raid night.
+-- c.picked = players holding a spot, c.sel = their roles, c.waiting = signed
+-- up and not selected yet. c.yes and the plain role counts are everyone who
+-- signed up as coming.
 function R.Summary(st, r)
-    local c = { yes = 0, maybe = 0, no = 0, tank = 0, healer = 0, dps = 0 }
+    local c = { yes = 0, maybe = 0, no = 0, tank = 0, healer = 0, dps = 0, picked = 0, waiting = 0,
+        sel = { tank = 0, healer = 0, dps = 0 } }
     local rows = {}
     local present = st.attendDays[R.RaidDay(r.at)]
     for guid, s in pairs(r.signups) do
+        local picked = R.IsPicked(r, guid)
         c[s.st] = c[s.st] + 1
         if s.st == "yes" and s.role then c[s.role] = c[s.role] + 1 end
-        rows[#rows + 1] = { guid = guid, st = s.st, role = s.role, gear = st.gear and st.gear[guid] or nil,
+        if picked then
+            c.picked = c.picked + 1
+            if s.role then c.sel[s.role] = c.sel[s.role] + 1 end
+        elseif s.st == "yes" then
+            c.waiting = c.waiting + 1
+        end
+        rows[#rows + 1] = { guid = guid, st = s.st, role = s.role, picked = picked, gear = st.gear and st.gear[guid] or nil,
             showed = present and present[guid] or nil, name = ns.NameForGUID and ns.NameForGUID(guid) or guid }
     end
-    -- Coming first; within each answer the best-prepared first, so a leader
-    -- who has to choose sees who put in the work. No score sorts last.
+    -- Selected first, then signed up; within each the best-prepared first, so
+    -- a leader who has to choose sees who put in the work. No score sorts last.
     local order = { yes = 1, maybe = 2, no = 3 }
     table.sort(rows, function(a, b)
+        if a.picked ~= b.picked then return a.picked end
         if a.st ~= b.st then return order[a.st] < order[b.st] end
         local ga, gb = a.gear and a.gear.pre or -1, b.gear and b.gear.pre or -1
         if ga ~= gb then return ga > gb end
@@ -192,7 +247,9 @@ function R.DueReminders(st, me, now, done)
     local out = {}
     for _, r in pairs(st and st.raids or {}) do
         local s = r.signups[me]
-        if not r.cancelled and s and s.st ~= "no" then
+        -- Once the raid has been selected, only the selected are reminded.
+        local mine = R.PickedCount(r) == 0 or R.IsPicked(r, me)
+        if not r.cancelled and s and s.st ~= "no" and mine then
             local left = r.at - now
             for _, mark in ipairs({ 30, 15 }) do
                 local key = r.id .. ":" .. mark
@@ -239,7 +296,7 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         local c = R.Summary(Red.State(), r)
         p.list.Col(row, 1, 4, 130):SetText((past and "|cff808080" or "") .. date("%a %b %d  %I:%M %p", r.at))
         p.list.Col(row, 2, 136, 110):SetText(U.Safe(r.title, 30))
-        p.list.Col(row, 3, 248, 50):SetText(c.yes .. "/" .. r.size)
+        p.list.Col(row, 3, 248, 50):SetText(c.picked .. "/" .. r.size)
     end, function(r) selected = r.id; ns.UI.Refresh() end)
     p.list.scroll:SetPoint("TOPLEFT", 0, -18)
     p.list.key = "id"
@@ -274,8 +331,8 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             if not selected then return end
             if b[3] then charStore().role = b[3] end
             local role = b[3] or charStore().role
-            local ok = ns.UI.Try("Signed up: " .. R.STATUS_LABEL[b[2]] .. (b[2] == "yes" and (" as " .. R.ROLE_LABEL[role]) or "") .. ".",
-                R.SignUp, selected, b[2], role)
+            local ok = ns.UI.Try(b[2] == "yes" and ("Signed up as " .. R.ROLE_LABEL[role] .. ". A Team Captain or above selects who gets a spot.")
+                or ("Answered: " .. R.STATUS_LABEL[b[2]] .. "."), R.SignUp, selected, b[2], role)
             local r = ok and Red.State().raids[selected]
             if r and ns.Calendar then ns.Calendar.Respond(r, b[2]) end
             -- Signing up shares your current readiness score with the leaders.
@@ -285,15 +342,24 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         p.signButtons[i] = btn
     end
     p.people = W.List(p, 360, 92, 16, function(row, s)
-        p.people.Col(row, 1, 4, 112):SetText(U.Safe(s.name or "?", 40))
-        p.people.Col(row, 2, 118, 78):SetText(R.STATUS_LABEL[s.st] .. (s.role and (" " .. R.ROLE_LABEL[s.role]) or ""))
+        p.people.Col(row, 1, 4, 100):SetText(U.Safe(s.name or "?", 40))
+        local role = s.role and s.st ~= "no" and (" " .. R.ROLE_LABEL[s.role]) or ""
+        p.people.Col(row, 2, 106, 98):SetText(s.picked and ("|cff40ff40Selected|r" .. role) or (R.STATUS_LABEL[s.st] .. role))
         local g = s.gear
         local color = not g and "808080" or (g.pre >= 75 and "40ff40" or (g.pre >= 40 and "ffd100" or "ff6040"))
-        p.people.Col(row, 3, 198, 104):SetText("|cff" .. color .. (g and (g.pre .. "%  " .. U.Safe(g.spec, 24)) or "no score yet") .. "|r")
-        p.people.Col(row, 4, 304, 54):SetText(s.showed and "|cff40ff40was there|r" or "")
+        p.people.Col(row, 3, 206, 100):SetText("|cff" .. color .. (g and (g.pre .. "%  " .. U.Safe(g.spec, 24)) or "no score yet") .. "|r")
+        p.people.Col(row, 4, 308, 50):SetText(s.showed and "|cff40ff40was there|r" or "")
         row:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:AddLine(U.Safe(s.name or "?", 40))
+            if s.picked then
+                GameTooltip:AddLine("Selected for this raid.", 0.25, 1, 0.25)
+            elseif s.st ~= "no" then
+                GameTooltip:AddLine("Signed up. Not selected yet.", 1, 0.82, 0)
+            end
+            if RBAC.ICan("schedule") and s.st ~= "no" then
+                GameTooltip:AddLine(s.picked and "Click to take the spot back." or "Click to give them a spot.", 0.8, 0.8, 0.8)
+            end
             if g then
                 GameTooltip:AddLine(("Pre-raid BiS, %s list"):format(U.Safe(g.spec, 24)), 1, 1, 1)
                 GameTooltip:AddLine(("Owns %d%% of it (bags and bank count); wearing %d%%"):format(g.pre, g.worn), 0.8, 0.8, 0.8)
@@ -304,7 +370,15 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave", GameTooltip_Hide)
+    end, function(s)
+        -- Team Captain and above: a click gives this player a spot or takes it back.
+        if not (s and selected and RBAC.ICan("schedule")) then return end
+        if s.st == "no" and not s.picked then ns.UI.Say(U.Safe(s.name or "They", 40) .. " can't make this raid.") return end
+        local who = U.Safe(s.name or "?", 40)
+        ns.UI.Try(s.picked and (who .. " is no longer selected.") or (who .. " is selected for the raid."),
+            R.Pick, selected, s.guid, not s.picked)
     end)
+    p.people.key = "guid"
     p.peopleHead = W.Text(p, "Sign-ups (the % is how much of their pre-raid BiS list they own)", "GameFontDisableSmall")
     p.peopleHead:SetPoint("TOPLEFT", 334, -116)
     p.peopleHead:SetWidth(356)
@@ -424,17 +498,22 @@ end, function(p)
     p.info:SetText(U.Safe(found.raid, 30) .. " (" .. found.size .. ")  -  " .. (found.prog and "|cffff8040Progression|r" or "Farm")
         .. (found.n and ("  -  " .. U.Safe(found.n, 60)) or ""))
     p.when:SetText(R.When(found))
-    p.counts:SetText(("Coming %d/%d   Tanks %d  Healers %d  DPS %d   Maybe %d   Can't %d"):format(
-        c.yes, found.size, c.tank, c.healer, c.dps, c.maybe, c.no))
+    p.counts:SetText(("Selected %d/%d  (Tanks %d  Healers %d  DPS %d)   Waiting %d   Maybe %d   Can't %d"):format(
+        c.picked, found.size, c.sel.tank, c.sel.healer, c.sel.dps, c.waiting, c.maybe, c.no))
     p.peopleHead:SetShown(#rows > 0)
+    p.peopleHead:SetText(RBAC.ICan("schedule") and "Click a name to select or unselect them. The % is pre-raid BiS owned."
+        or "Sign-ups (the % is how much of their pre-raid BiS list they own)")
     local mine = found.signups[ns.MyGUID()]
     if not open then
         p.mine:SetText("This raid is over.")
     elseif not mine then
         p.mine:SetText("You haven't answered yet. Pick one:")
+    elseif R.IsPicked(found, ns.MyGUID()) then
+        p.mine:SetText("|cff40ff40You're selected" .. (mine.role and (" as " .. R.ROLE_LABEL[mine.role]) or "") .. ".|r Click another to change it.")
+    elseif mine.st == "yes" then
+        p.mine:SetText("Signed up" .. (mine.role and (" as " .. R.ROLE_LABEL[mine.role]) or "") .. ", not selected yet. Click another to change it.")
     else
-        p.mine:SetText("Your answer: " .. R.STATUS_LABEL[mine.st]
-            .. (mine.st == "yes" and mine.role and (" as " .. R.ROLE_LABEL[mine.role]) or "") .. ". Click another to change it.")
+        p.mine:SetText("Your answer: " .. R.STATUS_LABEL[mine.st] .. ". Click another to change it.")
     end
     p.people:SetItems(rows)
 end)
@@ -481,6 +560,36 @@ ns.On("PLAYER_LOGIN", function()
     if C_Timer and C_Timer.NewTicker then C_Timer.NewTicker(30, R.CheckReminders) end
 end)
 
+-- A chat line when you are given a raid spot or it is taken back.
+local seenPick, pickPrimed, pickQueued = {}, false, false
+function R.AnnouncePicks()
+    local st = Red.State()
+    if not st then return end
+    local me, now = ns.MyGUID(), ns.Now()
+    for id, r in pairs(st.raids) do
+        local mine = (not r.cancelled and r.at >= now - 6 * 3600 and R.IsPicked(r, me)) or false
+        if pickPrimed and mine ~= (seenPick[id] or false) and r.at >= now - 6 * 3600 and not r.cancelled then
+            local s = r.signups[me]
+            if mine then
+                alert(("You're selected for %s, %s%s."):format(U.Safe(r.title, 40), R.When(r),
+                    s and s.role and (", as " .. R.ROLE_LABEL[s.role]) or ""))
+            elseif s and s.st ~= "no" then
+                ns.Print(("You're no longer selected for %s. You're still signed up."):format(U.Safe(r.title, 40)))
+            end
+        end
+        seenPick[id] = mine
+    end
+    pickPrimed = true
+end
+ns.Listen("LOG_CHANGED", function()
+    if pickQueued or not (C_Timer and C_Timer.After) then return end
+    pickQueued = true
+    C_Timer.After(1, function()
+        pickQueued = false
+        R.AnnouncePicks()
+    end)
+end)
+
 -- One click by a Team Captain or above: whisper everyone who said yes or maybe
 -- and is online. Only ever sent from that click, never on a timer.
 function R.WhisperSignups(r)
@@ -491,13 +600,14 @@ function R.WhisperSignups(r)
         or ("Blood Pact: %s is starting. Please head to the raid now."):format(r.title)
     local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
     local names = {}
+    local chosenOnly = R.PickedCount(r) > 0      -- once the raid is selected, only the selected
     for guid, s in pairs(r.signups) do
         local m = ns.roster.byGUID[guid]
-        if s.st ~= "no" and guid ~= ns.MyGUID() and m and m.online and #names < 40 then
+        if s.st ~= "no" and (not chosenOnly or R.IsPicked(r, guid)) and guid ~= ns.MyGUID() and m and m.online and #names < 40 then
             names[#names + 1] = ns.U.ShortName(m.name)
         end
     end
-    if #names == 0 then return nil, "Nobody who signed up is online." end
+    if #names == 0 then return nil, chosenOnly and "Nobody who is selected is online." or "Nobody who signed up is online." end
     if ns.mock then return #names end   -- test mode never whispers anyone
     -- Spaced out so the chat server doesn't drop them.
     for i, name in ipairs(names) do
