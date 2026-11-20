@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Roster: a "How do I share my PvP rank?" button at the bottom right. Hover it for the steps: open Character > Player vs. Player, and Blood Pact shares the rank a moment later (or type /bp pvp)
+- Opening the character sheet or its Player vs. Player tab now reads your PvP rank and shares it a few seconds later
+- A member's details say "not shared yet (see the button below)" when their rank hasn't come in
+
 ## 1.0.2
 
 - Roster: a Zone column showing where each member is. For someone offline it shows where the game last saw them, greyed out. Press the heading to sort by zone

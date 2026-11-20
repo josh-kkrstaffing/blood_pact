@@ -138,3 +138,25 @@ for _, event in ipairs({ "PLAYER_PVP_RANK_CHANGED", "MAJOR_FACTION_RENOWN_LEVEL_
     ns.On(event, function() publishSoon(30) end)
 end
 ns.Listen("ROSTER_CHANGED", function() if ns.roster.loaded then publishSoon(100) end end)
+
+-- The steps a member follows to put their PvP rank in Blood Pact.
+V.HOWTO = {
+    "1. Open your character sheet (Character).",
+    "2. Click the Player vs. Player tab so the game loads your rank.",
+    "3. Blood Pact reads your rank and shares it with the guild a moment later.",
+    "You can also type /bp pvp to share it right away.",
+}
+V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Blood Pact shares it a moment later (or type /bp pvp)."
+
+-- Opening the character sheet or its PvP tab: read the rank and share it soon.
+local function hookShow(frame)
+    if type(frame) == "table" and frame.HookScript then pcall(frame.HookScript, frame, "OnShow", function() publishSoon(3) end) end
+end
+ns.On("PLAYER_LOGIN", function()
+    hookShow(CharacterFrame)
+    hookShow(PVPFrame)
+    hookShow(PVPUIFrame)
+end)
+ns.On("ADDON_LOADED", function(name)
+    if name == "Blizzard_PVPUI" then hookShow(PVPUIFrame) end
+end)

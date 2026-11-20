@@ -405,6 +405,17 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         p.list.Col(row, 5, 545, 54):SetText(r.last)
     end, function(r) selected = r.guid; ns.UI.Refresh() end)
     p.list:Stretch(0, -44, nil, 0)
+
+    -- How a member gets their PvP rank badge: hover for the steps.
+    p.pvpHow = W.Button(p, "How do I share my PvP rank?", 200, 20, function() ns.UI.Say(ns.PvP.HOWTO_SHORT) end)
+    p.pvpHow:SetPoint("BOTTOMRIGHT", 0, 0)
+    p.pvpHow:HookScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+        GameTooltip:AddLine("Share your PvP rank with the guild")
+        for _, l in ipairs(ns.PvP.HOWTO) do GameTooltip:AddLine(l, 1, 1, 1, true) end
+        GameTooltip:Show()
+    end)
+    p.pvpHow:HookScript("OnLeave", GameTooltip_Hide)
     p.list.key = "guid"
 
     -- Detail of the selected member
@@ -568,6 +579,7 @@ end, function(p)
     p.detailBtn:SetShown(false)
     p.lootBtn:SetShown(false)
     p.classBtn:SetShown(members)
+    p.pvpHow:SetShown(members)
     p.classBtn:SetEnabled(pane ~= "classes")
     p.classPane:SetShown(false)
     p.loot.scroll:SetShown(false)
@@ -698,7 +710,7 @@ end, function(p)
         or "Pre-raid BiS: no score yet"
     local rank = sel.pvp and ns.PvP.Valid(sel.pvp.r)
     lines[#lines + 1] = rank and ("PvP rank %d: %s"):format(rank, ns.PvP.Title(rank, ns.PvP.MyFaction()) or "?")
-        or (sel.pvp and "PvP rank: none yet" or "PvP rank: not shared yet")
+        or (sel.pvp and "PvP rank: none yet" or "PvP rank: not shared yet (see the button below)")
     local pr = st and st.profs[sel.guid]
     if pr then
         local L = ns.Professions.Label

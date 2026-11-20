@@ -186,7 +186,8 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
     "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
-    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown" }) do
+    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown",
+    "CharacterFrame", "PVPFrame", "PVPUIFrame" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -1800,6 +1801,20 @@ run(member, "recipe how-to", function()
     btn:GetScript("OnClick")(btn, "LeftButton")
 end)
 check(said(member, "To share your recipes: open Character > Professions, click the link bubble"), "a click repeats the steps")
+
+-- Members are told how to share their PvP rank.
+clickText(member, "Roster")
+clickText(member, "Members")
+run(member, "pvp how-to", function()
+    local btn
+    for _, w in ipairs(member.widgets) do if w._.text == "How do I share my PvP rank?" then btn = w end end
+    check(btn ~= nil and btn:IsVisible(), "the Roster has a How do I share my PvP rank? button")
+    local V = member.ns.PvP
+    check(V.HOWTO[1]:find("character sheet", 1, true) and V.HOWTO[2]:find("Player vs. Player", 1, true),
+        "its tooltip gives the steps: character sheet, then Player vs. Player")
+    btn:GetScript("OnClick")(btn, "LeftButton")
+end)
+check(said(member, "To share your PvP rank: open Character > Player vs. Player."), "a click repeats the steps")
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
