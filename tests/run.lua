@@ -38,6 +38,7 @@ ns.Listen = function() end
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
 load("Modules/Summon.lua")
+load("Modules/SummonQueue.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
 local passed, failed = 0, 0
@@ -1186,6 +1187,37 @@ test("orders: mailed items make an order In transit until it is confirmed", func
     for _, bad in ipairs({ { id = id }, { id = id, n = 0 }, { id = id, n = 100 }, { id = id, n = 1.5 }, { n = 1 } }) do
         eq(select(2, Log.Insert(g, author(g, B, "ORDER_MAIL", bad), true)), "payload")
     end
+end)
+
+test("summon queue: the keyword, one place per name, and group units", function()
+    local Q = ns.SummonQueue
+    for _, yes in ipairs({ "123", " 123 ", "123 please", "123!", "123 pls ty", "123, at the stone" }) do
+        eq(Q.Matches(yes, "123"), true, yes)
+    end
+    for _, no in ipairs({ "1234", "12", "need 123", "0123", "", "123 is what you type when you want a summon", "sum" }) do
+        eq(Q.Matches(no, "123"), false, no)
+    end
+    eq(Q.Matches("SUM", "sum"), true); eq(Q.Matches("summon", "sum"), false); eq(Q.Matches(nil, "123"), false)
+    eq(Q.Matches("123", ""), false)
+    eq(Q.CleanKey(" Sum "), "sum"); eq(Q.CleanKey("two words"), nil); eq(Q.CleanKey(""), nil)
+    eq(Q.CleanKey(("x"):rep(13)), nil); eq(Q.CleanKey(42), nil)
+
+    local list = {}
+    local a, new = Q.Add(list, "Pip", "G-PIP", 100, "raid")
+    eq(new, true); eq(a.name, "Pip")
+    eq(select(2, Q.Add(list, "Pip", "G-PIP", 130, "raid")), false)          -- asking twice is one place
+    eq(select(2, Q.Add(list, "pip", nil, 130, "whisper")), false)           -- same name, no id given
+    eq(select(2, Q.Add(list, "Vela", nil, 140, "whisper")), true)
+    eq(select(2, Q.Add(list, "Grim Tusk", "G-GRIM", 150, "party")), true)   -- names can have spaces
+    eq(#list, 3); eq(list[1].name, "Pip"); eq(list[3].name, "Grim Tusk")   -- first come, first served
+
+    Q.Assign(list, { { unit = "raid4", guid = "G-PIP", name = "Pip" }, { unit = "raid9", guid = "G-VELA", name = "Vela" } })
+    eq(list[1].unit, "raid4"); eq(list[2].unit, "raid9"); eq(list[2].guid, "G-VELA"); eq(list[3].unit, nil)
+    Q.Assign(list, {})                                                      -- they left the group
+    eq(list[1].unit, nil)
+
+    eq(Q.Prune(list, 100 + Q.TTL + 1), 1); eq(#list, 2); eq(list[1].name, "Vela")
+    eq(Q.Remove(list, list[1]), true); eq(Q.Remove(list, {}), false); eq(#list, 1)
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

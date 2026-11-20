@@ -321,6 +321,9 @@ ns.UI.AddTab("summon", "Summon", "view", function(p)
     end, function() ns.UI.Refresh() end)
     p.locks.scroll:SetPoint("TOPLEFT", 0, -20)
     p.locks.key = "guid"
+    -- Warlocks: the click-to-summon list (Modules/SummonQueue.lua).
+    p.queue = W.Button(p, "Open summon queue", 140, 18, function() ns.SummonQueue.Show(false) end)
+    p.queue:SetPoint("TOPLEFT", 250, 2)
 
     -- Asking for a summon
     W.Text(p, "Need a summon?", "GameFontNormal"):SetPoint("TOPLEFT", 430, 0)
@@ -433,6 +436,7 @@ end, function(p)
 
     local lock = iAmWarlock() or (ns.mock and true)
     local sel = p.board.selected
+    p.queue:SetShown(iAmWarlock())
     p.start:SetShown(lock)
     p.call:SetShown(lock)
     p.done:SetShown(lock)
@@ -453,8 +457,10 @@ end, function(p)
         local offers = 0
         for _ in pairs(S.offers[me] or {}) do offers = offers + 1 end
         p.hint:SetText("Pick a request, then Invite for summon: it invites them and up to " .. S.HELPERS
-            .. " guildmates in your zone." .. (offers > 0 and ("  " .. offers .. " offered to help click.") or ""))
+            .. " guildmates in your zone. Then click their name in the summon queue."
+            .. (offers > 0 and ("  " .. offers .. " offered to help click.") or ""))
     else
-        p.hint:SetText("The ritual needs the warlock and " .. S.HELPERS .. " more group members to click the portal.")
+        p.hint:SetText("In a group with a warlock? Type 123 in raid or party chat to join their summon queue. The ritual needs the warlock and "
+            .. S.HELPERS .. " more group members to click the portal.")
     end
 end)

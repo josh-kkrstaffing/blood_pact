@@ -33,7 +33,9 @@ Activity counts per player: a main is active if any of their alts was online, or
 
 ## Summons
 
-WoW Forever has no summoning stones, so a warlock's Ritual of Summoning is the only summon, and it needs the warlock plus two more group members to click the portal. The Summon tab lists the guild's online warlocks with how many guildmates are in each one's zone. Anyone can ask for a summon; warlocks with the addon are alerted. The warlock picks the request and presses one button to invite the asker and up to two guildmates from their zone, or calls for clickers. Every invite and message is a click by a player; the ritual itself is cast by hand.
+WoW Forever has no summoning stones, so a warlock's Ritual of Summoning is the only summon, and it needs the warlock plus two more group members to click the portal. The Summon tab lists the guild's online warlocks with how many guildmates are in each one's zone. Anyone can ask for a summon; warlocks with the addon are alerted. The warlock picks the request and presses one button to invite the asker and up to two guildmates from their zone, or calls for clickers. Every invite and message is a click by a player.
+
+Warlocks also get a summon queue. Anyone types `123` in raid, party or guild chat, or whispers it to the warlock, and their name joins a small list on the warlock's screen. Clicking a name casts Ritual of Summoning on that player through the game's own secure button (one click, one cast); right-click targets them. Only guild members and people already in the warlock's group are listed. The warlock can change the keyword, and `/bp summon` opens the list. Blood Pact reads the keyword from chat the player already sees; it sends nothing in reply.
 
 ## Raids and attendance
 

@@ -74,7 +74,23 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "SetOrientation", "SetThumbTexture", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
     M[name] = noop
 end
-function M:SetSize(w, h) self._.w, self._.h = w, h end
+-- Secure buttons and the frames that hold them are locked while their owner
+-- is in combat: changing them then is an error here, as it is blocked in game.
+local COMBAT = {}
+local function locked(w, what)
+    if w._.protected and w._.ctx and COMBAT[w._.ctx.guid] then
+        error("a protected frame was changed in combat (" .. what .. ")", 3)
+    end
+end
+function M:SetPoint() locked(self, "SetPoint") end
+function M:ClearAllPoints() locked(self, "ClearAllPoints") end
+function M:SetAttribute(name, value)
+    locked(self, "SetAttribute")
+    self._.attrs = self._.attrs or {}
+    self._.attrs[name] = value
+end
+function M:GetAttribute(name) return self._.attrs and self._.attrs[name] end
+function M:SetSize(w, h) locked(self, "SetSize"); self._.w, self._.h = w, h end
 function M:SetWidth(w) self._.w = w end
 function M:SetHeight(h) self._.h = h end
 function M:GetWidth() return self._.w end
@@ -92,9 +108,9 @@ function M:HookScript(name, fn)
     local old = self._.scripts[name]
     self._.scripts[name] = old and function(...) old(...); fn(...) end or fn
 end
-function M:Show() self._.shown = true end
-function M:Hide() self._.shown = false end
-function M:SetShown(v) self._.shown = v and true or false end
+function M:Show() locked(self, "Show"); self._.shown = true end
+function M:Hide() locked(self, "Hide"); self._.shown = false end
+function M:SetShown(v) locked(self, "SetShown"); self._.shown = v and true or false end
 function M:IsShown() return self._.shown end
 function M:IsVisible()
     local w = self
@@ -193,8 +209,12 @@ G.print = function(...)
 end
 G.GetTime = function() return clock end
 G.GetServerTime = function() return BASE + math.floor(clock) end
-G.CreateFrame = function(kind, name, parent)
+G.CreateFrame = function(kind, name, parent, template)
     local w = widget(kind, parent)
+    if type(template) == "string" and template:find("Secure", 1, true) then
+        local up = w
+        while up do up._.protected = true; up = up._.parent end
+    end
     if name then rawset(G, name, w) end
     return w
 end
@@ -209,8 +229,25 @@ G.C_Timer = {
     After = function(d, fn) addTimer(d, fn) end,
     NewTicker = function(d, fn) addTimer(d, fn, d) end,
 }
-G.UnitGUID = function() return ctx.guid end
-G.UnitName = function() return ctx.name end
+-- Groups: GROUPS[guid] = { raid = bool, guid, guid, ... } as that player sees
+-- their party ("party1"...) or raid ("raid1"...).
+local GROUPS, NEARBY = {}, {}
+local function unitGuid(unit)
+    if unit == nil or unit == "player" then return ctx.guid end
+    local kind, i = tostring(unit):match("^(%a+)(%d+)$")
+    local g = GROUPS[ctx.guid]
+    if g and kind == (g.raid and "raid" or "party") then return g[tonumber(i)] end
+    return nil
+end
+G.UnitGUID = function(unit) return unitGuid(unit) end
+G.UnitName = function(unit)
+    local guid = unitGuid(unit)
+    if guid == ctx.guid then return ctx.name end
+    for _, m in ipairs(GUILD) do if m[7] == guid then return m[1] end end
+    return nil
+end
+G.InCombatLockdown = function() return COMBAT[ctx.guid] == true end
+G.UnitInRange = function(unit) return NEARBY[unitGuid(unit) or ""] == true, true end
 G.UnitClass = function() return ctx.class, ctx.class end
 G.UnitLevel = function() return ctx.level end
 -- Skills, served through a different game API for each player so that all
@@ -300,8 +337,8 @@ end
 G.UnitIsGroupLeader = function() return false end
 G.UnitIsGroupAssistant = function() return false end
 G.IsInGuild = function() return true end
-G.IsInRaid = function() return false end
-G.IsInGroup = function() return false end
+G.IsInRaid = function() local g = GROUPS[ctx.guid]; return g ~= nil and g.raid == true end
+G.IsInGroup = function() return GROUPS[ctx.guid] ~= nil end
 -- PvP rank, served two ways: the GM through the older call (id 11 = rank 7),
 -- the Officer through Forever's rank track, and the Member has no rank.
 G.UnitFactionGroup = function() return "Horde" end
@@ -321,7 +358,10 @@ G.GetItemInfo = function(id)
     itemsAsked[id] = true
     return nil
 end
-G.GetNumGroupMembers = function() return 0 end
+G.GetNumGroupMembers = function()
+    local g = GROUPS[ctx.guid]
+    return g and (#g + (g.raid and 0 or 1)) or 0
+end
 G.GetGuildInfo = function() return "Blood Pact" end
 G.GetNormalizedRealmName = function() return "Normal" end
 G.GetZoneText = function() return ctx.zone end
@@ -940,6 +980,116 @@ end)
 pressEverything(gm)
 fire(gm, "MAIL_CLOSED")
 run(gm, "mailbox closed", function() check(not mailPanel(gm):IsShown(), "closing the mailbox closes the panel") end)
+
+-- The summon queue. The GM is a warlock, in a party with the Officer and the Member.
+GROUPS[gm.guid] = { officer.guid, MEMBER }
+GROUPS[officer.guid] = { gm.guid, MEMBER }
+local function chat(c, event, text, from, guid)
+    fire(c, event, text, from .. REALM, "", "", from, "", 0, 0, "", 0, 1, guid)
+end
+local function queuePanel(c)
+    for _, w in ipairs(c.widgets) do
+        if w._.kind == "FontString" and w._.text:find("^Summon queue") and w._.parent._.protected then return w._.parent end
+    end
+end
+-- What the game would do with a click on a secure button, from its attributes.
+local function secureClick(c, b, button)
+    local a = b._.attrs or {}
+    local n = button == "RightButton" and "2" or "1"
+    local kind = a["type" .. n]
+    local did = kind and (kind .. ":" .. tostring(a["spell" .. n] or "") .. ":" .. tostring(a.unit)) or "nothing"
+    if b._.scripts.PostClick then inCtx(c, "PostClick", b._.scripts.PostClick, b, button, false) end
+    return did
+end
+local function queueNames(c)
+    local names = {}
+    for i, e in ipairs(c.ns.SummonQueue.list) do names[i] = e.name end
+    return table.concat(names, ",")
+end
+slash(officer, "summon")
+check(said(officer, "Only a warlock gets a summon queue."), "/bp summon tells a non-warlock how to ask instead")
+chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
+chat(officer, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
+chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)                       -- asking twice
+chat(gm, "CHAT_MSG_PARTY", "1234 gold", "Grim Tusk", officer.guid)     -- not the keyword
+chat(gm, "CHAT_MSG_PARTY", "123", "Binky Bee", gm.guid)                -- the warlock's own line
+chat(gm, "CHAT_MSG_WHISPER", "123", "Stranger", "Player-9-STRANGER")   -- not in the guild or the group
+chat(gm, "CHAT_MSG_GUILD", "123 please", "Vela", "Player-1-VET")       -- a guildmate who isn't in the group
+run(gm, "queue", function()
+    local f = queuePanel(gm)
+    check(f ~= nil and f:IsShown(), "a request in chat opens the warlock's summon queue")
+    check(queueNames(gm) == "Pip,Vela", "the keyword puts each asker in the queue once, in order; strangers and other chat are ignored")
+    check(#officer.ns.SummonQueue.list == 0 and queuePanel(officer) == nil, "players who aren't warlocks keep no queue")
+    local pip, vela = f.rows[1], f.rows[2]
+    check(pip:IsShown() and pip.name:GetText() == "Pip" and pip:GetAttribute("unit") == "party2", "a row is tied to that player's place in the group")
+    check(secureClick(gm, pip, "RightButton") == "target:nil:party2" or secureClick(gm, pip, "RightButton") == "target::party2",
+        "right-click targets the player")
+    check(secureClick(gm, pip, "LeftButton") == "spell:Ritual of Summoning:party2", "left-click casts Ritual of Summoning on the player")
+    check(pip.info:GetText() == "summoning", "the row shows the summon has started")
+    check(vela:IsShown() and vela:GetAttribute("unit") == nil and secureClick(gm, vela, "LeftButton") == "nothing" and vela.inv:IsShown(),
+        "a guildmate outside the group can't be summoned yet and gets an Invite button")
+    vela.inv:GetScript("OnClick")(vela.inv, "LeftButton")
+    check(invites[#invites] == "Vela", "the Invite button invites them, from the warlock's click")
+    check(not f.rows[3]:IsShown(), "unused rows stay hidden")
+end)
+-- In combat the game locks the list: a new request waits, and nothing breaks.
+COMBAT[gm.guid] = true
+chat(gm, "CHAT_MSG_PARTY", "123", "Grim Tusk", officer.guid)
+advance(4)
+run(gm, "queue in combat", function()
+    local f = queuePanel(gm)
+    check(queueNames(gm) == "Pip,Vela,Grim Tusk" and not f.rows[3]:IsShown(), "a request during combat is kept but the locked list isn't touched")
+    check(said(gm, "Grim Tusk asked for a summon. The queue updates when you leave combat."), "the warlock is told in chat")
+    f.rows[2].x:GetScript("OnClick")(f.rows[2].x, "LeftButton")           -- remove Vela while locked
+end)
+COMBAT[gm.guid] = nil
+fire(gm, "PLAYER_REGEN_ENABLED")
+run(gm, "queue after combat", function()
+    local f = queuePanel(gm)
+    check(queueNames(gm) == "Pip,Grim Tusk" and f.rows[2].name:GetText() == "Grim Tusk" and f.rows[2]:GetAttribute("unit") == "party1"
+        and not f.rows[3]:IsShown(), "after combat the list catches up")
+end)
+-- Pip arrives next to the warlock: off the list. A Summon-tab request joins it.
+NEARBY[MEMBER] = true
+run(member, "board request", function() assert(member.ns.Summon.Request("Orgrimmar", nil)) end)
+advance(8)
+run(gm, "arrivals", function()
+    check(queueNames(gm) == "Grim Tusk", "a player who has arrived leaves the queue, and isn't re-added while standing there")
+end)
+NEARBY[MEMBER] = nil
+advance(8)
+run(gm, "from the board", function()
+    local f = queuePanel(gm)
+    check(queueNames(gm) == "Grim Tusk,Pip", "a request made from the Summon tab joins the same queue")
+    f.rows[2].x:GetScript("OnClick")(f.rows[2].x, "LeftButton")
+end)
+advance(8)
+run(gm, "dismissed", function()
+    local f = queuePanel(gm)
+    check(queueNames(gm) == "Grim Tusk", "a name the warlock removed doesn't come straight back from the same request")
+    f.key:SetText("Sum")
+    f.key:GetScript("OnEditFocusLost")(f.key)
+    check(gm.ns.SummonQueue.Key() == "sum" and f.key:GetText() == "sum", "the warlock can change the keyword")
+    f.key:SetText("two words")
+    f.key:GetScript("OnEditFocusLost")(f.key)
+    check(gm.ns.SummonQueue.Key() == "sum", "a keyword that isn't one short word is refused")
+end)
+chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
+chat(gm, "CHAT_MSG_PARTY", "sum", "Pip", MEMBER)
+run(gm, "new keyword", function() check(queueNames(gm) == "Grim Tusk,Pip", "only the new keyword is listened for") end)
+run(gm, "queue cleared", function()
+    for _, w in ipairs(gm.widgets) do
+        if w._.text == "Clear list" and w:IsVisible() then w:GetScript("OnClick")(w, "LeftButton") end
+    end
+    local f = queuePanel(gm)
+    check(#gm.ns.SummonQueue.list == 0 and not f.rows[1]:IsShown() and f.empty:IsShown(), "Clear list empties the queue")
+    gm.ns.Char().summonKey = nil
+end)
+chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
+pressEverything(gm)
+run(member, "cancel board request", function() member.ns.Summon.Cancel() end)
+GROUPS[gm.guid], GROUPS[officer.guid] = nil, nil
+advance(5)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

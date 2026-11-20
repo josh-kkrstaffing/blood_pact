@@ -12,6 +12,7 @@ local function help()
     ns.Print("/bp recipes - with a profession window open: record and share its recipes now")
     ns.Print("/bp pvp - read your PvP rank now, share it, and show what the game reported")
     ns.Print("/bp mail - at a mailbox: list the crafting orders you can mail")
+    ns.Print("/bp summon - warlocks: open the summon queue (people type 123 to join it)")
 end
 
 SLASH_BLOODPACT1 = "/bp"
@@ -35,6 +36,8 @@ SlashCmdList.BLOODPACT = function(input)
         ns.PvP.Diagnose()
     elseif cmd == "recipes" or cmd == "recipe" then
         ns.Recipes.Scan(false)
+    elseif cmd == "summon" or cmd == "queue" or cmd == "123" then
+        ns.SummonQueue.Show(false)
     elseif cmd == "mail" then
         ns.Mail.Show(false)
     elseif cmd == "about" or cmd == "discord" then

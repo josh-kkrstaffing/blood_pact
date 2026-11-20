@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.18.0
+
+- Summon queue for warlocks: anyone types "123" in raid, party or guild chat, or whispers it to the warlock, and their name joins a small list on the warlock's screen
+- Click a name to cast Ritual of Summoning on that player; right-click targets them. The click is the game's own secure button, so every summon is the warlock's own click
+- Each asker is listed once, in the order they asked. Names leave the list when the player arrives, when you press x, or after 30 minutes
+- Requests made from the Summon tab join the same list. A guildmate who isn't in your group yet shows an Invite button
+- Only guild members and people already in your group are listed, so strangers' whispers can't fill it
+- The warlock can change the keyword at the bottom of the list. `/bp summon`, or "Open summon queue" on the Summon tab, opens it
+- The game locks the list during combat; it catches up when combat ends
+
 ## 0.17.1
 
 - Orders now move To craft > In transit > Delivered. Once the full amount is mailed, the order reads "In transit, mailed <date>" for the whole guild, in gold, until the member who ordered presses "I received it"
