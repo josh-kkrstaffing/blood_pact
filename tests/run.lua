@@ -40,6 +40,7 @@ ns.Sync = { Handle = function() end }
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
 load("Modules/SummonQueue.lua")
+load("Modules/SummonCall.lua")
 
 local U, Log, Red, R = ns.U, ns.Log, ns.Reducer, ns.RBAC
 local passed, failed = 0, 0
@@ -1324,6 +1325,36 @@ test("summon: the whisper that asks a group leader to invite", function()
     eq(S.SuggestText({ "Vela" }), "Could you invite Vela to the group? I'm summoning. (sent with Blood Pact)")
     eq(S.SuggestText({ "Vela", "Pip", "Grim Tusk" }), "Could you invite Vela, Pip, Grim Tusk to the group? I'm summoning. (sent with Blood Pact)")
     eq(#S.SuggestText({ ("x"):rep(120), ("y"):rep(120), ("z"):rep(120) }) <= 255, true)
+end)
+
+test("summon messages: who is called out, and long whispers cut to fit", function()
+    local C = ns.SummonCall
+    eq(C.Names({}), "all"); eq(C.Names({ "Solo" }), "Solo"); eq(C.Names({ "Solo", "Holly" }), "Solo & Holly")
+    eq(C.Names({ "A", "B", "C" }), "A, B & C"); eq(C.Names({ "A", "B", "C", "D", "E" }), "A, B & C")   -- three at most
+    eq(C.Callout(C.DEFAULT_CALL, { "Solo", "Holly" }), "Yo! Click the purple oval! I see you Solo & Holly doing nothing!")
+    eq(C.Callout(C.DEFAULT_CALL, {}), "Yo! Click the purple oval! I see you all doing nothing!")
+    eq(C.Callout("No placeholder here", { "Solo" }), "No placeholder here")
+    eq(C.Callout("{names}: %s and %d stay as typed", { "Solo" }), "Solo: %s and %d stay as typed")
+    eq(#C.Callout(("x"):rep(400), {}), 255)
+
+    local idle, clicking = C.Idle({
+        { name = "Solo", near = true, clicking = false },
+        { name = "Holly", near = true, clicking = false },
+        { name = "Clicker", near = true, clicking = true },
+        { name = "Far Away", near = false, clicking = false },
+        { name = "Summoned", near = true, clicking = false, summoned = true },
+    })
+    eq(table.concat(idle, ","), "Holly,Solo"); eq(clicking, 1)        -- near, not clicking, not the one being summoned
+
+    local parts = C.Split(C.DEFAULT_TELL)
+    eq(#parts, 2)
+    eq(parts[1], "Abra-cadabra-fel-o-rama, bibbidi-bobbidi-doom, get your pixelated posterior out of the tavern and into this room!")
+    eq(parts[2]:sub(1, 18), "Shazam-a-ling-ding"); eq(parts[2]:sub(-17), "angry elite mobs!")
+    for _, part in ipairs(parts) do eq(#part <= 255, true) end
+    eq(#C.Split("short"), 1); eq(#C.Split(""), 0)
+    local long = C.Split(("word "):rep(120))                          -- no sentence end: cut at a space
+    eq(#long, 3); eq(long[1]:sub(-4), "word"); eq(#long[1] <= 255, true)
+    eq(#C.Split(("x"):rep(600)), 3)                                   -- no spaces at all: cut anyway
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

@@ -231,9 +231,10 @@ G.C_Timer = {
 }
 -- Groups: GROUPS[guid] = { raid = bool, guid, guid, ... } as that player sees
 -- their party ("party1"...) or raid ("raid1"...).
-local GROUPS, NEARBY = {}, {}
+local GROUPS, NEARBY, TARGETS, CHANNELING = {}, {}, {}, {}
 local function unitGuid(unit)
     if unit == nil or unit == "player" then return ctx.guid end
+    if unit == "target" then return TARGETS[ctx.guid] end
     local kind, i = tostring(unit):match("^(%a+)(%d+)$")
     local g = GROUPS[ctx.guid]
     if g and kind == (g.raid and "raid" or "party") then return g[tonumber(i)] end
@@ -248,6 +249,7 @@ G.UnitName = function(unit)
 end
 G.InCombatLockdown = function() return COMBAT[ctx.guid] == true end
 G.UnitInRange = function(unit) return NEARBY[unitGuid(unit) or ""] == true, true end
+G.UnitChannelInfo = function(unit) return CHANNELING[unitGuid(unit) or ""] end
 G.UnitClass = function() return ctx.class, ctx.class end
 G.UnitLevel = function() return ctx.level end
 -- Skills, served through a different game API for each player so that all
@@ -1164,6 +1166,111 @@ end)
 run(member, "cancel board request", function() member.ns.Summon.Cancel() end)
 GROUPS[gm.guid], GROUPS[officer.guid] = nil, nil
 LEADERS[gm.guid], LEADERS[officer.guid] = nil, nil
+advance(5)
+
+-- Summon messages: the GM (a warlock, Team Captain or above) summons Vela in a raid.
+-- The Officer and the Member stand next to the portal.
+local VET = "Player-1-VET"
+GROUPS[gm.guid] = { raid = true, gm.guid, officer.guid, MEMBER, VET }
+GROUPS[officer.guid] = { raid = true, gm.guid, officer.guid, MEMBER, VET }
+NEARBY[officer.guid], NEARBY[MEMBER] = true, true
+local function ritual(c, phase)
+    local event = phase == "start" and "UNIT_SPELLCAST_START" or phase == "up" and "UNIT_SPELLCAST_CHANNEL_START"
+        or phase == "done" and "UNIT_SPELLCAST_SUCCEEDED" or phase == "stop" and "UNIT_SPELLCAST_CHANNEL_STOP" or "UNIT_SPELLCAST_INTERRUPTED"
+    fire(c, event, "player", "cast-1", 698)
+end
+local function chatSince(n)
+    local out = {}
+    for i = n + 1, #guildChat do out[#out + 1] = guildChat[i] end
+    return out
+end
+run(gm, "empty queue", function()
+    for i = #gm.ns.SummonQueue.list, 1, -1 do table.remove(gm.ns.SummonQueue.list, i) end
+end)
+chat(gm, "CHAT_MSG_RAID", "123", "Vela", VET)
+local mark = #guildChat
+run(gm, "click the queue", function()
+    local f = queuePanel(gm)
+    check(f.rows[1].name:GetText() == "Vela" and f.rows[1]:GetAttribute("unit") == "raid4", "in a raid the row is tied to the raid unit")
+    check(f.msgs:IsShown(), "a Team Captain or above gets the Messages button")
+    secureClick(gm, f.rows[1], "LeftButton")
+end)
+ritual(gm, "start")
+advance(1)
+local lines = chatSince(mark)
+check(#lines == 2 and lines[1]:find("WHISPER:Vela:Abra-cadabra-fel-o-rama", 1, true) == 1 and lines[1]:sub(-10) == "this room!"
+    and lines[2]:find("WHISPER:Vela:Shazam-a-ling-ding", 1, true) == 1 and lines[2]:sub(-17) == "angry elite mobs!",
+    "the player being summoned is whispered when the ritual starts, in two whispers that each fit the chat box")
+advance(3.5)
+check(#chatSince(mark) == 2, "nobody is called out while the ritual is still being cast")
+ritual(gm, "done"); ritual(gm, "up")
+advance(3)
+check(#chatSince(mark) == 2, "nor in the first seconds after the portal appears")
+advance(2)
+lines = chatSince(mark)
+check(#lines == 3 and lines[3] == "RAID:nil:Yo! Click the purple oval! I see you Grim Tusk & Pip doing nothing!",
+    "then one line in raid chat names the group members standing there and not clicking")
+advance(30)
+check(#chatSince(mark) == 3, "the callout is sent once per ritual")
+ritual(gm, "stop")
+-- The next ritual: one of them clicks, so only the other is named. Vela isn't whispered again so soon.
+advance(20)
+mark = #guildChat
+CHANNELING[officer.guid] = "Ritual of Summoning"
+ritual(gm, "start"); advance(5); ritual(gm, "done"); ritual(gm, "up"); advance(6)
+lines = chatSince(mark)
+check(#lines == 1 and lines[1] == "RAID:nil:Yo! Click the purple oval! I see you Pip doing nothing!", "someone who is clicking isn't called out")
+ritual(gm, "stop")
+-- Both click: nothing to say.
+advance(20)
+mark = #guildChat
+CHANNELING[MEMBER] = "Ritual of Summoning"
+ritual(gm, "start"); advance(5); ritual(gm, "done"); ritual(gm, "up"); advance(6)
+check(#chatSince(mark) == 0, "a portal with its two clickers gets no callout")
+ritual(gm, "stop")
+CHANNELING[officer.guid], CHANNELING[MEMBER] = nil, nil
+-- Interrupted before the callout is due.
+advance(20)
+mark = #guildChat
+ritual(gm, "start"); advance(5); ritual(gm, "done"); ritual(gm, "up"); advance(2); ritual(gm, "interrupted"); advance(10)
+check(#chatSince(mark) == 0, "a ritual that stops early calls nobody out")
+-- The Officer is no warlock: their casts send nothing.
+advance(20)
+mark = #guildChat
+ritual(officer, "start"); advance(5); ritual(officer, "up"); advance(10)
+check(#chatSince(mark) == 0, "only a warlock's own ritual sends anything")
+-- The warlock's own words, and the off switches.
+run(gm, "own messages", function()
+    check(gm.ns.SummonCall.ShowSettings(), "the messages can be opened")
+    gm.ns.Char().summonCallText = "Portal is up, {names}. Click it."
+    gm.ns.Char().summonTell = false
+    gm.ns.SummonQueue.lastClick = nil
+end)
+advance(60)
+TARGETS[gm.guid] = VET
+mark = #guildChat
+ritual(gm, "start"); advance(5); ritual(gm, "done"); ritual(gm, "up"); advance(6)
+lines = chatSince(mark)
+check(#lines == 1 and lines[1] == "RAID:nil:Portal is up, Grim Tusk & Pip. Click it.", "the callout uses the warlock's own text, and the whisper can be switched off")
+ritual(gm, "stop")
+run(gm, "callout off", function() gm.ns.Char().summonCall = false end)
+advance(20)
+mark = #guildChat
+ritual(gm, "start"); advance(5); ritual(gm, "done"); ritual(gm, "up"); advance(6)
+check(#chatSince(mark) == 0, "with both switched off nothing is sent")
+ritual(gm, "stop")
+run(officer, "messages gate", function()
+    check(officer.ns.SummonCall.ShowSettings() == false and said(officer, "Summon messages are for warlocks of Team Captain rank and above."),
+        "the messages are for warlocks of Team Captain rank and above")
+end)
+pressEverything(gm)
+run(gm, "reset messages", function()
+    local c = gm.ns.Char()
+    c.summonCall, c.summonTell, c.summonCallText, c.summonTellText = nil, nil, nil, nil
+    for i = #gm.ns.SummonQueue.list, 1, -1 do table.remove(gm.ns.SummonQueue.list, i) end
+end)
+GROUPS[gm.guid], GROUPS[officer.guid], TARGETS[gm.guid] = nil, nil, nil
+NEARBY[officer.guid], NEARBY[MEMBER] = nil, nil
 advance(5)
 
 -- Recruiting: search a starting zone a few levels at a time, then whisper with one click.

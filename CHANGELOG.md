@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.21.0
+
+- Summon messages, for warlocks of Team Captain rank and above, sent only while they cast their own Ritual of Summoning
+- The player being summoned is whispered when the ritual starts. A long whisper is sent as two, each cut at the end of a sentence so it fits the chat box
+- If the portal is still short of clickers 4 seconds after it appears, one line goes to raid (or party) chat naming up to three group members who are standing next to you and not clicking. Once per ritual; nothing is said when two people are already clicking
+- Both messages can be edited and each has its own off switch: press Messages at the top of the summon queue. `{names}` in the callout becomes the idle players' names
+
 ## 0.20.0
 
 - Raids: signing up now asks for a spot; it doesn't hold one. A Team Captain or above clicks a name in the sign-up list to select that player, and clicks again to take the spot back

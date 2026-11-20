@@ -127,6 +127,8 @@ local function group()
     return out
 end
 
+Q.Group, Q.SpellName = group, spellName
+
 local function inGroup(guid, name)
     local lower = name:lower()
     for _, g in ipairs(group()) do
@@ -246,6 +248,7 @@ refresh = function()
     panel.empty:SetText(('Nobody is waiting. Anyone can type "%s" in raid, party or guild chat, or whisper it to you.'):format(Q.Key()))
     panel.note:SetText(n > Q.ROWS and ("+" .. (n - Q.ROWS) .. " more waiting") or (n > 0 and "Left-click: summon.  Right-click: target." or ""))
     if not panel.key:HasFocus() then panel.key:SetText(Q.Key()) end
+    panel.msgs:SetShown(ns.SummonCall.Allowed())
 end
 
 local function build()
@@ -278,6 +281,9 @@ local function build()
         wantShown = false
         f:Hide()
     end):SetPoint("TOPRIGHT", -6, -6)
+    -- Team Captains and above: the messages sent while they summon.
+    f.msgs = W.Button(f, "Messages", 70, 20, function() ns.SummonCall.ShowSettings() end)
+    f.msgs:SetPoint("TOPRIGHT", -32, -6)
     W.Line(f, -32)
 
     f.rows = {}
@@ -300,9 +306,13 @@ local function build()
         b.info:SetPoint("RIGHT", -6, 0)
         b.info:SetJustifyH("RIGHT")
         b:HookScript("PostClick", function(self, button)
-            if button == "LeftButton" and self.entry and self.entry.unit and not self.entry.called then
-                self.entry.called = ns.Now()
-                self.info:SetText("summoning")
+            if button == "LeftButton" and self.entry and self.entry.unit then
+                -- Who the next Ritual of Summoning is for (Modules/SummonCall.lua).
+                Q.lastClick = { name = self.entry.name, guid = self.entry.guid, at = GetTime() }
+                if not self.entry.called then
+                    self.entry.called = ns.Now()
+                    self.info:SetText("summoning")
+                end
             end
         end)
         b.inv = W.Button(f, "Invite", 52, 18, function()

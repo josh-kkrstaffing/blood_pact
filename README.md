@@ -37,6 +37,8 @@ WoW Forever has no summoning stones, so a warlock's Ritual of Summoning is the o
 
 Warlocks also get a summon queue. Anyone types `123` in raid, party or guild chat, or whispers it to the warlock, and their name joins a small list on the warlock's screen. Clicking a name casts Ritual of Summoning on that player through the game's own secure button (one click, one cast); right-click targets them. Only guild members and people already in the warlock's group are listed. The warlock can change the keyword, and `/bp summon` opens the list. Blood Pact reads the keyword from chat the player already sees; it sends nothing in reply.
 
+Warlocks of Team Captain rank and above also get two summon messages, sent only while they cast their own Ritual of Summoning: a whisper to the player being summoned, and, if the portal is still short of clickers a few seconds after it appears, one line in raid or party chat naming the group members standing nearby who aren't clicking. Both texts can be edited and each has an off switch (Messages, at the top of the summon queue).
+
 ## Raids and attendance
 
 Team Captains and above schedule raids in the Raids tab, with presets for Barrow Deeps (10) and Hyjal Summit (20). Everyone signs up as Tank, Healer or DPS, or answers Maybe or Can't. Signing up asks for a spot: a Team Captain or above selects who gets one by clicking names in the sign-up list, up to the raid's size. Attendance is taken on every boss kill while a Team Captain or above leads the raid, or with one click. Standings shows each player's attendance over the last 10 raid nights, with alts counted for their main. Raids are scheduled in a US time zone or your PC's time, and everyone sees them in their own PC's time. Each raid is marked progression or farm, which sets the boss-kill DKP that night. New raids go on the in-game calendar when your rank allows it. Everyone who signs up gets reminders on their own screen 30 and 15 minutes before, and leaders can whisper the sign-ups with one click. Sign-ups and attendance sync through the guild like DKP, with no website needed.
@@ -74,7 +76,7 @@ Every client checks every record against the guild roster before accepting it, s
 
 ## Fair play
 
-Blood Pact never plays the game for you. It does not automate combat, movement, targeting or spells. Every /who search, whisper and guild invite starts from your own click: WoW Forever does not allow addons or macros to send guild invites at all, so you invite through Blizzard's own right-click menu.
+Blood Pact never plays the game for you. It does not automate combat, movement, targeting or spells. Every /who search, whisper and guild invite starts from your own click (the one exception is the summon messages, below, which follow a warlock's own Ritual of Summoning cast and can be switched off): WoW Forever does not allow addons or macros to send guild invites at all, so you invite through Blizzard's own right-click menu.
 
 ## Privacy
 
