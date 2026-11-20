@@ -3,7 +3,7 @@
 ## Notes: Guild DKP, standings, loot, roster, warlock summons, raid sign-ups, attendance, BiS check and recruiting for WoW Forever. Made by the Blood Pact guild, US East PvP Horde. Fan-made; not affiliated with Blizzard Entertainment.
 ## Author: Blood Pact guild (US East PvP Horde)
 ## X-Website: https://discord.gg/hfCKk6kED
-## Version: 0.26.1
+## Version: 0.26.2
 ## SavedVariables: BloodPactDB
 ## OptionalDeps: Questie, Auctionator
 ## AddonCompartmentFunc: BloodPact_OnCompartmentClick

@@ -186,7 +186,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
     "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
-    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor" }) do
+    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -358,9 +358,10 @@ G.C_MajorFactions = { GetMajorFactionData = function(id)
     return nil
 end }
 -- Items: the game knows 1001 at once and 1002 only after being asked.
-local shiftDown, linked = false, {}
+local shiftDown, ctrlDown, linked = false, false, {}
 local itemsAsked = {}
 G.IsShiftKeyDown = function() return shiftDown end
+G.IsControlKeyDown = function() return ctrlDown end
 G.ITEM_QUALITY_COLORS = { [4] = { r = 0.64, g = 0.21, b = 0.93 } }
 G.GetItemInfo = function(id)
     if id == 1001 then return "Test Blade", "|cffa335ee|Hitem:1001|h[Test Blade]|h|r", 4, 60, 55, "Weapon", "Sword", 1, "INVTYPE_WEAPON", 135274 end
@@ -1380,17 +1381,29 @@ run(gm, "replies", function()
     check(#R.replies == 1 and R.replies[1].name == MOLDY .. REALM, "a whispered 'inv' from outside the guild is listed once")
     check(said(gm, MOLDY .. " asked for a guild invite. Type /bp, open Recruit and click their name."), "the recruiter is told in chat")
     check(#member.ns.Recruit.replies == 0, "members who can't recruit get no list")
-    check(rp.h3:GetText() == "3. They replied (1). Click a name, then press Enter to send the guild invite", "step 3 shows who is waiting")
+    check(rp.h3:GetText() == "3. They replied (1). Click a name to copy their guild invite", "step 3 shows who is waiting")
 end)
-check(clickRow(gm, MOLDY .. REALM), "the reply can be clicked")
-check(chatOpened[#chatOpened] == "/ginvite " .. MOLDY, "a click writes /ginvite with the name spelled exactly, for the recruiter to press Enter")
--- Already typing "/ginvite ": the click adds just the name.
-local typed = {}
+-- A click puts the invite in a copy box. Blood Pact writes nothing into the
+-- game's chat box: the game refuses a guild invite an addon wrote or touched.
+local openedBefore, typed = #chatOpened, {}
 typingIn[gm.guid] = { Insert = function(_, text) typed[#typed + 1] = text end }
-local openedBefore = #chatOpened
-clickRow(gm, MOLDY .. REALM)
+check(clickRow(gm, MOLDY .. REALM), "the reply can be clicked")
+check(rp.copy:GetText() == "/ginvite " .. MOLDY, "a click puts /ginvite and the name, spelled exactly, in the copy box")
+check(#chatOpened == openedBefore and #typed == 0, "nothing is written into the game's chat box")
+check(said(gm, "Press Ctrl+C to copy the invite for " .. MOLDY .. ". Then in chat: Enter, Ctrl+V, Enter."), "the recruiter is told the keys to press")
 typingIn[gm.guid] = nil
-check(#typed == 1 and typed[1] == MOLDY and #chatOpened == openedBefore, "when the recruiter is already typing, the click adds the name where the cursor is")
+run(gm, "copy box", function()
+    rp.copy:SetText("/ginvite Someone Else")                   -- the box is for copying, not editing
+    rp.copy:GetScript("OnTextChanged")(rp.copy, true)
+    check(rp.copy:GetText() == "/ginvite " .. MOLDY, "typing in the copy box doesn't change the invite")
+    rp.copy:GetScript("OnKeyDown")(rp.copy, "C")               -- a plain C does nothing
+    ctrlDown = true
+    rp.copy:GetScript("OnKeyDown")(rp.copy, "C")
+    ctrlDown = false
+end)
+advance(1)
+check(said(gm, "Copied. In chat: press Enter, Ctrl+V, then Enter to send the invite."), "after Ctrl+C the box lets go of the keyboard and says what to do next")
+run(gm, "copied", function() check(gm.ns.Recruit.replies[1].copied == true, "the name is marked as copied") end)
 -- They join the guild: the name leaves the list.
 GUILD[#GUILD + 1] = { MOLDY, 5, "Initiate", "MAGE", 10, "Durotar", "Player-9-MOLDY" }
 fire(gm, "GUILD_ROSTER_UPDATE")

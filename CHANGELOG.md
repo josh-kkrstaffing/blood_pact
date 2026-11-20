@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.26.2
+
+- Recruit: the game blocks a guild invite whose chat line an addon wrote ("blocked from an action only available to the Blizzard UI"), so Blood Pact no longer writes anything into the chat box for an invite
+- Click a name under "They replied" and the full invite, `/ginvite` plus the name spelled exactly, appears in a copy box, already selected. Press Ctrl+C, then in chat press Enter, Ctrl+V, Enter
+- After Ctrl+C the copy box lets go of the keyboard, so the next Enter opens chat, and the name is marked "copied"
+
 ## 0.26.1
 
 - Tickets: the queue now stretches with the window, and the kind of problem is shown in full when there is room ("Language or harassment") and as a short name when there isn't ("Language"). It is no longer cut off mid-word

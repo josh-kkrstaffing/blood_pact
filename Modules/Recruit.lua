@@ -7,9 +7,9 @@
 --   3. click a name: that player is whispered the picked message, once
 --      (right-click opens a whisper to type your own)
 --   4. when they reply "inv", their name is listed under step 3 exactly as
---      the game spells it; a click puts /ginvite and the name in the chat box
---      and the recruiter presses Enter (or right-click the name in chat >
---      Guild Invite)
+--      the game spells it; a click puts "/ginvite <name>" in a copy box, and
+--      the recruiter copies it and pastes it into chat themselves (or
+--      right-clicks the name in chat > Guild Invite)
 local _, ns = ...
 local W, U = ns.W, ns.U
 local R = {}
@@ -128,24 +128,13 @@ function R.AddReply(list, name, text, now)
     return r, true
 end
 
--- Put the invite in the player's chat box, with the name spelled exactly as
--- the game sent it, so accented and special letters never have to be typed.
--- The player presses Enter: WoW Forever doesn't let an addon send a guild
--- invite itself. If they have already typed "/ginvite " the name is added
--- where the cursor is.
--- -> "inserted", "opened", or nil
-function R.StartInvite(name)
-    local short = U.ShortName(name)
-    local getActive = ChatEdit_GetActiveWindow or (ChatFrameUtil and ChatFrameUtil.GetActiveWindow)
-    if getActive then
-        local ok, box = pcall(getActive)
-        if ok and type(box) == "table" and type(box.Insert) == "function" and pcall(box.Insert, box, short) then
-            return "inserted"
-        end
-    end
-    local open = ChatFrame_OpenChat or (ChatFrameUtil and ChatFrameUtil.OpenChat)
-    if open and pcall(open, "/ginvite " .. short) then return "opened" end
-    return nil
+-- The guild invite as the player would type it, with the name spelled
+-- exactly as the game sent it. Blood Pact only offers it for copying: the
+-- game refuses a guild invite whose chat line an addon wrote or touched
+-- ("blocked from an action only available to the Blizzard UI"), so the
+-- player copies it here and pastes it into chat themselves.
+function R.InviteCommand(name)
+    return "/ginvite " .. U.ShortName(name)
 end
 
 -- Names whispered since login, so a slip of the finger doesn't send twice.
@@ -186,7 +175,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         local top = -48 - p.msgFold:Height() - 10
         p.step2:ClearAllPoints()
         p.step2:SetPoint("TOPLEFT", 0, top)
-        p.list:Stretch(0, top - 76, 0, 116)
+        p.list:Stretch(0, top - 76, 0, 122)
     end
     p.msgFold = W.Accordion(p, "Read or edit the message", 640, 98, "recruitMsg", function() p.place() end)
     p.msgFold:SetPoint("TOPLEFT", 0, -48)
@@ -314,36 +303,61 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
     end)
     p.place()
 
-    -- Step 3: who replied "inv". A click writes the invite; the recruiter presses Enter.
+    -- Step 3: who replied "inv". A click puts the invite in a copy box with
+    -- the name spelled exactly; the recruiter copies it and pastes it in chat.
     p.h3 = W.Text(p, "", "GameFontNormal")
-    p.h3:SetPoint("BOTTOMLEFT", 0, 94)
+    p.h3:SetPoint("BOTTOMLEFT", 0, 100)
+    local copying          -- the reply whose invite is in the copy box
     p.replies = W.List(p, 620, 72, 18, function(row, r)
         p.replies.Col(row, 1, 4, 220):SetText(U.Safe(r.name, 40))
         p.replies.Col(row, 2, 230, 200):SetText("|cffaaaaaareplied: " .. U.Safe(r.text, 30) .. "|r")
-        p.replies.Col(row, 3, 436, 180):SetText(r.started and "|cff40ff40invite written: press Enter|r" or "|cffffd100click to write the invite|r")
+        p.replies.Col(row, 3, 436, 180):SetText(r.copied and "|cff40ff40copied: paste it in chat|r"
+            or (r == copying and "|cff40c0ffpress Ctrl+C|r" or "|cffffd100click to copy the invite|r"))
     end, function(r, button)
         if not r then return end
         if button == "RightButton" then
             for i, x in ipairs(R.replies) do
                 if x == r then table.remove(R.replies, i); break end
             end
+            if copying == r then copying = nil; p.copy:SetText("") end
             ns.UI.Refresh()
             return
         end
-        local who = U.Safe(U.ShortName(r.name), 40)
-        local how = R.StartInvite(r.name)
-        if how then
-            r.started = true
-            ns.UI.Say(how == "inserted" and ("Added " .. who .. " to what you were typing. Press Enter to send it.")
-                or ("The invite for " .. who .. " is in your chat box. Press Enter to send it."))
-        else
-            ns.UI.Say("Couldn't open the chat box. Right-click " .. who .. " in chat and choose Guild Invite.")
-        end
+        copying = r
+        p.copy:SetText(R.InviteCommand(r.name))
+        p.copy:SetFocus()
+        p.copy:HighlightText()
+        ns.UI.Say("Press Ctrl+C to copy the invite for " .. U.Safe(U.ShortName(r.name), 40) .. ". Then in chat: Enter, Ctrl+V, Enter.")
         p.replies.Update()
     end)
-    p.replies.scroll:SetPoint("BOTTOMLEFT", 0, 20)
-    local h4 = W.Text(p, "If the game blocks it: type /ginvite and a space yourself, then click the name. Right-click a name to remove it.", "GameFontDisableSmall")
-    h4:SetPoint("BOTTOMLEFT", 0, 2)
+    p.replies.scroll:SetPoint("BOTTOMLEFT", 0, 26)
+    -- The copy box. Its text can't be edited, only selected and copied.
+    p.copy = W.Edit(p, 300, 80)
+    p.copy:SetPoint("BOTTOMLEFT", 0, 0)
+    p.copy:SetScript("OnTextChanged", function(self, byUser)
+        local want = copying and R.InviteCommand(copying.name) or ""
+        if byUser and self:GetText() ~= want then
+            self:SetText(want)
+            self:HighlightText()
+        end
+    end)
+    p.copy:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
+    p.copy:SetScript("OnMouseUp", function(self) self:SetFocus(); self:HighlightText() end)
+    -- Ctrl+C (Cmd+C on a Mac): the game has copied it; let go of the keyboard
+    -- so the next Enter opens chat.
+    p.copy:SetScript("OnKeyDown", function(self, key)
+        if key ~= "C" or not copying then return end
+        if not ((IsControlKeyDown and IsControlKeyDown()) or (IsMetaKeyDown and IsMetaKeyDown())) then return end
+        local r = copying
+        C_Timer.After(0.15, function()
+            r.copied = true
+            self:ClearFocus()
+            ns.UI.Say("Copied. In chat: press Enter, Ctrl+V, then Enter to send the invite.")
+            p.replies.Update()
+        end)
+    end)
+    local h4 = W.Text(p, "Click a name, press Ctrl+C, then in chat: Enter, Ctrl+V, Enter. Right-click a name to remove it.", "GameFontDisableSmall")
+    h4:SetPoint("LEFT", p.copy, "RIGHT", 10, 0)
     ns.recruitPanel = p
 end, function(p)
     p.saveMsg:SetShown(ns.RBAC.ICan("recruitEdit"))
@@ -353,7 +367,7 @@ end, function(p)
     for i = #R.replies, 1, -1 do
         if ns.GUIDForName(U.ShortName(R.replies[i].name)) then table.remove(R.replies, i) end
     end
-    p.h3:SetText(#R.replies > 0 and ("3. They replied (%d). Click a name, then press Enter to send the guild invite"):format(#R.replies)
+    p.h3:SetText(#R.replies > 0 and ("3. They replied (%d). Click a name to copy their guild invite"):format(#R.replies)
         or "3. When someone replies 'inv', their name shows here ready to invite")
     p.replies:SetItems(R.replies)
     if not p.box:HasFocus() then p.box:SetText(drafts[current] or messages()[current] or "") end
@@ -400,5 +414,5 @@ end)
 -- Room the tab needs: the message buttons, the message (open or folded),
 -- the scan row, a few names, and the replies at the bottom.
 ns.UI.Need("recruit", function(p)
-    return 48 + p.msgFold:Height() + 10 + 76 + 58 + 116
+    return 48 + p.msgFold:Height() + 10 + 76 + 58 + 122
 end)
