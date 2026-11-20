@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Professions: a "How do I share my recipes?" button at the bottom of the Crafters view. Hover it for the steps: open Character > Professions, click the link bubble on each profession, and Blood Pact records the recipes and shares them with the guild
+- The footer says when your own recipes aren't shared yet, and an empty recipe list gives the same steps
+
 ## 1.0.0
 
 Blood Pact is out of beta. This is the first full release.

@@ -32,6 +32,15 @@ P.ICON = {
 }
 -- Nothing to craft in these, so there is no recipe list to wait for.
 P.NO_RECIPES = { Herbalism = true, Skinning = true, Fishing = true }
+
+-- The steps a crafter follows to put their recipes in Blood Pact.
+P.HOWTO = {
+    "1. Open your character's Professions (the Professions button, or Character > Professions).",
+    "2. Click the link bubble on a profession to open its recipe window.",
+    "3. Blood Pact records the recipes and shares them with the guild. Do it once for each profession.",
+    "New recipes are added the next time you open that window.",
+}
+P.HOWTO_SHORT = "To share your recipes: open Character > Professions, click the link bubble on each profession. Blood Pact syncs them."
 local PRIMARY = {}
 for _, name in pairs(P.SKILL_IDS) do
     if not P.SECONDARY[name] then PRIMARY[name] = true end
@@ -499,6 +508,18 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
 
     p.foot = W.Text(d, "", "GameFontDisableSmall")
     p.foot:SetPoint("BOTTOMLEFT", 0, 2)
+    -- How a crafter gets their recipes into Blood Pact: hover for the steps.
+    p.howTo = W.Button(d, "How do I share my recipes?", 190, 20, function()
+        ns.UI.Say(P.HOWTO_SHORT)
+    end)
+    p.howTo:SetPoint("BOTTOMRIGHT", 0, 0)
+    p.howTo:HookScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+        GameTooltip:AddLine("Share your recipes with the guild")
+        for _, l in ipairs(P.HOWTO) do GameTooltip:AddLine(l, 1, 1, 1, true) end
+        GameTooltip:Show()
+    end)
+    p.howTo:HookScript("OnLeave", GameTooltip_Hide)
 
     -- Orders: what I should craft, what I asked for, the Wanted board, history.
     local o = CreateFrame("Frame", nil, p)
@@ -849,6 +870,8 @@ end, function(p)
     local line = shared .. " of " .. total .. " members have shared their professions."
     if not ns.mock and not profs[ns.MyGUID()] then
         line = line .. " Yours aren't shared yet: type /bp prof."
+    elseif not ns.mock and next(st.recipes[ns.MyGUID()] or {}) == nil then
+        line = line .. " Your recipes aren't shared yet: hover the button on the right."
     end
     p.foot:SetText(line)
 
@@ -880,7 +903,8 @@ end, function(p)
             if P.NO_RECIPES[chosen] then
                 p.empty:SetText(chosen .. " has no recipes to list.")
             elseif viewing == ns.MyGUID() then
-                p.empty:SetText("Open your " .. chosen .. " window once. Blood Pact records your recipes then and shares them with the guild.")
+                p.empty:SetText("To share your " .. chosen .. " recipes: open Character > Professions and click the link bubble on "
+                    .. chosen .. ". Blood Pact records them and shares them with the guild.")
             else
                 p.empty:SetText(name .. " hasn't shared " .. chosen .. " recipes yet. They're recorded the first time "
                     .. name .. " opens the " .. chosen .. " window with Blood Pact 0.10 or newer.")

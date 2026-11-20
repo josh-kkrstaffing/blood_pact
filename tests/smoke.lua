@@ -1780,6 +1780,21 @@ pressEverything(gm)
 pressEverything(member)
 advance(10)
 
+-- Crafters are told how to share their recipes.
+open(member)
+clickText(member, "Professions")
+clickText(member, "Crafters")
+run(member, "recipe how-to", function()
+    local btn
+    for _, w in ipairs(member.widgets) do if w._.text == "How do I share my recipes?" then btn = w end end
+    check(btn ~= nil and btn:IsVisible(), "the Professions tab has a How do I share my recipes? button")
+    local P = member.ns.Professions
+    check(P.HOWTO[1]:find("Character > Professions", 1, true) and P.HOWTO[2]:find("link bubble", 1, true),
+        "its tooltip gives the steps: Character > Professions, then the link bubble")
+    btn:GetScript("OnClick")(btn, "LeftButton")
+end)
+check(said(member, "To share your recipes: open Character > Professions, click the link bubble"), "a click repeats the steps")
+
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
     local ns = gm.ns
@@ -1860,7 +1875,7 @@ run(member, "credit in the window", function()
     end
     check(visible >= 1, "the window's corner says who made it")
     check(places == 2, "and so does the About page")
-    check(member.ns.VERSION == "1.0.0", "this is the 1.0.0 release")
+    check(member.ns.VERSION:match("^1%.") ~= nil, "this is a 1.x release")
 end)
 run(member, "about panel", function()
     local seen = false
