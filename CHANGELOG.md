@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.22.1
+
+- Summon messages: the window now sits above the main Blood Pact window, so the main window's buttons and text no longer show through it; a little more room between the two messages
+
 ## 0.22.0
 
 - Recruit: when someone outside the guild whispers "inv" or "invite", their name is listed under step 3, spelled exactly as the game sends it, and you get a chat line

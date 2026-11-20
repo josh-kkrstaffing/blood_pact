@@ -217,12 +217,14 @@ local panel
 
 local function build()
     local f = CreateFrame("Frame", nil, UIParent)
-    f:SetSize(470, 286)
-    f:SetFrameStrata("DIALOG")
+    f:SetSize(470, 300)
+    -- Above the main window (which is on DIALOG), so nothing of it shows through.
+    f:SetFrameStrata("FULLSCREEN_DIALOG")
+    if f.SetToplevel then f:SetToplevel(true) end
     f:SetClampedToScreen(true)
     f:SetPoint("CENTER", UIParent, "CENTER", 0, 60)
     f:EnableMouse(true)
-    W.Fill(f, W.C.bg)
+    W.Fill(f, { W.C.bg[1], W.C.bg[2], W.C.bg[3], 1 })
     W.Border(f)
     W.Text(f, "Summon messages", "GameFontNormal"):SetPoint("TOPLEFT", 10, -9)
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
@@ -236,16 +238,18 @@ local function build()
     f.callBox:SetPoint("TOPLEFT", 12, -68)
     f.callBox:HookScript("OnEditFocusLost", function(self) ns.Char().summonCallText = self:GetText() end)
     local hint = W.Text(f, ("{names} becomes who is standing near you and not clicking. Sent once, %d seconds after your portal appears, only if it is still short of clickers."):format(C.WAIT), "GameFontDisableSmall")
-    hint:SetPoint("TOPLEFT", 12, -94)
+    hint:SetPoint("TOPLEFT", 12, -96)
     hint:SetWidth(446)
+    hint:SetHeight(28)                  -- two lines, so the next row never moves up into it
+    hint:SetJustifyV("TOP")
     hint:SetWordWrap(true)
 
     f.tell = W.Check(f, "Whisper the player I'm summoning when my ritual starts", function(on)
         ns.Char().summonTell = on
     end)
-    f.tell:SetPoint("TOPLEFT", 12, -130)
+    f.tell:SetPoint("TOPLEFT", 12, -140)
     local bg = CreateFrame("Frame", nil, f)
-    bg:SetPoint("TOPLEFT", 12, -154)
+    bg:SetPoint("TOPLEFT", 12, -164)
     bg:SetSize(446, 84)
     W.Panel(bg)
     f.tellBox = CreateFrame("EditBox", nil, bg)
@@ -280,5 +284,6 @@ function C.ShowSettings()
     panel.callBox:SetText(C.CallText())
     panel.tellBox:SetText(C.TellText())
     panel:Show()
+    if panel.Raise then panel:Raise() end
     return true
 end
