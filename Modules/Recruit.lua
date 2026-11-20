@@ -6,7 +6,10 @@
 --   2. Scan my zone, or one of my faction's starting zones (one /who per click)
 --   3. click a name: that player is whispered the picked message, once
 --      (right-click opens a whisper to type your own)
---   4. when they reply, right-click their name in chat > Guild Invite
+--   4. when they reply "inv", their name is listed under step 3 exactly as
+--      the game spells it; a click puts /ginvite and the name in the chat box
+--      and the recruiter presses Enter (or right-click the name in chat >
+--      Guild Invite)
 local _, ns = ...
 local W, U = ns.W, ns.U
 local R = {}
@@ -88,6 +91,51 @@ local lastScan = -100
 local function openWhisper(name)
     local sendTell = ChatFrame_SendTell or (ChatFrameUtil and ChatFrameUtil.SendTell)
     if sendTell then sendTell(name) else ns.UI.Say("Type /w " .. name .. " then paste your message.") end
+end
+
+-- Is this whisper someone asking for a guild invite? "inv", "invite",
+-- "inv please", "Invite me!". Long messages and other words are not.
+function R.IsInviteReply(text)
+    if type(text) ~= "string" then return false end
+    local t = text:lower():match("^%s*(.-)%s*$")
+    if #t > 30 then return false end
+    local first = t:match("^(%a+)")
+    return first == "inv" or first == "invite"
+end
+
+-- Players who asked for an invite since login, newest first. Not saved.
+R.replies = {}
+R.MAX_REPLIES = 50
+
+-- -> the entry, and whether it is new
+function R.AddReply(list, name, text, now)
+    for _, r in ipairs(list) do
+        if r.name == name then return r, false end
+    end
+    local r = { name = name, text = text, at = now }
+    table.insert(list, 1, r)
+    while #list > R.MAX_REPLIES do table.remove(list) end
+    return r, true
+end
+
+-- Put the invite in the player's chat box, with the name spelled exactly as
+-- the game sent it, so accented and special letters never have to be typed.
+-- The player presses Enter: WoW Forever doesn't let an addon send a guild
+-- invite itself. If they have already typed "/ginvite " the name is added
+-- where the cursor is.
+-- -> "inserted", "opened", or nil
+function R.StartInvite(name)
+    local short = U.ShortName(name)
+    local getActive = ChatEdit_GetActiveWindow or (ChatFrameUtil and ChatFrameUtil.GetActiveWindow)
+    if getActive then
+        local ok, box = pcall(getActive)
+        if ok and type(box) == "table" and type(box.Insert) == "function" and pcall(box.Insert, box, short) then
+            return "inserted"
+        end
+    end
+    local open = ChatFrame_OpenChat or (ChatFrameUtil and ChatFrameUtil.OpenChat)
+    if open and pcall(open, "/ginvite " .. short) then return "opened" end
+    return nil
 end
 
 -- Names whispered since login, so a slip of the finger doesn't send twice.
@@ -239,14 +287,49 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         end
         p.list.Update()
     end)
-    p.list:Stretch(0, -226, 0, 22)
+    p.list:Stretch(0, -226, 0, 116)
 
-    local h3 = W.Text(p, "3. When they reply, right-click their name in chat and choose Guild Invite.", "GameFontHighlightSmall")
-    h3:SetPoint("BOTTOMLEFT", 0, 2)
+    -- Step 3: who replied "inv". A click writes the invite; the recruiter presses Enter.
+    p.h3 = W.Text(p, "", "GameFontNormal")
+    p.h3:SetPoint("BOTTOMLEFT", 0, 94)
+    p.replies = W.List(p, 620, 72, 18, function(row, r)
+        p.replies.Col(row, 1, 4, 220):SetText(U.Safe(r.name, 40))
+        p.replies.Col(row, 2, 230, 200):SetText("|cffaaaaaareplied: " .. U.Safe(r.text, 30) .. "|r")
+        p.replies.Col(row, 3, 436, 180):SetText(r.started and "|cff40ff40invite written: press Enter|r" or "|cffffd100click to write the invite|r")
+    end, function(r, button)
+        if not r then return end
+        if button == "RightButton" then
+            for i, x in ipairs(R.replies) do
+                if x == r then table.remove(R.replies, i); break end
+            end
+            ns.UI.Refresh()
+            return
+        end
+        local who = U.Safe(U.ShortName(r.name), 40)
+        local how = R.StartInvite(r.name)
+        if how then
+            r.started = true
+            ns.UI.Say(how == "inserted" and ("Added " .. who .. " to what you were typing. Press Enter to send it.")
+                or ("The invite for " .. who .. " is in your chat box. Press Enter to send it."))
+        else
+            ns.UI.Say("Couldn't open the chat box. Right-click " .. who .. " in chat and choose Guild Invite.")
+        end
+        p.replies.Update()
+    end)
+    p.replies.scroll:SetPoint("BOTTOMLEFT", 0, 20)
+    local h4 = W.Text(p, "If the game blocks it: type /ginvite and a space yourself, then click the name. Right-click a name to remove it.", "GameFontDisableSmall")
+    h4:SetPoint("BOTTOMLEFT", 0, 2)
     ns.recruitPanel = p
 end, function(p)
     p.saveMsg:SetShown(ns.RBAC.ICan("recruitEdit"))
     for i, b in ipairs(p.msgButtons) do b:SetEnabled(i ~= current) end      -- the picked one is marked
+    -- Anyone who has joined since is done.
+    for i = #R.replies, 1, -1 do
+        if ns.GUIDForName(U.ShortName(R.replies[i].name)) then table.remove(R.replies, i) end
+    end
+    p.h3:SetText(#R.replies > 0 and ("3. They replied (%d). Click a name, then press Enter to send the guild invite"):format(#R.replies)
+        or "3. When someone replies 'inv', their name shows here ready to invite")
+    p.replies:SetItems(R.replies)
     if not p.box:HasFocus() then p.box:SetText(drafts[current] or messages()[current] or "") end
 end)
 
@@ -274,4 +357,16 @@ ns.On("WHO_LIST_UPDATE", function()
         p.found:SetText(("%d unguilded players found.%s"):format(#candidates, cut))
     end
     p.list:SetItems(candidates)
+end)
+
+-- A whisper asking for an invite, from someone who isn't in the guild, goes on
+-- the list under step 3 with the name exactly as the game sent it.
+ns.On("CHAT_MSG_WHISPER", function(text, sender, _, _, _, _, _, _, _, _, _, guid)
+    if not ns.RBAC.ICan("recruit") or not R.IsInviteReply(text) then return end
+    if type(sender) ~= "string" or sender == "" then return end
+    if (guid and ns.roster.byGUID[guid]) or ns.GUIDForName(U.ShortName(sender)) then return end
+    local _, new = R.AddReply(R.replies, sender, text:match("^%s*(.-)%s*$"), ns.Now())
+    if not new then return end
+    ns.Print(("%s asked for a guild invite. Type /bp, open Recruit and click their name."):format(U.Safe(U.ShortName(sender), 40)))
+    if ns.UI and ns.UI.IsOpen and ns.UI.IsOpen() then ns.UI.RefreshSoon() end
 end)

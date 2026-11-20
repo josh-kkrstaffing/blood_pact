@@ -182,7 +182,8 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "RaidWarningFrame", "ChatTypeInfo", "SOUNDKIT", "PlaySound", "PixelUtil", "GameFontNormalLarge", "GameFontNormal",
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
-    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo" }) do
+    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
+    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -479,7 +480,11 @@ G.C_Calendar = {
     AddEvent = function() calendarAdds = calendarAdds + 1 end,
     SetAbsMonth = noop, GetNumDayEvents = function() return 0 end, GetDayEvent = noop, OpenEvent = noop,
 }
-G.ChatFrameUtil = { AddMessageEventFilter = noop, SendTell = noop, InsertLink = function(link) linked[#linked + 1] = link end }
+-- The chat box: what an addon opened it with, and a box the player is already typing in.
+local chatOpened, typingIn = {}, {}
+G.ChatFrameUtil = { AddMessageEventFilter = noop, SendTell = noop, InsertLink = function(link) linked[#linked + 1] = link end,
+    OpenChat = function(text) chatOpened[#chatOpened + 1] = text end,
+    GetActiveWindow = function() return typingIn[ctx.guid] end }
 G.C_ChatInfo = {
     RegisterAddonMessagePrefix = noop,
     SendChatMessage = function(msg, kind, _, target)
@@ -1351,6 +1356,42 @@ run(member, "member can't recruit", function()
     local ok, why = member.ns.Recruit.Whisper("Newbie One-Normal", "hi")
     check(ok == nil and why == "Your guild rank can't recruit.", "a Member can't send recruiting whispers")
 end)
+-- Someone replies "inv": their name is listed exactly as the game spells it,
+-- and a click writes the guild invite for the recruiter to send.
+local MOLDY = "Moldy L\195\182cks"                          -- an accented letter nobody wants to type
+chat(gm, "CHAT_MSG_WHISPER", "inv", MOLDY, "Player-9-MOLDY")
+chat(gm, "CHAT_MSG_WHISPER", "Inv", MOLDY, "Player-9-MOLDY")                  -- asking twice
+chat(gm, "CHAT_MSG_WHISPER", "what kind of guild is it?", "Chatty Cat", "Player-9-CAT")
+chat(gm, "CHAT_MSG_WHISPER", "inv", "Pip", MEMBER)                            -- already in the guild
+chat(member, "CHAT_MSG_WHISPER", "inv", MOLDY, "Player-9-MOLDY")              -- a Member doesn't recruit
+advance(2)
+run(gm, "replies", function()
+    local R = gm.ns.Recruit
+    check(#R.replies == 1 and R.replies[1].name == MOLDY .. REALM, "a whispered 'inv' from outside the guild is listed once")
+    check(said(gm, MOLDY .. " asked for a guild invite. Type /bp, open Recruit and click their name."), "the recruiter is told in chat")
+    check(#member.ns.Recruit.replies == 0, "members who can't recruit get no list")
+    check(rp.h3:GetText() == "3. They replied (1). Click a name, then press Enter to send the guild invite", "step 3 shows who is waiting")
+end)
+check(clickRow(gm, MOLDY .. REALM), "the reply can be clicked")
+check(chatOpened[#chatOpened] == "/ginvite " .. MOLDY, "a click writes /ginvite with the name spelled exactly, for the recruiter to press Enter")
+-- Already typing "/ginvite ": the click adds just the name.
+local typed = {}
+typingIn[gm.guid] = { Insert = function(_, text) typed[#typed + 1] = text end }
+local openedBefore = #chatOpened
+clickRow(gm, MOLDY .. REALM)
+typingIn[gm.guid] = nil
+check(#typed == 1 and typed[1] == MOLDY and #chatOpened == openedBefore, "when the recruiter is already typing, the click adds the name where the cursor is")
+-- They join the guild: the name leaves the list.
+GUILD[#GUILD + 1] = { MOLDY, 5, "Initiate", "MAGE", 10, "Durotar", "Player-9-MOLDY" }
+fire(gm, "GUILD_ROSTER_UPDATE")
+advance(2)
+run(gm, "joined", function()
+    gm.ns.UI.Refresh()
+    check(#gm.ns.Recruit.replies == 0, "once they are in the guild the name leaves the list")
+end)
+GUILD[#GUILD] = nil
+fire(gm, "GUILD_ROSTER_UPDATE")
+advance(2)
 clickText(gm, "Mulgore")
 advance(6)
 run(gm, "new zone", function()

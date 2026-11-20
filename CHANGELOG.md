@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0
+
+- Recruit: when someone outside the guild whispers "inv" or "invite", their name is listed under step 3, spelled exactly as the game sends it, and you get a chat line
+- Click the name and `/ginvite` with that name is written into your chat box; press Enter to send the invite. Accented and special letters never have to be typed
+- If you have already typed `/ginvite ` yourself, the click adds just the name where the cursor is
+- The name leaves the list when the player joins the guild; right-click removes it
+- Blood Pact still doesn't send guild invites itself: WoW Forever doesn't allow addons to
+
 ## 0.21.0
 
 - Summon messages, for warlocks of Team Captain rank and above, sent only while they cast their own Ritual of Summoning

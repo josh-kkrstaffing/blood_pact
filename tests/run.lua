@@ -1357,5 +1357,25 @@ test("summon messages: who is called out, and long whispers cut to fit", functio
     eq(#C.Split(("x"):rep(600)), 3)                                   -- no spaces at all: cut anyway
 end)
 
+test("recruit: who is asking for an invite", function()
+    local Rc = ns.Recruit
+    for _, yes in ipairs({ "inv", "Inv", " INV ", "invite", "inv pls", "Invite me!", "inv?", "inv please ty" }) do
+        eq(Rc.IsInviteReply(yes), true, yes)
+    end
+    for _, no in ipairs({ "", "no thanks", "invest in gold", "what guild", "can I get an inv", "inventory full", "1nv", "inv" .. (" please"):rep(6) }) do
+        eq(Rc.IsInviteReply(no), false, no)
+    end
+    eq(Rc.IsInviteReply(nil), false)
+
+    local list = {}
+    local a, new = Rc.AddReply(list, "Moldy L\195\182cks", "inv", 100)
+    eq(new, true); eq(a.name, "Moldy L\195\182cks")                 -- the name is kept byte for byte
+    eq(select(2, Rc.AddReply(list, "Moldy L\195\182cks", "inv", 130)), false)
+    Rc.AddReply(list, "Second", "invite", 140)
+    eq(#list, 2); eq(list[1].name, "Second")                        -- newest first
+    for i = 1, Rc.MAX_REPLIES + 5 do Rc.AddReply(list, "P" .. i, "inv", 200 + i) end
+    eq(#list, Rc.MAX_REPLIES)
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 if failed > 0 then os.exit(1) end
