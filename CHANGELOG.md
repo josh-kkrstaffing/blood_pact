@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.26.1
+
+- Tickets: the queue now stretches with the window, and the kind of problem is shown in full when there is room ("Language or harassment") and as a short name when there isn't ("Language"). It is no longer cut off mid-word
+- The ticket's details and buttons keep to the right edge of the window
+
 ## 0.26.0
 
 - Tickets: a new tab where any guild member can report a problem with a player: language or harassment, cheating or botting, ninja looting or a loot dispute, breaking guild rules, breaking the game's rules, a scam or the guild bank, or something else. Three steps: what kind, who, what happened

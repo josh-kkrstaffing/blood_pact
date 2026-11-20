@@ -1491,6 +1491,17 @@ test("tickets: what a report must hold, who it may reach, and how staff copies m
     local c = T.Counts(q, "me")
     eq(c.open, 2); eq(c.new, 1); eq(c.mine, 1); eq(c.done, 1)
     eq(T.Prune(q, 100 + T.KEEP_DONE + 1), 1); eq(q.c, nil); eq(q.a ~= nil, true)   -- old resolved tickets go; open ones never
+
+    -- The queue's columns follow the list's width; the kind of problem is never cut mid-word.
+    local narrow, wide = T.Columns(336), T.Columns(736)
+    eq(narrow.cat[2] < wide.cat[2], true); eq(wide.about[2], 150)
+    for _, cols in ipairs({ narrow, wide, T.Columns(10) }) do
+        eq(cols.about[1] + cols.about[2] <= cols.cat[1], true)                 -- columns never overlap
+        eq(cols.cat[1] + cols.cat[2] <= cols.status[1], true)
+    end
+    eq(T.CatText("lang", wide.cat[2]), "Language or harassment"); eq(T.CatText("lang", narrow.cat[2]), "Language")
+    eq(T.CatText("loot", wide.cat[2]), "Ninja looting or a loot dispute")
+    for _, c2 in ipairs(T.CATS) do eq(#T.CAT_SHORT[c2[1]] * 6.2 <= narrow.cat[2], true) end   -- every short name fits the narrowest list
 end)
 
 print(("%d passed, %d failed"):format(passed, failed))

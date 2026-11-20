@@ -35,6 +35,9 @@ T.OUTCOMES = {
     { "kick", "Removed from the guild" },
     { "blizz", "Reported to Blizzard" },
 }
+-- Short names for a narrow list; the full name shows wherever there is room.
+T.CAT_SHORT = { lang = "Language", cheat = "Cheating", loot = "Loot", rules = "Guild rules", tos = "Game rules",
+    scam = "Scam or bank", other = "Other" }
 T.CAT_LABEL, T.OUTCOME_LABEL = {}, {}
 for _, c in ipairs(T.CATS) do T.CAT_LABEL[c[1]] = c[2] end
 for _, o in ipairs(T.OUTCOMES) do T.OUTCOME_LABEL[o[1]] = o[2] end
@@ -203,6 +206,24 @@ function T.Rows(store, filter, me)
         return a.id < b.id
     end)
     return rows
+end
+
+-- The queue's columns for a list this wide: the date, name and status keep
+-- their size and the kind of problem takes whatever is left.
+--   -> { about = {x, w}, cat = {x, w}, status = {x, w} }
+function T.Columns(width)
+    width = math.max(300, math.floor(tonumber(width) or 300))
+    local about = math.min(150, math.floor(width * 0.30))
+    local status = 76
+    local catX = 50 + about + 6
+    return { about = { 50, about }, cat = { catX, math.max(60, width - catX - status - 8) }, status = { width - status - 2, status } }
+end
+
+-- The kind of problem, in full when it fits the column and short when it doesn't.
+function T.CatText(cat, width)
+    local full = T.CAT_LABEL[cat] or "?"
+    if #full * 6.2 <= width then return full end
+    return T.CAT_SHORT[cat] or full
 end
 
 function T.Counts(store, me)
@@ -618,50 +639,58 @@ ns.UI.AddTab("tickets", "Tickets", "view", function(p)
         b.key, b.label = f[1], f[2]
         p.filterBtns[i] = b
     end
+    -- The list takes the width the window gives it; the ticket's details keep
+    -- theirs on the right.
     p.list = W.List(q, 322, 200, 18, function(row, t)
+        local c = T.Columns(p.list.scroll:GetWidth())
         p.list.Col(row, 1, 4, 44):SetText(date("%b %d", t.at))
-        p.list.Col(row, 2, 50, 104):SetText(U.Safe(t.about ~= "" and t.about or "(nobody named)", 48))
-        p.list.Col(row, 3, 158, 96):SetText(U.Safe(T.CAT_LABEL[t.cat], 16))
-        p.list.Col(row, 4, 258, 62):SetText(statusText(t.status))
+        p.list.Col(row, 2, c.about[1], c.about[2]):SetText(U.Safe(t.about ~= "" and t.about or "(nobody named)", 48))
+        p.list.Col(row, 3, c.cat[1], c.cat[2]):SetText(T.CatText(t.cat, c.cat[2]))
+        p.list.Col(row, 4, c.status[1], c.status[2]):SetText(statusText(t.status))
     end, function(t) selected = t and t.id or nil; ns.UI.Refresh() end)
-    p.list:Stretch(0, -26, nil, 0)
+    p.list:Stretch(0, -26, 362, 0)
     p.list.key = "id"
     p.empty = W.Text(q, "", "GameFontHighlightSmall")
     p.empty:SetPoint("TOPLEFT", 4, -32)
     p.empty:SetWidth(320)
 
-    -- The picked ticket: what was reported, then the steps to work it.
-    p.detail = W.Text(q, "", "GameFontHighlightSmall")
-    p.detail:SetPoint("TOPLEFT", 352, -26)
+    -- The picked ticket: what was reported, then the steps to work it. It
+    -- keeps to the right edge so the list can grow.
+    local d = CreateFrame("Frame", nil, q)
+    d:SetPoint("TOPRIGHT", 0, 0)
+    d:SetPoint("BOTTOMRIGHT", 0, 0)
+    d:SetWidth(350)
+    p.detail = W.Text(d, "", "GameFontHighlightSmall")
+    p.detail:SetPoint("TOPLEFT", 0, -26)
     p.detail:SetWidth(350)
     p.detail:SetHeight(172)
     p.detail:SetJustifyV("TOP")
     p.detail:SetWordWrap(true)
-    p.take = W.Button(q, "1. Take it", 96, 22, function()
+    p.take = W.Button(d, "1. Take it", 96, 22, function()
         if selected then ns.UI.Try("It's yours. The other staff see that.", T.Take, selected) end
     end, "accent")
-    p.take:SetPoint("TOPLEFT", 352, -206)
-    p.noteBox = W.Edit(q, 256, T.MAX_NOTE)
-    p.noteBox:SetPoint("TOPLEFT", 352, -234)
-    p.addNote = W.Button(q, "2. Add note", 90, 22, function()
+    p.take:SetPoint("TOPLEFT", 0, -206)
+    p.noteBox = W.Edit(d, 256, T.MAX_NOTE)
+    p.noteBox:SetPoint("TOPLEFT", 0, -234)
+    p.addNote = W.Button(d, "2. Add note", 90, 22, function()
         if selected and ns.UI.Try("Note added. Only staff see notes.", T.AddNote, selected, p.noteBox:GetText()) then p.noteBox:SetText("") end
     end)
-    p.addNote:SetPoint("TOPLEFT", 612, -234)
-    p.outcome = W.Button(q, "", 200, 22, function()
+    p.addNote:SetPoint("TOPLEFT", 260, -234)
+    p.outcome = W.Button(d, "", 200, 22, function()
         pickedOutcome = pickedOutcome % #T.OUTCOMES + 1
         ns.UI.Refresh()
     end)
-    p.outcome:SetPoint("TOPLEFT", 352, -262)
-    p.resolve = W.Button(q, "3. Resolve", 96, 22, function()
+    p.outcome:SetPoint("TOPLEFT", 0, -262)
+    p.resolve = W.Button(d, "3. Resolve", 96, 22, function()
         if selected then ns.UI.Try("Resolved. The reporter is told the status.", T.Resolve, selected, T.OUTCOMES[pickedOutcome][1]) end
     end, "accent")
-    p.resolve:SetPoint("TOPLEFT", 556, -262)
-    p.reopen = W.Button(q, "Reopen", 96, 22, function()
+    p.resolve:SetPoint("TOPLEFT", 204, -262)
+    p.reopen = W.Button(d, "Reopen", 96, 22, function()
         if selected then ns.UI.Try("Reopened.", T.Reopen, selected) end
     end)
-    p.reopen:SetPoint("TOPLEFT", 352, -206)
-    p.queueHint = W.Text(q, "Click the outcome to change it. The reporter sees the status and outcome, never the notes.", "GameFontDisableSmall")
-    p.queueHint:SetPoint("TOPLEFT", 352, -290)
+    p.reopen:SetPoint("TOPLEFT", 0, -206)
+    p.queueHint = W.Text(d, "Click the outcome to change it. The reporter sees the status and outcome, never the notes.", "GameFontDisableSmall")
+    p.queueHint:SetPoint("TOPLEFT", 0, -290)
     p.queueHint:SetWidth(350)
 end, function(p)
     local me = ns.MyGUID()

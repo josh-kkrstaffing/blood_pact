@@ -509,16 +509,22 @@ function W.List(parent, width, height, rowHeight, render, onClick)
     end)
 
     -- Add a text column to every row at x offset with width.
+    -- A list that stretches sideways may pass a different x or width on a
+    -- later draw; the column then moves and resizes to match.
     function list.Col(row, idx, x, w, justify)
         local fs = row.cols[idx]
         if not fs then
             fs = row:CreateFontString(nil, "OVERLAY")
             fs:SetFontObject(W.F.bodySm)
-            fs:SetPoint("LEFT", x, 0)
-            fs:SetWidth(w)
             fs:SetJustifyH(justify or "LEFT")
             fs:SetWordWrap(false)
             row.cols[idx] = fs
+        end
+        if fs.colX ~= x or fs.colW ~= w then
+            fs.colX, fs.colW = x, w
+            fs:ClearAllPoints()
+            fs:SetPoint("LEFT", x, 0)
+            fs:SetWidth(w)
         end
         return fs
     end
