@@ -1,7 +1,11 @@
--- Blood Pact: widgets in Blood Pact's own flat style: dark panels, 1-pixel
--- borders, a blood-red accent and the game's built-in fonts. No images, fonts
--- or art are bundled with the addon: textures are flat colors, and the few
--- icons shown (professions) are the game's own, referenced by path.
+-- Blood Pact: widgets in Blood Pact's own style: dark glass panes the game
+-- world shows through, hairline edges, a blood-red accent and the game's
+-- built-in fonts. No images, fonts or art are bundled with the addon:
+-- textures are flat colors and gradients, and the few icons shown
+-- (professions) are the game's own, referenced by path.
+-- The game gives addons no way to blur what is behind a window, so the
+-- "frosted" look is a translucent dark pane with a pale haze that is
+-- brightest at the top, not a true blur.
 local _, ns = ...
 local W = {}
 ns.W = W
@@ -9,15 +13,24 @@ ns.W = W
 ---------------------------------------------------------------------------
 -- Palette and fonts
 ---------------------------------------------------------------------------
+-- How see-through a window is. The player picks one from the title bar.
+W.GLASS_ORDER = { "frosted", "clear", "solid" }
+W.GLASS_ALPHA = { solid = 0.97, frosted = 0.76, clear = 0.58 }
+W.GLASS_LABEL = { solid = "Solid", frosted = "Frosted", clear = "Clear" }
+W.DENSE_ALPHA = 0.94           -- dialogs that sit on top of another Blood Pact window
+W.glass = "frosted"
+
+-- Everything inside a window is a tint over the pane, so it stays glass at
+-- any setting: dark tints for wells and fields, pale tints for buttons and edges.
 W.C = {
-    bg       = { 0.055, 0.055, 0.065, 0.97 },
-    bar      = { 0.035, 0.035, 0.042, 1 },
-    panel    = { 0.085, 0.085, 0.10, 1 },
-    field    = { 0.04, 0.04, 0.05, 1 },
-    border   = { 0.22, 0.22, 0.26, 1 },
-    btn      = { 0.13, 0.13, 0.155, 1 },
-    btnHover = { 0.19, 0.19, 0.22, 1 },
-    accent   = { 0.80, 0.16, 0.16, 1 },
+    bg       = { 0.045, 0.050, 0.065, W.GLASS_ALPHA.frosted },
+    bar      = { 0, 0, 0, 0.30 },
+    panel    = { 0, 0, 0, 0.30 },
+    field    = { 0, 0, 0, 0.42 },
+    border   = { 1, 1, 1, 0.13 },
+    btn      = { 1, 1, 1, 0.07 },
+    btnHover = { 1, 1, 1, 0.15 },
+    accent   = { 0.80, 0.16, 0.16, 0.92 },
     text     = { 0.93, 0.93, 0.94 },
     muted    = { 0.56, 0.56, 0.60 },
     gold     = { 0.96, 0.80, 0.42 },
@@ -95,6 +108,60 @@ function W.Border(frame, color)
         for i = 1, 4 do lines[i]:SetColorTexture(c[1], c[2], c[3], c[4] or 1) end
     end
     return lines
+end
+
+-- White, fading from a0 at the bottom to a1 at the top.
+local function haze(tex, a0, a1)
+    tex:SetColorTexture(1, 1, 1, 1)
+    if tex.SetGradient and CreateColor
+        and pcall(tex.SetGradient, tex, "VERTICAL", CreateColor(1, 1, 1, a0), CreateColor(1, 1, 1, a1)) then
+        return
+    end
+    if tex.SetGradientAlpha and pcall(tex.SetGradientAlpha, tex, "VERTICAL", 1, 1, 1, a0, 1, 1, 1, a1) then return end
+    tex:SetColorTexture(1, 1, 1, (a0 + a1) / 2)
+end
+
+-- A window's glass pane: the translucent base, a pale haze, a hairline edge
+-- and a brighter line along the top where light would catch it.
+-- dense = a dialog that sits over another Blood Pact window and must not let
+-- that window's text show through.
+local panes = {}
+function W.Glass(frame, dense)
+    local base = crisp(frame:CreateTexture(nil, "BACKGROUND", nil, -8))
+    base:SetAllPoints()
+    local frost = crisp(frame:CreateTexture(nil, "BACKGROUND", nil, -7))
+    frost:SetAllPoints()
+    haze(frost, 0.012, 0.07)
+    W.Border(frame, { 1, 1, 1, 0.16 })
+    local shine = crisp(frame:CreateTexture(nil, "BORDER"))
+    shine:SetColorTexture(1, 1, 1, 0.22)
+    shine:SetPoint("TOPLEFT", 1, -1)
+    shine:SetPoint("TOPRIGHT", -1, -1)
+    onePixel(shine, true)
+    local pane = { base = base, dense = dense and true or false }
+    panes[#panes + 1] = pane
+    local a = W.GLASS_ALPHA[W.glass] or W.GLASS_ALPHA.frosted
+    base:SetColorTexture(W.C.bg[1], W.C.bg[2], W.C.bg[3], dense and math.max(a, W.DENSE_ALPHA) or a)
+    return base
+end
+
+-- Change how see-through every Blood Pact window is, right away.
+function W.SetGlass(level)
+    if not W.GLASS_ALPHA[level] then level = "frosted" end
+    W.glass = level
+    local a = W.GLASS_ALPHA[level]
+    W.C.bg[4] = a
+    for _, pane in ipairs(panes) do
+        pane.base:SetColorTexture(W.C.bg[1], W.C.bg[2], W.C.bg[3], pane.dense and math.max(a, W.DENSE_ALPHA) or a)
+    end
+    return level
+end
+
+function W.NextGlass()
+    for i, level in ipairs(W.GLASS_ORDER) do
+        if level == W.glass then return W.GLASS_ORDER[i % #W.GLASS_ORDER + 1] end
+    end
+    return W.GLASS_ORDER[1]
 end
 
 -- A horizontal 1-pixel line across a frame at y.
@@ -198,6 +265,76 @@ function W.SortButton(parent, text, width, onClick)
     end
     b:SetSort(nil)
     return b
+end
+
+-- A section that folds away. The header is a bar with a small arrow and a
+-- title; a click opens or closes the body, which hangs below it. Whether it
+-- is open is remembered per character under `key`.
+--   acc.body       put the section's widgets in here
+--   acc:SetOpen(v) open or close it
+--   onToggle(open) called after every change, to move whatever sits around it
+function W.Accordion(parent, title, width, bodyHeight, key, onToggle)
+    local a = CreateFrame("Button", nil, parent)
+    a:SetSize(width, 22)
+    W.Fill(a, { 1, 1, 1, 0.05 })
+    W.Border(a)
+    local hl = crisp(a:CreateTexture(nil, "HIGHLIGHT"))
+    hl:SetAllPoints()
+    hl:SetColorTexture(1, 1, 1, 0.05)
+    -- The arrow: flat lines, pointing right when closed and down when open.
+    local lines = {}
+    for i = 1, 5 do
+        local t = crisp(a:CreateTexture(nil, "OVERLAY"))
+        t:SetColorTexture(W.C.gold[1], W.C.gold[2], W.C.gold[3], 1)
+        t:SetHeight(1)
+        lines[i] = t
+    end
+    a.title = W.Text(a, title, "GameFontNormalSmall")
+    a.title:SetPoint("LEFT", 22, 0)
+    a.note = W.Text(a, "", "GameFontDisableSmall")          -- a short summary shown on the right
+    a.note:SetPoint("RIGHT", -8, 0)
+    a.body = CreateFrame("Frame", nil, a)
+    a.body:SetPoint("TOPLEFT", a, "BOTTOMLEFT", 0, -6)
+    a.body:SetSize(width, bodyHeight)
+    a.bodyHeight = bodyHeight
+    local function draw()
+        local closed, open = { 2, 4, 6, 4, 2 }, { 7, 5, 3, 1 }
+        for i, t in ipairs(lines) do
+            t:ClearAllPoints()
+            if a.open then
+                t:SetShown(open[i] ~= nil)
+                if open[i] then
+                    t:SetWidth(open[i])
+                    t:SetPoint("TOP", a, "LEFT", 11, 3 - i)
+                end
+            else
+                t:Show()
+                t:SetWidth(closed[i])
+                t:SetPoint("TOPLEFT", a, "LEFT", 8, 4 - i)
+            end
+        end
+        a.body:SetShown(a.open)
+    end
+    local function saved()
+        local c = ns.Char and ns.db and ns.Char()
+        if not c then return nil end
+        c.folds = c.folds or {}
+        return c.folds
+    end
+    function a:SetOpen(v, quiet)
+        a.open = v and true or false
+        local folds = saved()
+        if folds and key then folds[key] = a.open end
+        draw()
+        if onToggle and not quiet then onToggle(a.open) end
+    end
+    -- Room this section takes below its top edge, header included.
+    function a:Height() return a.open and (22 + 6 + a.bodyHeight) or 22 end
+    a:SetScript("OnClick", function() a:SetOpen(not a.open) end)
+    local folds = saved()
+    a.open = (folds and key and folds[key]) or false
+    draw()
+    return a
 end
 
 function W.Text(parent, text, template)

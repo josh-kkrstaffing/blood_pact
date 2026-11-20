@@ -386,12 +386,22 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
     p.people.scroll:SetPoint("TOPLEFT", 330, -132)
     p.people.scroll:SetHeight(76)
 
-    -- Scheduling (Team Captain and above)
-    local s = CreateFrame("Frame", nil, p)
-    s:SetPoint("TOPLEFT", 0, -214)
+    -- Scheduling and leader tools (Team Captain and above) are used now and
+    -- then, so they fold away at the bottom and the two lists get the room.
+    function p.place()
+        local can = RBAC.ICan("schedule")
+        p.fold:SetShown(can)
+        p.fold:ClearAllPoints()
+        p.fold:SetPoint("BOTTOMLEFT", 0, can and (p.fold:Height() - 22) or 0)
+        local below = can and (p.fold:Height() + 8) or 0
+        p.list:Stretch(0, -18, nil, below)
+        p.people:Stretch(330, -132, nil, below)
+    end
+    p.fold = W.Accordion(p, "Schedule a raid and leader tools", 700, 122, "raidsLeader", function() p.place() end)
+    local s = CreateFrame("Frame", nil, p.fold.body)
+    s:SetPoint("TOPLEFT", 0, 20)            -- its first row sits 20 down, where the old heading was
     s:SetSize(660, 140)
     p.sched = s
-    W.Text(s, "Schedule a raid", "GameFontNormal"):SetPoint("TOPLEFT", 0, 0)
     W.Text(s, "Title", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -24)
     s.titleBox = W.Edit(s, 150, 40)
     s.titleBox:SetPoint("TOPLEFT", 40, -20)
@@ -480,7 +490,7 @@ end, function(p)
     selected = found and found.id or nil
     p.list.selected = found
     p.list:SetItems(list)
-    p.sched:SetShown(RBAC.ICan("schedule"))
+    p.place()
     local open = found ~= nil and found.at >= ns.Now() - 6 * 3600
     for _, b in ipairs(p.signButtons) do b:SetEnabled(open) end
     if not found then

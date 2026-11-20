@@ -262,8 +262,7 @@ local function build()
     else
         f:SetPoint("CENTER", UIParent, "CENTER", 420, 80)
     end
-    W.Fill(f, W.C.bg)
-    W.Border(f)
+    W.Glass(f)
     f:SetMovable(true)
     f:EnableMouse(true)
     f:RegisterForDrag("LeftButton")

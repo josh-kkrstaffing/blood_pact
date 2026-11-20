@@ -180,8 +180,19 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         p.msgButtons[i] = b
     end
 
-    local bg = CreateFrame("Frame", nil, p)
-    bg:SetPoint("TOPLEFT", 0, -48)
+    -- The message itself is read once and rarely edited, so it folds away
+    -- and the scan and reply lists get the room. Steps 2 and 3 move with it.
+    function p.place()
+        local top = -48 - p.msgFold:Height() - 10
+        p.step2:ClearAllPoints()
+        p.step2:SetPoint("TOPLEFT", 0, top)
+        p.list:Stretch(0, top - 76, 0, 116)
+    end
+    p.msgFold = W.Accordion(p, "Read or edit the message", 640, 98, "recruitMsg", function() p.place() end)
+    p.msgFold:SetPoint("TOPLEFT", 0, -48)
+    local mb = p.msgFold.body
+    local bg = CreateFrame("Frame", nil, mb)
+    bg:SetPoint("TOPLEFT", 0, 0)
     bg:SetSize(640, 70)
     W.Panel(bg)
     p.box = CreateFrame("EditBox", nil, bg)
@@ -197,9 +208,9 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         if byUser then drafts[current] = self:GetText() end
     end)
 
-    local hint = W.Text(p, "This is what a click on a name sends. You can edit it first.", "GameFontDisableSmall")
-    hint:SetPoint("TOPLEFT", 0, -122)
-    p.saveMsg = W.Button(p, "Save as guild message", 170, 20, function()
+    local hint = W.Text(mb, "This is what a click on a name sends. You can edit it first.", "GameFontDisableSmall")
+    hint:SetPoint("TOPLEFT", 0, -78)
+    p.saveMsg = W.Button(mb, "Save as guild message", 170, 20, function()
         local msgs = U.Copy(messages())
         if msgs[current] == p.box:GetText() then ns.UI.Say("That message is already saved.") return end
         msgs[current] = p.box:GetText()
@@ -210,10 +221,14 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
             return e, why
         end)
     end)
-    p.saveMsg:SetPoint("TOPRIGHT", 0, -120)
+    p.saveMsg:SetPoint("TOPRIGHT", 0, -76)
 
-    local h2 = W.Text(p, "2. Scan for unguilded players, then click a name to whisper them the message above", "GameFontNormal")
-    h2:SetPoint("TOPLEFT", 0, -150)
+    -- Step 2: its heading, the scan button and the starting zones move as one block.
+    local s2 = CreateFrame("Frame", nil, p)
+    s2:SetSize(700, 72)
+    p.step2 = s2
+    local h2 = W.Text(s2, "2. Scan for unguilded players, then click a name to whisper them the picked message", "GameFontNormal")
+    h2:SetPoint("TOPLEFT", 0, 0)
     -- One /who per click. zone = nil searches where I am standing.
     local function search(zone)
         if GetTime() - lastScan < R.WAIT then
@@ -237,9 +252,9 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
             or ("Searching " .. U.Safe(zone, 40) .. "..."))
         p.list:SetItems(candidates)
     end
-    p.scan = W.Button(p, "Scan my zone", 130, 22, function() search(nil) end)
-    p.scan:SetPoint("TOPLEFT", 0, -170)
-    p.found = W.Text(p, "", "GameFontDisableSmall")
+    p.scan = W.Button(s2, "Scan my zone", 130, 22, function() search(nil) end)
+    p.scan:SetPoint("TOPLEFT", 0, -20)
+    p.found = W.Text(s2, "", "GameFontDisableSmall")
     p.found:SetPoint("LEFT", p.scan, "RIGHT", 10, 0)
 
     -- My faction's starting zones, grouped by region.
@@ -249,18 +264,18 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         if ok and R.STARTER[f] then faction = f end
     end
     local x = 0
-    local lead = W.Text(p, "Starter zones", "GameFontHighlightSmall")
-    lead:SetPoint("TOPLEFT", x, -202)
+    local lead = W.Text(s2, "Starter zones", "GameFontHighlightSmall")
+    lead:SetPoint("TOPLEFT", x, -52)
     x = x + 78
     p.zoneButtons = {}
     for _, group in ipairs(R.Regions(faction)) do
-        local label = W.Text(p, group.region .. ":", "GameFontDisableSmall")
-        label:SetPoint("TOPLEFT", x, -202)
+        local label = W.Text(s2, group.region .. ":", "GameFontDisableSmall")
+        label:SetPoint("TOPLEFT", x, -52)
         x = x + 6 * #group.region + 12
         for _, zone in ipairs(group.zones) do
             local width = 6 * #zone + 20
-            local b = W.Button(p, zone, width, 20, function() search(zone) end)
-            b:SetPoint("TOPLEFT", x, -198)
+            local b = W.Button(s2, zone, width, 20, function() search(zone) end)
+            b:SetPoint("TOPLEFT", x, -48)
             p.zoneButtons[#p.zoneButtons + 1] = b
             x = x + width + 4
         end
@@ -297,7 +312,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         end
         p.list.Update()
     end)
-    p.list:Stretch(0, -226, 0, 116)
+    p.place()
 
     -- Step 3: who replied "inv". A click writes the invite; the recruiter presses Enter.
     p.h3 = W.Text(p, "", "GameFontNormal")
@@ -333,6 +348,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
 end, function(p)
     p.saveMsg:SetShown(ns.RBAC.ICan("recruitEdit"))
     for i, b in ipairs(p.msgButtons) do b:SetEnabled(i ~= current) end      -- the picked one is marked
+    p.msgFold.note:SetText(LABELS[current] .. " message picked")
     -- Anyone who has joined since is done.
     for i = #R.replies, 1, -1 do
         if ns.GUIDForName(U.ShortName(R.replies[i].name)) then table.remove(R.replies, i) end

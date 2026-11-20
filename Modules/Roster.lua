@@ -473,19 +473,23 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         function(e) ns.Loot.Click(e) end)
     p.loot:Stretch(520, -48, 0, 0)
     p.loot.key = "id"
-    p.altBox = W.Edit(p, 120, 48)
-    p.altBox:SetPoint("TOPLEFT", 520, -250)
-    p.link = W.Button(p, "Link as alt", 100, 22, function()
+    -- Linking alts is an occasional officer job: it folds away under the details.
+    p.altFold = W.Accordion(p, "Link or unlink an alt", 240, 78, "rosterAlts")
+    p.altFold:SetPoint("TOPLEFT", 520, -250)
+    local ab = p.altFold.body
+    p.altBox = W.Edit(ab, 120, 48)
+    p.altBox:SetPoint("TOPLEFT", 0, 0)
+    p.link = W.Button(ab, "Link as alt", 100, 22, function()
         if ns.UI.Try("Alt linked.", R.LinkAlt, p.altBox:GetText(), selected) then p.altBox:SetText("") end
     end, "accent")
-    p.link:SetPoint("TOPLEFT", 646, -248)
-    p.altHint = W.Text(p, "Type an alt's name, then link it to the selected main.", "GameFontDisableSmall")
-    p.altHint:SetPoint("TOPLEFT", 520, -274)
+    p.link:SetPoint("TOPLEFT", 126, 0)
+    p.altHint = W.Text(ab, "Type an alt's name, then link it to the selected main.", "GameFontDisableSmall")
+    p.altHint:SetPoint("TOPLEFT", 0, -28)
     p.altHint:SetWidth(240)
-    p.unlink = W.Button(p, "Unlink selected alt", 150, 22, function()
+    p.unlink = W.Button(ab, "Unlink selected alt", 150, 22, function()
         if selected then ns.UI.Try("Alt unlinked.", R.Unlink, selected) end
     end)
-    p.unlink:SetPoint("TOPLEFT", 520, -300)
+    p.unlink:SetPoint("TOPLEFT", 0, -54)
 
     -- Log view
     p.log = W.List(p, 710, 330, 16, function(row, e)
@@ -549,7 +553,7 @@ end, function(p)
     p.search:SetShown(members)
     p.log.scroll:SetShown(view == "log")
     local officer = RBAC.ICan("altlink")
-    for _, w in ipairs({ p.altBox, p.link, p.altHint, p.unlink }) do w:SetShown(members and officer) end
+    p.altFold:SetShown(members and officer)
 
     if tasks then
         local list = ns.Officer.Current()
@@ -597,7 +601,7 @@ end, function(p)
     if pane == "classes" then
         -- The guild by class: pie, legend, and a message to one class.
         local cp = p.classPane
-        for _, w in ipairs({ p.altBox, p.link, p.altHint, p.unlink }) do w:SetShown(false) end
+        p.altFold:SetShown(false)
         p.detail:SetShown(false)
         cp:SetShown(true)
         local slices = R.Slices(counts, total, R.PIE_SPOKES)
@@ -649,7 +653,7 @@ end, function(p)
     local loot = ns.Loot.For(st, ns.Loot.Entries(st), sel.guid)
     p.lootBtn:SetText("Loot (" .. #loot .. ")")
     if pane == "loot" then
-        for _, w in ipairs({ p.altBox, p.link, p.altHint, p.unlink }) do w:SetShown(false) end
+        p.altFold:SetShown(false)
         p.loot.scroll:SetShown(#loot > 0)
         p.loot:SetItems(loot)
         p.detail:SetShown(#loot == 0)

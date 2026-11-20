@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "0.23.0"
+ns.VERSION = "0.24.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -79,6 +79,7 @@ ns.On("ADDON_LOADED", function(name)
     db.guilds = db.guilds or {}
     db.ui = db.ui or { autoBossAward = true, progression = false }
     ns.db = db
+    if ns.W and ns.W.SetGlass then ns.W.SetGlass(db.ui.glass or "frosted") end      -- how see-through the windows are
     ns.Fire("DB_READY")
 end)
 

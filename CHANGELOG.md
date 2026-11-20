@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.24.0
+
+- A new look: every Blood Pact window is a pane of dark glass that lets a little of the game world show through, with a pale haze that is brightest at the top, hairline edges and tinted buttons and fields
+- A button in the title bar switches between Frosted (the default), Clear (more see-through) and Solid (as before). The game doesn't let addons blur what is behind a window, so this is translucent glass, not a true blur
+- Tabs now run in the order a guild does things: Recruit, Roster, Professions, BiS Check, Raids, Summon, Raid & Loot, Standings, Settings. The window reopens on the tab you used last
+- Sections that are only needed now and then fold away, and the lists around them take the room. A click on the section's bar opens it, and each character remembers which are open
+- Raids: "Schedule a raid and leader tools" folds at the bottom; the raid list and sign-up list now fill the height of the window
+- Roster: "Link or unlink an alt" folds under the member's details
+- Recruit: "Read or edit the message" folds under the three message buttons, so the scan list sits higher
+
 ## 0.23.0
 
 - Roster: a Class column, in each class's colour. Press the Class heading to sort by it

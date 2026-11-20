@@ -8,8 +8,12 @@ local W, U, RBAC = ns.W, ns.U, ns.RBAC
 local tabs, order = {}, {}
 local frame, roleText, statusText, activeKey
 
--- Left to right. Everyday tabs first, officer tools after, Settings last.
-local TAB_ORDER = { standings = 1, raids = 2, roster = 3, profs = 4, bis = 5, summon = 6, raid = 7, recruit = 8, settings = 9 }
+-- Left to right, in the order a guild does things: bring people in, know
+-- who they are, get them ready (professions, gear), sign them up, get them
+-- to the raid, run it and hand out loot, then see where everyone stands.
+-- The guild's rules come last. A tab the player's rank can't use is skipped.
+local TAB_ORDER = { recruit = 1, roster = 2, profs = 3, bis = 4, raids = 5, summon = 6, raid = 7, standings = 8, settings = 9 }
+UI.TAB_ORDER = TAB_ORDER
 
 function UI.AddTab(key, label, action, build, refresh)
     order[#order + 1] = key
@@ -52,6 +56,7 @@ end
 
 local function selectTab(key)
     activeKey = key
+    if ns.db and ns.db.ui then ns.db.ui.tab = key end      -- reopen on the tab last used
     for k, t in pairs(tabs) do
         if t.panel then t.panel:SetShown(k == key) end
         if t.button then t.button:SetEnabled(k ~= key) end
@@ -85,6 +90,7 @@ function UI.Refresh()
             if t.panel then t.panel:Hide() end
         end
     end
+    if not activeKey and ns.db and ns.db.ui and tabs[ns.db.ui.tab] then activeKey = ns.db.ui.tab end
     if not activeKey or not allowed(tabs[activeKey]) then activeKey = firstAllowed end
     if activeKey then selectTab(activeKey) end
 end
@@ -109,8 +115,7 @@ local function build()
     end
     frame:SetFrameStrata("DIALOG")
     frame:SetClampedToScreen(true)
-    W.Fill(frame, W.C.bg)
-    W.Border(frame)
+    W.Glass(frame)
 
     -- Title bar: drag to move.
     local bar = CreateFrame("Frame", nil, frame)
@@ -138,8 +143,17 @@ local function build()
         if frame.about:IsShown() then frame.about:Hide() else frame.about:Show() end
     end)
     aboutBtn:SetPoint("RIGHT", close, "LEFT", -6, 0)
+    -- How see-through the windows are: Frosted, Clear or Solid. Kept per account.
+    local glassBtn
+    glassBtn = W.Button(bar, W.GLASS_LABEL[W.glass] or "Frosted", 62, 22, function()
+        local level = W.SetGlass(W.NextGlass())
+        ns.db.ui.glass = level
+        glassBtn:SetText(W.GLASS_LABEL[level])
+    end)
+    glassBtn:SetPoint("RIGHT", aboutBtn, "LEFT", -6, 0)
+    frame.glassBtn = glassBtn
     statusText = W.Text(bar, "", "GameFontDisableSmall")
-    statusText:SetPoint("RIGHT", aboutBtn, "LEFT", -12, 0)
+    statusText:SetPoint("RIGHT", glassBtn, "LEFT", -12, 0)
 
     -- About: who makes Blood Pact and where to join. Covers the tabs while open.
     local about = CreateFrame("Frame", nil, frame)
@@ -147,7 +161,7 @@ local function build()
     about:SetPoint("BOTTOMRIGHT", -1, 33)
     if about.SetFrameLevel and frame.GetFrameLevel then about:SetFrameLevel((frame:GetFrameLevel() or 1) + 40) end
     about:EnableMouse(true)
-    W.Fill(about, { W.C.bg[1], W.C.bg[2], W.C.bg[3], 1 })
+    W.Fill(about, { W.C.bg[1], W.C.bg[2], W.C.bg[3], 0.97 })      -- hides the tab underneath
     local info = ns.ABOUT
     local y = -28
     local function line(text, template, gap)
@@ -204,7 +218,7 @@ local function build()
     frame.feedback:SetPoint("BOTTOMLEFT", 16, 12)
     frame.feedback:SetPoint("BOTTOMRIGHT", -30, 12)
     local foot = frame:CreateTexture(nil, "BORDER")
-    foot:SetColorTexture(W.C.border[1], W.C.border[2], W.C.border[3], 1)
+    foot:SetColorTexture(W.C.border[1], W.C.border[2], W.C.border[3], W.C.border[4])
     foot:SetPoint("BOTTOMLEFT", 1, 32)
     foot:SetPoint("BOTTOMRIGHT", -1, 32)
     foot:SetHeight(1)

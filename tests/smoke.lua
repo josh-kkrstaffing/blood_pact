@@ -185,7 +185,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
     "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
-    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat" }) do
+    "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -1482,6 +1482,68 @@ end)
 pressEverything(gm)
 run(gm, "clear class filter", function() gm.ns.Roster.SetClassFilter(nil) end)
 advance(5)
+
+-- The look: glass windows, tabs in the order a guild does things, and sections that fold.
+local function fold(c, title)
+    for _, w in ipairs(c.widgets) do
+        if rawget(w, "body") and rawget(w, "title") and w.title:GetText() == title then return w end
+    end
+end
+run(gm, "tab order", function()
+    local ns = gm.ns
+    local o = ns.UI.TAB_ORDER
+    check(o.recruit < o.roster and o.roster < o.profs and o.profs < o.bis and o.bis < o.raids and o.raids < o.summon
+        and o.summon < o.raid and o.raid < o.standings and o.standings < o.settings,
+        "tabs run in the order a guild does things: recruit, roster, prepare, sign up, summon, raid and loot, standings, settings")
+    local x = {}
+    for _, w in ipairs(gm.widgets) do
+        if w._.kind == "Button" and (w._.text == "Recruit" or w._.text == "Standings") and w._.h == 30 then x[w._.text] = w end
+    end
+    check(x.Recruit ~= nil and x.Standings ~= nil, "both ends of the tab strip exist")
+end)
+clickText(gm, "Raids")
+run(gm, "remembered tab", function() check(gm.ns.db.ui.tab == "raids", "the window remembers the tab last used") end)
+run(gm, "glass", function()
+    local W = gm.ns.W
+    local btn
+    for _, w in ipairs(gm.widgets) do
+        if w._.kind == "Button" and W.GLASS_LABEL[W.glass] == w._.text and w:IsVisible() then btn = w end
+    end
+    check(btn ~= nil, "the title bar has the glass button")
+    local before = W.glass
+    local seen = { [before] = true }
+    for _ = 1, 2 do
+        btn:GetScript("OnClick")(btn, "LeftButton")
+        seen[W.glass] = true
+        check(gm.ns.db.ui.glass == W.glass and btn:GetText() == W.GLASS_LABEL[W.glass] and W.C.bg[4] == W.GLASS_ALPHA[W.glass],
+            "a click changes how see-through the windows are, and it is saved")
+    end
+    check(seen.frosted and seen.clear and seen.solid, "the button goes through Frosted, Clear and Solid")
+    btn:GetScript("OnClick")(btn, "LeftButton")
+    check(W.glass == before, "and comes back round")
+    check(W.GLASS_ALPHA.clear < W.GLASS_ALPHA.frosted and W.GLASS_ALPHA.frosted < W.GLASS_ALPHA.solid and W.DENSE_ALPHA > W.GLASS_ALPHA.frosted,
+        "each setting is more solid than the last, and dialogs over another window stay dense")
+end)
+run(gm, "folding sections", function()
+    local leader = fold(gm, "Schedule a raid and leader tools")
+    check(leader ~= nil and leader:IsVisible() and leader.open == false and not leader.body:IsShown(),
+        "the leader tools on the Raids tab start folded away")
+    leader:GetScript("OnClick")(leader, "LeftButton")
+    check(leader.open == true and leader.body:IsShown() and gm.ns.Char().folds.raidsLeader == true and leader:Height() > 22,
+        "a click opens the section, and that is remembered")
+    leader:GetScript("OnClick")(leader, "LeftButton")
+    check(leader.open == false and gm.ns.Char().folds.raidsLeader == false and leader:Height() == 22, "another click folds it again")
+    check(fold(gm, "Link or unlink an alt") ~= nil and fold(gm, "Read or edit the message") ~= nil,
+        "the Roster's alt tools and the recruiting message fold too")
+end)
+run(member, "member sees no leader tools", function()
+    open(member)
+end)
+clickText(member, "Raids")
+run(member, "member raids tab", function()
+    local leader = fold(member, "Schedule a raid and leader tools")
+    check(leader ~= nil and not leader:IsVisible(), "a Member doesn't see the leader tools at all")
+end)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
