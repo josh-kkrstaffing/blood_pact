@@ -1158,23 +1158,23 @@ run(gm, "second band", function()
 end)
 -- One click on a name whispers the picked message to that player.
 clickText(gm, "Social")                                    -- an earlier pass left another message picked
-local before = #guildChat
+local tellsBefore = #guildChat
 check(clickRow(gm, "Newbie One-Normal"), "a name in the list can be clicked")
 local tell = guildChat[#guildChat] or ""
-check(#guildChat == before + 1 and tell:find("WHISPER:Newbie One:Hey! Blood Pact is recruiting on WoW Forever.", 1, true) == 1,
+check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Blood Pact is recruiting on WoW Forever.", 1, true) == 1,
     "one click whispers that player the Social message")
 clickRow(gm, "Newbie One-Normal")
-check(#guildChat == before + 1, "a second click on the same name doesn't whisper again")
+check(#guildChat == tellsBefore + 1, "a second click on the same name doesn't whisper again")
 shiftDown = true
 clickRow(gm, "Newbie One-Normal")
 shiftDown = false
-check(#guildChat == before + 2, "Shift-click sends it again on purpose")
+check(#guildChat == tellsBefore + 2, "Shift-click sends it again on purpose")
 clickRow(gm, "Fresh Troll-Normal", "RightButton")
-check(#guildChat == before + 2, "right-click opens a whisper to type and sends nothing")
+check(#guildChat == tellsBefore + 2, "right-click opens a whisper to type and sends nothing")
 check(clickText(gm, "Raiding"), "another message can be picked")
 clickRow(gm, "Razor Hill Rex-Normal")
 tell = guildChat[#guildChat] or ""
-check(#guildChat == before + 3 and tell:find("WHISPER:Razor Hill Rex:Blood Pact is building raid teams", 1, true) == 1,
+check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Blood Pact is building raid teams", 1, true) == 1,
     "the whisper carries whichever message is picked")
 run(gm, "edited message", function()
     rp.box:SetText("Custom pitch for you")
