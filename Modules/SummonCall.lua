@@ -115,9 +115,15 @@ local function isRitual(spellID)
     return name ~= nil and name == ns.SummonQueue.SpellName()
 end
 
+-- Inside an instance the game refuses addon chat: say so once, not every ritual.
+local lastWarned = -1000
 local function send(msg, kind, target)
-    local fn = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
-    return fn ~= nil and pcall(fn, msg, kind, nil, target)
+    local ok, why = ns.Chat(msg, kind, target)
+    if not ok and why == "locked" and GetTime() - lastWarned > 300 then
+        lastWarned = GetTime()
+        ns.Print(ns.CHAT_LOCKED .. " Your summon messages weren't sent.")
+    end
+    return ok
 end
 
 -- Who this ritual is for: the name just clicked in the summon queue, else my

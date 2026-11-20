@@ -88,9 +88,19 @@ local candidates = {}
 local scan = {}            -- the search in flight: { zone =, band = } (band nil = my own zone)
 local lastScan = -100
 
-local function openWhisper(name)
+-- Open a whisper to a player. With text, the message is typed into it so the
+-- recruiter only has to press Enter.
+local function openWhisper(name, text)
     local sendTell = ChatFrame_SendTell or (ChatFrameUtil and ChatFrameUtil.SendTell)
-    if sendTell then sendTell(name) else ns.UI.Say("Type /w " .. name .. " then paste your message.") end
+    if not sendTell then ns.UI.Say("Type /w " .. name .. " then paste your message.") return false end
+    sendTell(name)
+    if not text then return false end
+    local getActive = ChatEdit_GetActiveWindow or (ChatFrameUtil and ChatFrameUtil.GetActiveWindow)
+    if getActive then
+        local ok, box = pcall(getActive)
+        if ok and type(box) == "table" and type(box.Insert) == "function" and pcall(box.Insert, box, text) then return true end
+    end
+    return false
 end
 
 -- Is this whisper someone asking for a guild invite? "inv", "invite",
@@ -150,10 +160,8 @@ function R.Whisper(name, text)
     text = type(text) == "string" and text:match("^%s*(.-)%s*$") or ""
     if text == "" then return nil, "Pick a message first." end
     if #text > 255 then return nil, "That message is too long for one whisper (255 letters)." end
-    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
-    if not send or not pcall(send, text, "WHISPER", nil, U.ShortName(name)) then
-        return nil, "The game didn't send it."
-    end
+    local ok, why = ns.Chat(text, "WHISPER", U.ShortName(name))
+    if not ok then return nil, why == "locked" and ns.CHAT_LOCKED or "The game didn't send it." end
     whispered[name] = true
     return true
 end
@@ -282,8 +290,10 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         if ok then
             ns.UI.Say(("Whispered %s the %s message."):format(who, LABELS[current]))
         else
-            ns.UI.Say((why or "That didn't work.") .. " Opening a whisper so you can paste it.")
-            openWhisper(item.name)
+            -- Not sent: open a whisper to them with the message typed in, for the recruiter to send.
+            local typed = openWhisper(item.name, p.box:GetText())
+            ns.UI.Say((why or "That didn't work.") .. (typed and " The message is typed in a whisper to " .. who .. ": press Enter to send it."
+                or " A whisper to " .. who .. " is open: paste the message and press Enter."))
         end
         p.list.Update()
     end)

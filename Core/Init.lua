@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "0.22.1"
+ns.VERSION = "0.22.2"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -186,9 +186,43 @@ ns.On("GUILD_ROSTER_UPDATE", function()
     end)
 end)
 
+-- Chat sent for the player. Inside battlegrounds and instances WoW Forever
+-- refuses chat from addons, and reports it as a blocked action without
+-- raising an error, so a plain call looks as if it worked. This sends, sees
+-- whether the game refused, and remembers the refusal until the player
+-- changes zone so the red error isn't triggered again and again.
+--   -> true, or false and "locked" (the game is refusing addon chat here),
+--      "failed" or "missing"
+ns.CHAT_LOCKED = "The game is blocking chat from addons here, as it does inside battlegrounds and instances."
+local chatBlocks, chatQuiet, lockedAt = 0, false, nil
+function ns.Chat(msg, kind, target)
+    if lockedAt and GetTime() - lockedAt < 120 then return false, "locked" end
+    lockedAt = nil
+    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
+    if not send then return false, "missing" end
+    local before = chatBlocks
+    chatQuiet = true
+    local ok = pcall(send, msg, kind, nil, target)
+    chatQuiet = false
+    if chatBlocks ~= before then
+        lockedAt = GetTime()
+        return false, "locked"
+    end
+    if not ok then return false, "failed" end
+    return true
+end
+function ns.ChatLocked() return lockedAt ~= nil and GetTime() - lockedAt < 120 end
+local function unlockChat() lockedAt = nil end
+ns.On("PLAYER_ENTERING_WORLD", unlockChat)
+ns.On("ZONE_CHANGED_NEW_AREA", unlockChat)
+
 -- WoW Forever blocks some actions for addons. Say so instead of failing silently.
 local function blocked(addon, func)
     if addon ~= ADDON then return end
+    if chatQuiet then                    -- a chat line the game refused: ns.Chat's caller explains
+        chatBlocks = chatBlocks + 1
+        return
+    end
     ns.lastBlocked = tostring(func)
     ns.Print("The game blocked an action for addons (" .. tostring(func) .. "). Do that step by hand.")
     ns.Fire("ACTION_BLOCKED", func)

@@ -265,10 +265,9 @@ function O.Create(rid, prof, qty, mats, note, toGUID)
     -- One whisper from this click, to a guild member who is online. Never in test mode.
     local m = toGUID and ns.roster.byGUID[toGUID]
     if m and m.online and not ns.mock then
-        local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
         local msg = ("Blood Pact order: can you make %s%s for me? %s See /bp > Professions > Orders."):format(
             recipeLink(rid), qty > 1 and (" x" .. qty) or "", O.MATS_ASK[mats])
-        if send then pcall(send, msg:sub(1, 255), "WHISPER", nil, U.ShortName(m.name)) end
+        ns.Chat(msg:sub(1, 255), "WHISPER", U.ShortName(m.name))      -- the order stands either way
     end
     return e
 end

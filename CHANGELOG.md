@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.22.2
+
+- Inside battlegrounds and instances WoW Forever refuses chat sent by addons. Blood Pact now notices the refusal instead of reporting the message as sent
+- Recruit: when a whisper is refused, the name is not marked "whispered"; a whisper to that player opens with your message already typed, and you press Enter to send it
+- While the game is refusing, Blood Pact stops trying (no more red "Interface action failed" errors) and tries again after you change zone
+- The same check covers the other chat buttons: order and summon whispers, "Post in guild chat", "Whisper sign-ups" and the summon messages each say when the game refused them
+
 ## 0.22.1
 
 - Summon messages: the window now sits above the main Blood Pact window, so the main window's buttons and text no longer show through it; a little more room between the two messages

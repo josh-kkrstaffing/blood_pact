@@ -212,9 +212,8 @@ function S.Request(note, toGUID)
     -- even without Blood Pact. Guild members only; never in test mode.
     local m = toGUID and ns.roster.byGUID[toGUID]
     if m and m.online and toGUID ~= ns.MyGUID() and not ns.mock then
-        local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
         local msg = "Could I get a warlock summon" .. (note ~= "" and (" to " .. note:sub(1, 60)) or "") .. "? I'm in " .. myZone() .. ". (sent with Blood Pact)"
-        if send and pcall(send, msg, "WHISPER", nil, ns.U.ShortName(m.name)) then return "whispered" end
+        if ns.Chat(msg, "WHISPER", ns.U.ShortName(m.name)) then return "whispered" end
     end
     return true
 end
@@ -226,11 +225,10 @@ end
 -- One line in guild chat, for guildmates who don't have Blood Pact.
 function S.PostToGuildChat(note)
     note = tostring(note or ""):match("^%s*(.-)%s*$")
-    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
     local msg = "Looking for a warlock summon" .. (note ~= "" and (" to " .. note:sub(1, 60)) or "") .. ". I'm in " .. myZone() .. "."
     if ns.mock then return true end
-    local ok = pcall(send, msg, "GUILD")
-    if not ok then return nil, "The game didn't send it. Type it in guild chat." end
+    local ok, why = ns.Chat(msg, "GUILD")
+    if not ok then return nil, (why == "locked" and (ns.CHAT_LOCKED .. " ") or "The game didn't send it. ") .. "Type it in guild chat." end
     return true
 end
 
@@ -259,9 +257,9 @@ end
 -- One whisper to my group's leader asking them to invite these players.
 function S.Suggest(names, leader)
     if ns.mock then return true end
-    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
-    if not send or not pcall(send, S.SuggestText(names), "WHISPER", nil, U.ShortName(leader)) then
-        return nil, "Ask " .. leader .. " to invite " .. table.concat(names, ", ") .. "."
+    local ok, why = ns.Chat(S.SuggestText(names), "WHISPER", U.ShortName(leader))
+    if not ok then
+        return nil, (why == "locked" and (ns.CHAT_LOCKED .. " ") or "") .. "Ask " .. leader .. " to invite " .. table.concat(names, ", ") .. "."
     end
     return true
 end

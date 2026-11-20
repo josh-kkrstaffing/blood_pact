@@ -157,6 +157,7 @@ local GUILD = {
 local REALM = "-Normal"
 local whisperNeedsShortName = false
 local sentAddon, invites, guildChat = 0, {}, {}
+local CHATLOCK, chatRefused = {}, 0
 
 local function fire(c, event, ...)
     if not c.online then return end
@@ -488,6 +489,12 @@ G.ChatFrameUtil = { AddMessageEventFilter = noop, SendTell = noop, InsertLink = 
 G.C_ChatInfo = {
     RegisterAddonMessagePrefix = noop,
     SendChatMessage = function(msg, kind, _, target)
+        -- Inside a battleground the game refuses addon chat: no error, just a blocked-action event.
+        if CHATLOCK[ctx.guid] then
+            chatRefused = chatRefused + 1
+            fire(ctx, "ADDON_ACTION_BLOCKED", "BloodPact", "UNKNOWN()")
+            return
+        end
         guildChat[#guildChat + 1] = kind .. ":" .. tostring(target) .. ":" .. msg
     end,
     SendAddonMessage = function(prefix, msg, dist, target)
@@ -1397,6 +1404,32 @@ advance(6)
 run(gm, "new zone", function()
     check(#rp.list.items == 1 and rp.list.items[1].name == "Moo Two-Normal", "a different zone starts a fresh list")
 end)
+-- In a battleground the game refuses chat from addons. The whisper isn't
+-- reported as sent; it is typed into a whisper for the recruiter to send.
+CHATLOCK[gm.guid] = true
+local lockedTells, typedTell = #guildChat, {}
+typingIn[gm.guid] = { Insert = function(_, text) typedTell[#typedTell + 1] = text end }
+clickText(gm, "Social")
+clickRow(gm, "Moo Two-Normal")
+check(#guildChat == lockedTells and chatRefused == 1, "a whisper the game refuses is not sent")
+check(said(gm, "The game is blocking chat from addons here, as it does inside battlegrounds and instances. The message is typed in a whisper to Moo Two: press Enter to send it."),
+    "the recruiter is told why, and the message is typed into a whisper for them")
+check(#typedTell == 1 and typedTell[1]:find("Hey! Blood Pact is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
+check(not said(gm, "The game blocked an action for addons (UNKNOWN())"), "the vague blocked-action line isn't shown for it")
+check(not said(gm, "Whispered Moo Two the Social message."), "and it isn't reported as whispered")
+clickRow(gm, "Moo Two-Normal")
+check(chatRefused == 1 and #typedTell == 2, "while the game is refusing, the addon doesn't keep trying; it goes straight to the typed whisper")
+run(gm, "other chat while locked", function()
+    local ok, why = gm.ns.Summon.PostToGuildChat("Orgrimmar")
+    check(ok == nil and why:find("blocking chat from addons", 1, true) ~= nil and why:find("Type it in guild chat.", 1, true) ~= nil,
+        "other chat buttons explain the refusal too")
+end)
+-- Out of the battleground: it works again, and the name was never marked.
+CHATLOCK[gm.guid], typingIn[gm.guid] = nil, nil
+fire(gm, "PLAYER_ENTERING_WORLD")
+clickRow(gm, "Moo Two-Normal")
+check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Blood Pact is recruiting", 1, true) == 1,
+    "after leaving, one click whispers again")
 clickText(gm, "Social")
 pressEverything(gm)
 advance(10)

@@ -598,7 +598,6 @@ function R.WhisperSignups(r)
     local msg = mins > 0
         and ("Blood Pact: %s starts in %d minutes. Get ready, and please be there 15 minutes early."):format(r.title, mins)
         or ("Blood Pact: %s is starting. Please head to the raid now."):format(r.title)
-    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
     local names = {}
     local chosenOnly = R.PickedCount(r) > 0      -- once the raid is selected, only the selected
     for guid, s in pairs(r.signups) do
@@ -609,9 +608,12 @@ function R.WhisperSignups(r)
     end
     if #names == 0 then return nil, chosenOnly and "Nobody who is selected is online." or "Nobody who signed up is online." end
     if ns.mock then return #names end   -- test mode never whispers anyone
-    -- Spaced out so the chat server doesn't drop them.
-    for i, name in ipairs(names) do
-        C_Timer.After((i - 1) * 0.3, function() pcall(send, msg, "WHISPER", nil, name) end)
+    -- The first goes now, so a refusal by the game is known before anything is promised.
+    local ok, why = ns.Chat(msg, "WHISPER", names[1])
+    if not ok then return nil, why == "locked" and (ns.CHAT_LOCKED .. " Whisper them from outside.") or "The game didn't send the whispers." end
+    -- The rest are spaced out so the chat server doesn't drop them.
+    for i = 2, #names do
+        C_Timer.After((i - 1) * 0.3, function() ns.Chat(msg, "WHISPER", names[i]) end)
     end
     return #names
 end
