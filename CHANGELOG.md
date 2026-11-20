@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5
+
+- Settings > "5. Wipe data and start fresh" now also has "Wipe tickets" and "Wipe all of the above", which wipes DKP, loot history, attendance, crafting orders, the Wanted board and tickets in one go
+- A ticket wipe removes every ticket made before it: the staff queue on every Team Captain's game and each member's "My tickets". Old tickets offered by a game that hasn't caught up are refused
+
 ## 1.0.4
 
 - Settings > "5. Wipe data and start fresh" (Guild Master and above): two buttons, each needing two clicks

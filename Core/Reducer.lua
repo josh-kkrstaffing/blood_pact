@@ -34,6 +34,7 @@ Red.Before = before
 Red.RESET_KINDS = {
     dkp = { AWARD = true, SPEND = true, VOID = true, DECAY = true, UNDECAY = true, ATTEND = true },
     orders = { ORDER = true, ORDER_ST = true, ORDER_MAIL = true, ORDER_MOD = true },
+    tickets = {},             -- tickets aren't in the log; Modules/Tickets.lua clears its own copies
 }
 
 local cache, dirty = nil, true

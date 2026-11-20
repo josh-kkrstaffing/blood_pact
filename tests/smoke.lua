@@ -1822,7 +1822,7 @@ run(gm, "before wipe", function()
     local orders, pools = 0, 0
     for _ in pairs(st.orders) do orders = orders + 1 end
     for _ in pairs(st.pools) do pools = pools + 1 end
-    check(orders > 0 and pools > 0, "there is test DKP and there are test orders to wipe")
+    check(orders > 0 and pools > 0 and next(gm.ns.Tickets.Store()) ~= nil, "there is test DKP, there are test orders and test tickets to wipe")
 end)
 run(officer, "officer can't wipe", function()
     check(select(2, officer.ns.DKP.Reset("dkp")) == "Only the Guild Master can wipe data.", "an Officer can't wipe data")
@@ -1836,24 +1836,28 @@ run(gm, "wipe buttons", function()
     end
     check(f ~= nil, "Settings has a Wipe data group")
     if not f.open then f:GetScript("OnClick")(f, "LeftButton") end
+    local all
     for _, w in ipairs(gm.widgets) do
-        if w._.kind == "Button" and rawget(w, "what") then
-            w:GetScript("OnClick")(w, "LeftButton")
-            check(w:GetText() == "Click again to wipe", "the first click only asks to confirm")
-            w:GetScript("OnClick")(w, "LeftButton")
-        end
+        if w._.kind == "Button" and rawget(w, "what") == "all" then all = w end
     end
+    check(all ~= nil, "there is a button to wipe everything at once")
+    all:GetScript("OnClick")(all, "LeftButton")
+    check(all:GetText() == "Click again to wipe", "the first click only asks to confirm")
+    gm.wipeAll = all
 end)
+advance(1.5)                                               -- a real second click, not a double click
+run(gm, "confirm wipe", function() gm.wipeAll:GetScript("OnClick")(gm.wipeAll, "LeftButton") end)
 advance(10)
 for _, c in ipairs({ gm, officer, member }) do
     run(c, "after wipe", function()
         local st = c.ns.Reducer.State()
         check(next(st.orders) == nil and next(st.pools) == nil and #st.history == 0,
             "after the wipe, every guild member's game shows no DKP, loot history or orders")
-        check(st.resets.dkp and st.resets.orders, "and knows when it was wiped")
+        check(st.resets.dkp and st.resets.orders and st.resets.tickets, "and knows when it was wiped")
+        check(next(c.ns.Tickets.Store()) == nil and next(c.ns.Tickets.Mine()) == nil, "every ticket is gone too, staff copies and reporters' own")
     end)
 end
-check(said(gm, "Wiped crafting orders and the Wanted board for the whole guild."), "the Guild Master is told it worked")
+check(said(gm, "Wiped DKP, loot history, attendance, crafting orders, the Wanted board and tickets for the whole guild."), "the Guild Master is told it worked")
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

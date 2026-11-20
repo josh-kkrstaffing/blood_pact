@@ -174,9 +174,18 @@ end
 -- Guild Master: wipe DKP (balances, loot history, decays, attendance) or
 -- crafting orders (orders and the Wanted board), everywhere, and start fresh.
 -- The old records stay in the log but stop counting.
-D.RESET_LABEL = { dkp = "DKP, loot history and attendance", orders = "crafting orders and the Wanted board" }
+D.RESET_LABEL = { dkp = "DKP, loot history and attendance", orders = "crafting orders and the Wanted board",
+    tickets = "tickets", all = "DKP, loot history, attendance, crafting orders, the Wanted board and tickets" }
+D.RESET_ORDER = { "dkp", "orders", "tickets" }
 function D.Reset(what)
     if not RBAC.ICan("reset") then return nil, "Only the Guild Master can wipe data." end
+    if what == "all" then
+        for _, w in ipairs(D.RESET_ORDER) do
+            local e, why = Log.New("RESET", { what = w })
+            if not e then return nil, why end
+        end
+        return true
+    end
     if not D.RESET_LABEL[what] then return nil, "Nothing to wipe." end
     return Log.New("RESET", { what = what })
 end

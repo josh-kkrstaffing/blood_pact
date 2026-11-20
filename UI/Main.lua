@@ -591,7 +591,7 @@ local SETTING_GROUPS = {
         { "inactWatch", "Inactive days: Watch" }, { "inactInactive", "Inactive days: Inactive" },
         { "inactCleanup", "Inactive days: Cleanup" }, { "promoDays", "Initiate promo: days (0 = off)" },
         { "promoRaids", "Initiate promo: raids" } } },
-    { key = "wipe", title = "5. Wipe data and start fresh", rows = {}, extra = 96 },
+    { key = "wipe", title = "5. Wipe data and start fresh", rows = {}, extra = 124 },
 }
 
 UI.AddTab("settings", "Settings", "settings", function(p)
@@ -671,8 +671,14 @@ UI.AddTab("settings", "Settings", "settings", function(p)
     wipeHint:SetPoint("TOPLEFT", 4, -2)
     wipeHint:SetWidth(690)
     p.wipeBtns = {}
-    for i, what in ipairs({ "dkp", "orders" }) do
-        local label = what == "dkp" and "Wipe DKP, loot and attendance" or "Wipe crafting orders and Wanted board"
+    local WIPES = {
+        { "dkp", "Wipe DKP, loot and attendance" },
+        { "orders", "Wipe crafting orders and Wanted board" },
+        { "tickets", "Wipe tickets" },
+        { "all", "Wipe all of the above" },
+    }
+    for i, wd in ipairs(WIPES) do
+        local what, label = wd[1], wd[2]
         local b
         b = W.Button(wb, label, 280, 22, function()
             if GetTime() - (b.armed or -10) > 5 then
@@ -684,22 +690,22 @@ UI.AddTab("settings", "Settings", "settings", function(p)
             b.armed = -10
             b:SetText(label)
             UI.Try("Wiped " .. ns.DKP.RESET_LABEL[what] .. " for the whole guild.", ns.DKP.Reset, what)
-        end)
-        b:SetPoint("TOPLEFT", 4 + (i - 1) * 290, -24)
+        end, what == "all" and "accent" or nil)
+        b:SetPoint("TOPLEFT", 4 + ((i - 1) % 2) * 290, -24 - math.floor((i - 1) / 2) * 28)
         b.what, b.label = what, label
         p.wipeBtns[i] = b
     end
     p.wipeLast = W.Text(wb, "", "GameFontDisableSmall")
-    p.wipeLast:SetPoint("TOPLEFT", 4, -56)
+    p.wipeLast:SetPoint("TOPLEFT", 4, -84)
     p.wipeLast:SetWidth(690)
     p.place()
 end, function(p)
     local st = ns.Reducer.State()
     if not st then return end
     local parts = {}
-    for _, what in ipairs({ "dkp", "orders" }) do
+    for _, what in ipairs({ "dkp", "orders", "tickets" }) do
         local r = st.resets and st.resets[what]
-        if r then parts[#parts + 1] = ("%s last wiped %s by %s."):format(what == "dkp" and "DKP" or "Orders",
+        if r then parts[#parts + 1] = ("%s last wiped %s by %s."):format(what == "dkp" and "DKP" or (what == "orders" and "Orders" or "Tickets"),
             date("%b %d, %Y", r.t), U.Safe(ns.NameForGUID(r.a) or "?", 40)) end
     end
     p.wipeLast:SetText(#parts > 0 and table.concat(parts, "  ") or "Nothing has been wiped yet.")

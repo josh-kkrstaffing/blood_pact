@@ -150,7 +150,7 @@ L.KINDS = {
     -- The Guild Master wipes one kind of data and starts it fresh. Records of
     -- that kind from before this one stop counting in everyone's game; they
     -- stay in the log, so nothing is lost if a wipe was a mistake.
-    RESET = { "reset", function(d) return d.what == "dkp" or d.what == "orders" end },
+    RESET = { "reset", function(d) return d.what == "dkp" or d.what == "orders" or d.what == "tickets" end },
     RECRUIT_MSGS = { "recruitEdit", function(d)
         if type(d.msgs) ~= "table" or #d.msgs < 1 or #d.msgs > 3 then return false end
         for _, m in ipairs(d.msgs) do

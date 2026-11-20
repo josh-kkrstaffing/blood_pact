@@ -424,6 +424,13 @@ local function alertNew(t)
         T.CAT_LABEL[t.cat], t.about ~= "" and (", about " .. U.Safe(t.about, 48)) or ""))
 end
 
+-- Made before the Guild Master's last ticket wipe?
+local function wiped(at)
+    local st = ns.Reducer.State()
+    local r = st and st.resets and st.resets.tickets
+    return r ~= nil and type(at) == "number" and at <= r.t
+end
+
 local function onMessage(msg, _, sguid, channel)
     if channel ~= "WHISPER" then return end          -- a ticket on the guild channel is never ours
     local me, now = ns.MyGUID(), ns.Now()
@@ -431,7 +438,7 @@ local function onMessage(msg, _, sguid, channel)
         -- A member's new ticket, sent to me because I am staff.
         if not T.IAmStaff() or type(msg.id) ~= "string" or T.IdBy(msg.id) ~= sguid then return end
         local d = T.Clean(msg.cat, msg.about, msg.text)
-        if not d then return end
+        if not d or wiped(msg.at) then return end
         local aboutGuid = ns.GUIDForName(d.about)
         if aboutGuid == me then return end
         local st = store()
@@ -454,7 +461,7 @@ local function onMessage(msg, _, sguid, channel)
     elseif msg.t == "TU" then
         if not T.IAmStaff() or not isStaff(sguid) then return end
         local k = T.Sanitize(msg.k)
-        if not k or k.aboutGuid == me or ns.GUIDForName(k.about) == me then return end
+        if not k or wiped(k.at) or k.aboutGuid == me or ns.GUIDForName(k.about) == me then return end
         local changed, isNew = T.Merge(store(), k)
         if isNew then alertNew(k) end
         if changed then refresh() end
@@ -521,6 +528,23 @@ function T.AskStatus(force)
     lastAsk = GetTime()
     return whisper(staff[1].guid, { t = "TQ", ids = ids })
 end
+
+-- The Guild Master wiped tickets: drop every ticket made before that, staff
+-- copies and my own reports alike.
+function T.ApplyWipe()
+    local st = ns.Reducer.State()
+    local r = st and st.resets and st.resets.tickets
+    if not r or not ns.G() then return 0 end
+    local n = 0
+    for _, list in ipairs({ store(), mine() }) do
+        for id, t in pairs(list) do
+            if (t.at or 0) <= r.t then list[id] = nil; n = n + 1 end
+        end
+    end
+    if n > 0 then refresh() end
+    return n
+end
+ns.Listen("LOG_CHANGED", function() T.ApplyWipe() end)
 
 local started = false
 local function tick()
