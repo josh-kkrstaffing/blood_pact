@@ -1363,6 +1363,18 @@ run(gm, "edited message", function()
 end)
 clickRow(gm, "Fresh Troll-Normal")
 check((guildChat[#guildChat] or "") == "WHISPER:Fresh Troll:Custom pitch for you", "an edited message is what gets sent")
+-- The Recruit tab itself: a Member has none, even if their saved "last tab" says Recruit.
+run(member, "no recruit tab", function()
+    member.ns.db.ui.tab = "recruit"
+    open(member)
+    local tab
+    for _, w in ipairs(member.widgets) do
+        if w._.kind == "Button" and w._.text == "Recruit" and w._.h == 30 then tab = w end
+    end
+    check(tab ~= nil and not tab:IsVisible(), "a Member's window shows no Recruit tab")
+    check(member.ns.db.ui.tab ~= "recruit", "and never opens on it, whatever was saved")
+    check(member.ns.recruitPanel == nil or not member.ns.recruitPanel:IsVisible(), "the recruiting screen is not shown to a Member")
+end)
 run(member, "member can't recruit", function()
     local ok, why = member.ns.Recruit.Whisper("Newbie One-Normal", "hi")
     check(ok == nil and why == "Your guild rank can't recruit.", "a Member can't send recruiting whispers")

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.26.3
+
+- Recruit stays Team Captain and above only: the zone scan now checks the player's rank itself, on top of the tab being hidden, and tests cover every rank
+
 ## 0.26.2
 
 - Recruit: the game blocks a guild invite whose chat line an addon wrote ("blocked from an action only available to the Blizzard UI"), so Blood Pact no longer writes anything into the chat box for an invite

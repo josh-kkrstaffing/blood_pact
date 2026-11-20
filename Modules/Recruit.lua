@@ -220,6 +220,8 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
     h2:SetPoint("TOPLEFT", 0, 0)
     -- One /who per click. zone = nil searches where I am standing.
     local function search(zone)
+        -- The tab is hidden below Team Captain; this holds even if it is somehow open.
+        if not ns.RBAC.ICan("recruit") then ns.UI.Say("Your guild rank can't recruit.") return end
         if GetTime() - lastScan < R.WAIT then
             ns.UI.Say("The game allows one search every few seconds. Try again in a moment.")
             return

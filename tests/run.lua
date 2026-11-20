@@ -1358,6 +1358,18 @@ test("summon messages: who is called out, and long whispers cut to fit", functio
     eq(#C.Split(("x"):rep(600)), 3)                                   -- no spaces at all: cut anyway
 end)
 
+test("recruit: Team Captain and above only", function()
+    local RBAC = ns.RBAC
+    for _, guid in ipairs({ "Player-1-GM", "Player-1-OFFICER1", "Player-1-CAPT" }) do
+        eq(RBAC.Can(guid, "recruit"), true, guid)
+    end
+    for _, guid in ipairs({ "Player-1-VET", "Player-1-MEM1", "Player-1-INIT", "Player-9-STRANGER" }) do
+        eq(RBAC.Can(guid, "recruit"), false, guid)
+    end
+    eq(RBAC.Can("Player-1-CAPT", "recruitEdit"), false)        -- editing the shared messages is Officer and above
+    eq(RBAC.Can("Player-1-OFFICER1", "recruitEdit"), true)
+end)
+
 test("recruit: who is asking for an invite", function()
     local Rc = ns.Recruit
     for _, yes in ipairs({ "inv", "Inv", " INV ", "invite", "inv pls", "Invite me!", "inv?", "inv please ty" }) do
