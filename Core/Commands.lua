@@ -50,6 +50,21 @@ SlashCmdList.BLOODPACT = function(input)
         local s = ns.Comm.stats
         ns.Print(("%s | events %d (%d provisional) | queue %d | sent %d, received %d, lockdown holds %d, throttled %d")
             :format(ns.Sync.Status(), n, provisional, ns.Comm.QueueLength(), s.sent, s.received, s.lockdowns, s.throttled))
+        -- For working out why data looks lost or stuck.
+        local mine, own = 0, ns.MyGUID()
+        if g then for _, e in pairs(g.log) do if e.a == own then mine = mine + 1 end end end
+        local inInstance = IsInInstance and select(2, IsInInstance()) or "?"
+        ns.Print(("v%s | role %s | guild key %s | my records %d | place %s | last hold %s%s"):format(ns.VERSION,
+            tostring(ns.RBAC.RoleOf(own) or "none"), tostring(ns.GuildKey()), mine, tostring(inInstance),
+            tostring(ns.Comm.lastHold or "none"), ns.Comm.lastError and (" (" .. ns.Comm.lastError .. ")") or ""))
+        local stores = {}
+        for key, store in pairs(ns.db and ns.db.guilds or {}) do
+            local count = 0
+            for _ in pairs(store.log or {}) do count = count + 1 end
+            stores[#stores + 1] = key .. " = " .. count
+        end
+        table.sort(stores)
+        ns.Print("Saved guild data: " .. (#stores > 0 and table.concat(stores, "; ") or "none"))
     else
         help()
     end

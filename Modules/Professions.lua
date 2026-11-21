@@ -262,10 +262,23 @@ function P.Publish(force)
     if ns.mock or not ns.RBAC.ICan("signup") then return false end
     local c = ns.Char()
     local mine = P.Mine()
+    -- "Already shared" is only true if the guild's records still hold it. If
+    -- they were lost or reset, share again.
+    local st = ns.Reducer.State()
+    if st and not st.profs[ns.MyGUID()] then c.profs, c.profsAt = nil, nil end
     if not next(mine) and not c.profs then return false end       -- nothing to say yet
     local now = ns.Now()
-    if c.profs and P.Same(c.profs, mine) then return false end
-    if c.profs and not force and now - (c.profsAt or 0) < 3600 then return false end
+    -- What counts is whether the guild's log holds my professions. If it
+    -- doesn't (the saved guild data was lost or replaced), share them again
+    -- whatever this character remembers having sent.
+    local st = ns.Reducer.State()
+    local held = st and st.profs[ns.MyGUID()]
+    if held then
+        if c.profs and P.Same(c.profs, mine) then return false end
+        if c.profs and not force and now - (c.profsAt or 0) < 3600 then return false end
+    elseif not next(mine) then
+        return false
+    end
     if ns.Log.New("PROF", mine) then
         c.profs, c.profsAt = mine, now
         return true
@@ -294,7 +307,10 @@ function P.Diagnose()
         local st = ns.Reducer.State()
         local sharedNow = P.Publish(true)
         local have = st and st.profs[ns.MyGUID()]
-        ns.Print(sharedNow and "Shared with the guild." or (have and "Already shared; nothing changed." or "Not shared: your role can't post yet, or no guild data is loaded."))
+        ns.Print(sharedNow and (ns.Comm.QueueLength() > 0 and "Shared. It reaches the guild when the game lets addon messages through (not inside an instance or battleground)."
+            or "Shared with the guild.") or (have and "Already shared; nothing changed."
+            or ("Not shared. Role: %s. Guild data: %s. Type /bp status and send the lines to the addon's author."):format(
+                tostring(ns.RBAC.RoleOf(ns.MyGUID()) or "none yet"), ns.G() and "loaded" or "not loaded")))
     end
 end
 

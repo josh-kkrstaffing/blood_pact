@@ -146,6 +146,9 @@ function BiS.Publish(force)
     local c = charStore()
     local mine = BiS.MyScore()
     if not c or not mine then return end
+    -- "Already shared" is only true if the guild's records still hold it.
+    local st = ns.Reducer.State()
+    if st and not st.gear[ns.MyGUID()] then c.gear = nil end
     local last = c.gear
     local now = ns.Now()
     if last and last.spec == mine.spec and last.pre == mine.pre and last.worn == mine.worn then return end

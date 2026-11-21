@@ -89,7 +89,10 @@ local function pump()
             end
             -- Some builds throw instead of returning a code during lockdown.
             local called, result = pcall(C_ChatInfo.SendAddonMessage, C.PREFIX, item.msg, item.dist, target)
-            if not called then result = RESULT_LOCKDOWN end
+            if not called then
+                C.lastError = tostring(result):sub(1, 120)      -- shown by /bp status, to tell a real error from the lockdown
+                result = RESULT_LOCKDOWN
+            end
             if result == true or result == nil then result = RESULT_OK end
             if result == false then result = 9 end
             if result == RESULT_OK then
@@ -105,6 +108,7 @@ local function pump()
                     if #r < 40 then r[#r + 1] = { msg = item.msg, at = now } end
                 end
             elseif result == RESULT_LOCKDOWN then
+                C.lastHold = C.lastError and "error" or "code 11"
                 C.stats.lockdowns = C.stats.lockdowns + 1
                 holdUntil = now + 5
                 return

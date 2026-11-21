@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.6
+
+- If a player's saved guild records are lost or reset, their professions and gear score are now shared again. Before, the addon remembered "already shared" and skipped them, so the player stayed missing from the Professions tab
+- `/bp prof` says when the share is waiting because the game is holding addon messages (inside an instance or battleground)
+- `/bp status` prints two more lines for troubleshooting: version, role, which saved guild data is in use and how many records each holds, where you are, and why the last message was held
+
 ## 1.0.5
 
 - Settings > "5. Wipe data and start fresh" now also has "Wipe tickets" and "Wipe all of the above", which wipes DKP, loot history, attendance, crafting orders, the Wanted board and tickets in one go

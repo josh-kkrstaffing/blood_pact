@@ -187,7 +187,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
     "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
     "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown",
-    "CharacterFrame", "PVPFrame", "PVPUIFrame" }) do
+    "CharacterFrame", "PVPFrame", "PVPUIFrame", "IsInInstance" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -1858,6 +1858,23 @@ for _, c in ipairs({ gm, officer, member }) do
     end)
 end
 check(said(gm, "Wiped DKP, loot history, attendance, crafting orders, the Wanted board and tickets for the whole guild."), "the Guild Master is told it worked")
+
+-- If the guild's saved records are lost, a player's own professions are shared again.
+run(member, "lost records", function()
+    local ns = member.ns
+    local me = ns.MyGUID()
+    ns.Professions.Publish(true)
+    check(ns.Reducer.State().profs[me] ~= nil, "the Member's professions are shared")
+    local g = ns.G()
+    for id, e in pairs(g.log) do if e.a == me and e.k == "PROF" then e.k2, e.ok = true, nil end end   -- as if never confirmed
+    ns.Reducer.Invalidate()
+    check(ns.Reducer.State().profs[me] == nil and ns.Char().profs ~= nil, "the records are gone but the 'already shared' note remains")
+    check(ns.Professions.Publish(true) == true and ns.Reducer.State().profs[me] ~= nil, "the professions are shared again, not skipped as already shared")
+end)
+advance(5)
+
+slash(member, "status")
+check(said(member, "| role member | guild key ") and said(member, "Saved guild data: "), "/bp status prints the troubleshooting lines")
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
