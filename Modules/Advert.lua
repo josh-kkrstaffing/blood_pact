@@ -7,8 +7,6 @@ local _, ns = ...
 local A = {}
 ns.Advert = A
 
-local U = ns.U
-
 A.MAX_LINKS = 4
 A.WAIT = 60                 -- seconds between posts
 A.CHAT_MAX = 255
