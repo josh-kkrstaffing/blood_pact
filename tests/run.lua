@@ -1372,6 +1372,37 @@ test("roster: what an invite will do", function()
     eq(Ro.InvitePlan({ grouped = true, lead = false, size = 3 }, true, false), nil)
 end)
 
+test("recruit: every zone by level range, split until the game's list fits", function()
+    local Rc = ns.Recruit
+    eq(select(1, Rc.LevelRange("10", "60")), 10); eq(select(2, Rc.LevelRange("10", "60")), 60)
+    eq(select(1, Rc.LevelRange("40", "20")), 20); eq(select(2, Rc.LevelRange("40", "20")), 40)     -- either order
+    eq(Rc.LevelRange("", "60"), nil); eq(Rc.LevelRange("0", "10"), nil); eq(Rc.LevelRange("10", "61"), nil)
+    local plan = Rc.SweepPlan(1, 60)
+    eq(#plan, 12); eq(plan[1].lo, 1); eq(plan[1].hi, 5); eq(plan[12].lo, 56); eq(plan[12].hi, 60)
+    for i = 2, #plan do eq(plan[i].lo, plan[i - 1].hi + 1) end                                   -- no gaps, no overlap
+    plan = Rc.SweepPlan(58, 60)
+    eq(#plan, 1); eq(plan[1].hi, 60)
+    eq(#Rc.SweepPlan(30, 30), 1)
+
+    local halves = Rc.SweepSplit({ lo = 56, hi = 60 })
+    eq(#halves, 2); eq(halves[1].lo, 56); eq(halves[1].hi, 58); eq(halves[2].lo, 59); eq(halves[2].hi, 60)
+    local classes = Rc.SweepSplit({ lo = 60, hi = 60 })
+    eq(#classes, 9); eq(classes[1].class, "Warrior"); eq(classes[9].lo, 60)
+    eq(Rc.SweepSplit({ lo = 60, hi = 60, class = "Mage" }), nil)                                 -- can't go smaller
+
+    eq(Rc.SweepQuery({ lo = 10, hi = 14 }), "10-14"); eq(Rc.SweepQuery({ lo = 60, hi = 60, class = "Mage" }), 'c-"Mage" 60-60')
+    eq(Rc.SweepLabel({ lo = 10, hi = 14 }), "levels 10-14"); eq(Rc.SweepLabel({ lo = 60, hi = 60 }), "level 60")
+    eq(Rc.SweepLabel({ lo = 60, hi = 60, class = "Mage" }), "level 60 Mages")
+
+    local sweep = { from = 58, to = 60, queue = Rc.SweepPlan(58, 60), done = 0 }
+    eq(Rc.SweepAdvance(sweep, true), "split"); eq(#sweep.queue, 2); eq(sweep.queue[1].hi, 59)   -- cut short: halves go first
+    eq(Rc.SweepAdvance(sweep, false), "ok"); eq(#sweep.queue, 1); eq(sweep.queue[1].lo, 60)
+    eq(Rc.SweepAdvance(sweep, true), "split"); eq(#sweep.queue, 9)                              -- one level: by class
+    eq(Rc.SweepAdvance(sweep, true), "short"); eq(#sweep.queue, 8)                              -- one class of one level: as far as it goes
+    for _ = 1, 8 do Rc.SweepAdvance(sweep, false) end
+    eq(#sweep.queue, 0); eq(sweep.done, 12)
+end)
+
 test("recruit: Team Captain and above only", function()
     local RBAC = ns.RBAC
     for _, guid in ipairs({ "Player-1-GM", "Player-1-OFFICER1", "Player-1-CAPT" }) do

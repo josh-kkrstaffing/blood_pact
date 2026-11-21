@@ -463,6 +463,11 @@ local WHO_DATA = {
     ['z-"Durotar" 5-8'] = {
         { fullName = "Newbie One-Normal", level = 5, classStr = "Warrior", area = "Durotar", fullGuildName = "" },
         { fullName = "Razor Hill Rex-Normal", level = 7, classStr = "Shaman", area = "Durotar", fullGuildName = "" } },
+    ['58-60'] = { total = 80, { fullName = "Top Dog-Normal", level = 60, classStr = "Warrior", area = "Orgrimmar", fullGuildName = "" },
+        { fullName = "Guilded Sixty-Normal", level = 60, classStr = "Mage", area = "Orgrimmar", fullGuildName = "Other Guild" } },
+    ['58-59'] = { { fullName = "Nearly There-Normal", level = 59, classStr = "Priest", area = "Winterspring", fullGuildName = "" } },
+    ['60-60'] = { total = 70, { fullName = "Top Dog-Normal", level = 60, classStr = "Warrior", area = "Orgrimmar", fullGuildName = "" } },
+    ['c-"Mage" 60-60'] = { { fullName = "Lone Mage-Normal", level = 60, classStr = "Mage", area = "Silithus", fullGuildName = "" } },
     ['z-"Mulgore" 1-4'] = { { fullName = "Moo Two-Normal", level = 1, classStr = "Druid", area = "Mulgore", fullGuildName = "" } },
 }
 local whoAsked, whoNow = {}, {}
@@ -1435,6 +1440,49 @@ advance(6)
 run(gm, "new zone", function()
     check(#rp.list.items == 1 and rp.list.items[1].name == "Moo Two-Normal", "a different zone starts a fresh list")
 end)
+-- Every zone, for a level range: one search per click, split up when the game cuts a list short.
+run(gm, "level range", function()
+    rp.lvFrom:SetText("60"); rp.lvTo:SetText("58")
+    rp.lvFrom:SetText("61")
+end)
+local asked = #whoAsked
+clickText(gm, "Scan these levels")
+check(#whoAsked == asked and said(gm, "Levels run from 1 to 60."), "a level outside 1 to 60 isn't searched")
+run(gm, "level range 2", function() rp.lvFrom:SetText("60") end)
+advance(6)
+clickText(gm, "Scan these levels")
+check(whoAsked[#whoAsked] == "Binky Bee:58-60", "the range is searched across every zone, whichever box holds the higher level")
+advance(6)
+run(gm, "split", function()
+    check(#rp.list.items == 1 and rp.found:GetText() == "1 unguilded so far. levels 58-60 searched: too many players for one search, so it is split into smaller ones. Click again for levels 58-59.",
+        "a list the game cut short is split into smaller searches")
+    check(rp.sweepBtn:GetText() == "Next: levels 58-59 (2 left)", "the button says what the next click searches")
+end)
+local sweepClicks = 0
+while sweepClicks < 20 do
+    local before = #whoAsked
+    run(gm, "next search", function() rp.sweepBtn:GetScript("OnClick")(rp.sweepBtn, "LeftButton") end)
+    if #whoAsked == before then break end
+    sweepClicks = sweepClicks + 1
+    advance(6)
+    if gm.ns.Recruit.Sweep() and #gm.ns.Recruit.Sweep().queue == 0 then break end
+end
+run(gm, "sweep done", function()
+    local names = {}
+    for i, c in ipairs(rp.list.items) do names[i] = c.name:gsub("%-Normal", "") end
+    check(sweepClicks == 11, "a busy single level is searched class by class: 11 more clicks")
+    check(table.concat(names, ",") == "Lone Mage,Top Dog,Nearly There", "everyone unguilded in the range is listed once, highest level first")
+    check(rp.found:GetText() == "Done. 3 unguilded found in every zone, levels 58-60.", "the result says when the range is finished")
+    check(rp.sweepBtn:GetText() == "Scan these levels", "and the button is ready for a new range")
+    rp.lvFrom:SetText("10"); rp.lvTo:SetText("60")
+end)
+advance(6)
+clickText(gm, "Mulgore")
+advance(6)
+run(gm, "zone scan after sweep", function()
+    check(#rp.list.items == 1 and rp.list.items[1].name == "Moo Two-Normal", "a zone scan afterwards starts its own list")
+end)
+
 -- In a battleground the game refuses chat from addons. The whisper isn't
 -- reported as sent; it is typed into a whisper for the recruiter to send.
 CHATLOCK[gm.guid] = true

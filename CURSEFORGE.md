@@ -15,7 +15,7 @@ The tabs run in the order a guild does things.
 ### Recruit (Team Captain and above)
 
 - Three shared recruiting messages: Social, Raiding and Crafting. Officers can edit them for the whole guild.
-- Find players without a guild in your own zone or in your faction's starting zones, a few levels per click.
+- Find players without a guild in your own zone, in your faction's starting zones, or in every zone for a level range up to 60. One search per click; busy level bands are split up automatically.
 - Click a name to whisper that player the picked message. One click, one whisper.
 - When someone replies "inv", their name is listed spelled exactly as the game spells it, with the guild invite ready to copy and paste. Special letters never have to be typed.
 

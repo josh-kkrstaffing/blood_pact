@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Recruit: search every zone for unguilded players in a level range, from 1 up to 60. Type the two levels next to "All zones" and press "Scan these levels"
+- It works through the range one search per click, five levels at a time. The button shows what the next click searches and how many searches are left
+- The game lists about 50 players per search, guilded ones included. When a list is cut short, that band is split in half, down to a single level, and a single level that is still too busy is searched class by class. Bands that came back whole are not searched again
+- Results build up in one list, highest level first, each name once, and the line above says when the range is finished
+
 ## 1.0.7
 
 - Roster: pick a member and press the invite button at the bottom to invite them to your party or raid. The button says what the click will do

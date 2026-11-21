@@ -3,7 +3,8 @@
 -- click by the recruiter, to one player. WoW Forever forbids addon and macro
 -- guild invites, and /who needs a click per search, so:
 --   1. pick a message (Social, Raiding or Crafting)
---   2. Scan my zone, or one of my faction's starting zones (one /who per click)
+--   2. Scan my zone, one of my faction's starting zones, or every zone for a
+--      level range (always one /who per click)
 --   3. click a name: that player is whispered the picked message, once
 --      (right-click opens a whisper to type your own)
 --   4. when they reply "inv", their name is listed under step 3 exactly as
@@ -33,6 +34,77 @@ R.STARTER = {
 -- so a busy starting zone is searched a few levels at a time.
 R.BANDS = { { 1, 4 }, { 5, 8 }, { 9, 12 } }
 R.WAIT = 5      -- seconds between searches; the game ignores faster ones
+
+-- Searching every zone for a level range. The game answers one search with
+-- about 50 players at most, guilded ones included, and has no "no guild"
+-- filter. So a range is worked through as a queue of searches, one per
+-- click, from the top down:
+--   1. the range is cut into bands of a few levels;
+--   2. a band whose answer was cut short is split in half, down to one level;
+--   3. a single level that is still cut short is searched class by class.
+-- A band that came back whole is finished and never searched again.
+R.MAX_LEVEL = 60
+R.SWEEP_BAND = 5
+R.CLASSES = { "Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Shaman", "Mage", "Warlock", "Druid" }
+
+-- The level boxes as typed -> from, to (1..60, in order), or nil and what to fix.
+function R.LevelRange(from, to)
+    from, to = tonumber(from), tonumber(to)
+    if not from or not to then return nil, "Type a level in both boxes, from 1 to " .. R.MAX_LEVEL .. "." end
+    from, to = math.floor(from), math.floor(to)
+    if from > to then from, to = to, from end
+    if from < 1 or to > R.MAX_LEVEL then return nil, "Levels run from 1 to " .. R.MAX_LEVEL .. "." end
+    return from, to
+end
+
+-- The first queue for a range: bands of R.SWEEP_BAND levels.
+function R.SweepPlan(from, to)
+    local queue = {}
+    local lo = from
+    while lo <= to do
+        local hi = math.min(to, lo + R.SWEEP_BAND - 1)
+        queue[#queue + 1] = { lo = lo, hi = hi }
+        lo = hi + 1
+    end
+    return queue
+end
+
+-- A search whose answer was cut short, as smaller searches; nil when it
+-- can't be made any smaller (one level of one class).
+function R.SweepSplit(step)
+    if step.class then return nil end
+    if step.lo < step.hi then
+        local mid = math.floor((step.lo + step.hi) / 2)
+        return { { lo = step.lo, hi = mid }, { lo = mid + 1, hi = step.hi } }
+    end
+    local out = {}
+    for i, class in ipairs(R.CLASSES) do out[i] = { lo = step.lo, hi = step.hi, class = class } end
+    return out
+end
+
+-- The /who text for one search of every zone.
+function R.SweepQuery(step)
+    return (step.class and ('c-"' .. step.class .. '" ') or "") .. step.lo .. "-" .. step.hi
+end
+
+function R.SweepLabel(step)
+    local levels = step.lo == step.hi and ("level " .. step.lo) or ("levels " .. step.lo .. "-" .. step.hi)
+    return step.class and (levels .. " " .. step.class .. "s") or levels
+end
+
+-- Take in the answer to the search at the head of the queue.
+--   sweep = { from, to, queue, done }   cut = the game listed fewer than it found
+-- -> "split" (it will be searched in smaller pieces), "short" (cut short and
+--    can't be made smaller) or "ok"
+function R.SweepAdvance(sweep, cut)
+    local step = table.remove(sweep.queue, 1)
+    sweep.done = sweep.done + 1
+    if not cut or not step then return "ok" end
+    local parts = R.SweepSplit(step)
+    if not parts then return "short" end
+    for i = #parts, 1, -1 do table.insert(sweep.queue, 1, parts[i]) end
+    return "split"
+end
 
 function R.Regions(faction) return R.STARTER[faction] or R.STARTER.Horde end
 
@@ -85,7 +157,9 @@ end
 local current = 1
 local drafts = {}          -- a message edited in the box but not saved, per slot, until reload
 local candidates = {}
-local scan = {}            -- the search in flight: { zone =, band = } (band nil = my own zone)
+local scan = {}            -- the search in flight: { zone =, band = } (band nil = my own zone), or { sweep = true }
+local sweep                -- the all-zones search in progress: { from, to, queue, done }
+R.Sweep = function() return sweep end
 local lastScan = -100
 
 -- Open a whisper to a player. With text, the message is typed into it so the
@@ -175,7 +249,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         local top = -48 - p.msgFold:Height() - 10
         p.step2:ClearAllPoints()
         p.step2:SetPoint("TOPLEFT", 0, top)
-        p.list:Stretch(0, top - 76, 0, 122)
+        p.list:Stretch(0, top - 104, 0, 122)
     end
     p.msgFold = W.Accordion(p, "Read or edit the message", 640, 98, "recruitMsg", function() p.place() end)
     p.msgFold:SetPoint("TOPLEFT", 0, -48)
@@ -214,7 +288,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
 
     -- Step 2: its heading, the scan button and the starting zones move as one block.
     local s2 = CreateFrame("Frame", nil, p)
-    s2:SetSize(700, 72)
+    s2:SetSize(700, 100)
     p.step2 = s2
     local h2 = W.Text(s2, "2. Scan for unguilded players, then click a name to whisper them the picked message", "GameFontNormal")
     h2:SetPoint("TOPLEFT", 0, 0)
@@ -237,6 +311,7 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         end
         lastScan = GetTime()
         scan = { zone = zone, band = band }
+        if p.sweepLabel then p.sweepLabel() end
         if C_FriendList.SetWhoToUi then C_FriendList.SetWhoToUi(true) end
         C_FriendList.SendWho(R.Query(zone, band and R.BANDS[band]))
         p.found:SetText(band and ("Searching %s, levels %d-%d..."):format(U.Safe(zone, 40), R.BANDS[band][1], R.BANDS[band][2])
@@ -272,6 +347,56 @@ ns.UI.AddTab("recruit", "Recruit", "recruit", function(p)
         end
         x = x + 8
     end
+
+    -- Every zone, for a level range. Each click runs the next search in the queue.
+    local function sweepNext()
+        if not ns.RBAC.ICan("recruit") then ns.UI.Say("Your guild rank can't recruit.") return end
+        local from, to = R.LevelRange(p.lvFrom:GetText(), p.lvTo:GetText())
+        if not from then ns.UI.Say(to) return end
+        if GetTime() - lastScan < R.WAIT then
+            ns.UI.Say("The game allows one search every few seconds. Try again in a moment.")
+            return
+        end
+        -- A new range, or a finished one, starts a fresh list.
+        if not sweep or sweep.from ~= from or sweep.to ~= to or #sweep.queue == 0 or not scan.sweep then
+            sweep = { from = from, to = to, queue = R.SweepPlan(from, to), done = 0 }
+            wipe(candidates)
+        end
+        local step = sweep.queue[1]
+        lastScan = GetTime()
+        scan = { sweep = true }
+        if C_FriendList.SetWhoToUi then C_FriendList.SetWhoToUi(true) end
+        C_FriendList.SendWho(R.SweepQuery(step))
+        p.found:SetText("Searching every zone, " .. R.SweepLabel(step) .. "...")
+        p.list:SetItems(candidates)
+    end
+    local allLead = W.Text(s2, "All zones", "GameFontHighlightSmall")
+    allLead:SetPoint("TOPLEFT", 0, -80)
+    local lvLabel = W.Text(s2, "Levels", "GameFontDisableSmall")
+    lvLabel:SetPoint("TOPLEFT", 78, -80)
+    p.lvFrom = W.Edit(s2, 34, 2)
+    p.lvFrom:SetPoint("TOPLEFT", 122, -76)
+    p.lvFrom:SetText("10")
+    local lvTo = W.Text(s2, "to", "GameFontDisableSmall")
+    lvTo:SetPoint("TOPLEFT", 164, -80)
+    p.lvTo = W.Edit(s2, 34, 2)
+    p.lvTo:SetPoint("TOPLEFT", 182, -76)
+    p.lvTo:SetText(tostring(R.MAX_LEVEL))
+    p.sweepBtn = W.Button(s2, "Scan these levels", 210, 20, sweepNext)
+    p.sweepBtn:SetPoint("TOPLEFT", 226, -76)
+    p.sweepNote = W.Text(s2, "One search per click. Busy levels are split up automatically.", "GameFontDisableSmall")
+    p.sweepNote:SetPoint("LEFT", p.sweepBtn, "RIGHT", 10, 0)
+    -- What the next click will search.
+    function p.sweepLabel()
+        local from, to = R.LevelRange(p.lvFrom:GetText(), p.lvTo:GetText())
+        if sweep and scan.sweep and #sweep.queue > 0 and sweep.from == from and sweep.to == to then
+            p.sweepBtn:SetText(("Next: %s (%d left)"):format(R.SweepLabel(sweep.queue[1]), #sweep.queue))
+        else
+            p.sweepBtn:SetText("Scan these levels")
+        end
+    end
+    p.lvFrom:HookScript("OnTextChanged", function() p.sweepLabel() end)
+    p.lvTo:HookScript("OnTextChanged", function() p.sweepLabel() end)
 
     p.list = W.List(p, 620, 150, 18, function(row, item)
         local sent = whispered[item.name]
@@ -388,6 +513,29 @@ ns.On("WHO_LIST_UPDATE", function()
                 class = info.classStr, area = info.area }
         end
     end
+    if scan.sweep and sweep then
+        -- One search of the all-zones queue came back.
+        local step = sweep.queue[1]
+        local isCut = type(total) == "number" and total > shown
+        R.Merge(candidates, results)
+        table.sort(candidates, function(a, b)
+            if (a.level or 0) ~= (b.level or 0) then return (a.level or 0) > (b.level or 0) end
+            return a.name < b.name
+        end)
+        local how = R.SweepAdvance(sweep, isCut)
+        local text = ("%d unguilded so far. %s searched%s"):format(#candidates, step and R.SweepLabel(step) or "that",
+            how == "split" and ": too many players for one search, so it is split into smaller ones." or
+            (how == "short" and (": the game listed only %d of %d."):format(shown, total) or "."))
+        if #sweep.queue > 0 then
+            text = text .. (" Click again for %s."):format(R.SweepLabel(sweep.queue[1]))
+        else
+            text = ("Done. %d unguilded found in every zone, levels %d-%d."):format(#candidates, sweep.from, sweep.to)
+        end
+        p.found:SetText(text)
+        p.sweepLabel()
+        p.list:SetItems(candidates)
+        return
+    end
     if not scan.band then wipe(candidates) end      -- my own zone: a fresh list each time
     R.Merge(candidates, results)
     local cut = (type(total) == "number" and total > shown) and (" The game listed only %d of %d players."):format(shown, total) or ""
@@ -416,5 +564,5 @@ end)
 -- Room the tab needs: the message buttons, the message (open or folded),
 -- the scan row, a few names, and the replies at the bottom.
 ns.UI.Need("recruit", function(p)
-    return 48 + p.msgFold:Height() + 10 + 76 + 58 + 122
+    return 48 + p.msgFold:Height() + 10 + 104 + 58 + 122
 end)
