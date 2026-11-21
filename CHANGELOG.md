@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.7
+
+- Roster: pick a member and press the invite button at the bottom to invite them to your party or raid. The button says what the click will do
+- If your party is full and you lead it, it becomes a raid first and then the invite goes out
+- In a group you don't lead, the button reads "Ask leader to invite" and sends the leader one whisper
+- Offline members and yourself can't be invited
+
 ## 1.0.6
 
 - If a player's saved guild records are lost or reset, their professions and gear score are now shared again. Before, the addon remembered "already shared" and skipped them, so the player stayed missing from the Professions tab

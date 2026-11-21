@@ -474,7 +474,9 @@ G.C_FriendList = { SetWhoToUi = noop,
     end,
     GetNumWhoResults = function() local r = whoNow[ctx.guid] or {}; return #r, r.total or #r end,
     GetWhoInfo = function(i) return (whoNow[ctx.guid] or {})[i] end }
-G.C_PartyInfo = { InviteUnit = function(name) invites[#invites + 1] = name end }
+local toRaid = 0
+G.C_PartyInfo = { InviteUnit = function(name) invites[#invites + 1] = name end,
+    ConvertToRaid = function() toRaid = toRaid + 1; local g = GROUPS[ctx.guid]; if g then g.raid = true end end }
 G.C_DateAndTime = { GetCurrentCalendarTime = function()
     local t = os.date("!*t", BASE + math.floor(clock))
     return { year = t.year, month = t.month, monthDay = t.day, hour = t.hour, minute = t.min }
@@ -1875,6 +1877,26 @@ advance(5)
 
 slash(member, "status")
 check(said(member, "| role member | guild key ") and said(member, "Saved guild data: "), "/bp status prints the troubleshooting lines")
+
+-- Inviting from the Roster: to a party, to a raid when the party is full, or through the leader.
+run(gm, "roster invite", function()
+    local R = gm.ns.Roster
+    local n = #invites
+    check(R.Invite(MEMBER) == "Invited Pip." and #invites == n + 1, "a click on the Roster invites the picked member")
+    check(select(2, R.Invite(gm.guid)) == "That's you.", "you can't invite yourself")
+    check(select(2, R.Invite("Player-1-VET")) == "They're offline.", "an offline member can't be invited")
+    GROUPS[gm.guid] = { officer.guid, MEMBER, "Player-1-X1", "Player-1-X2" }      -- a full party the GM leads
+    LEADERS[gm.guid] = gm.guid
+    local line = R.Invite(MEMBER)
+    check(line == "Your party is now a raid. Invited Pip." and toRaid == 1 and #invites == n + 2, "a full party becomes a raid first")
+    GROUPS[gm.guid] = { officer.guid }
+    LEADERS[gm.guid] = officer.guid
+    local tells = #guildChat
+    check(R.Invite(MEMBER) == "You don't lead this group, so Grim Tusk was asked to invite Pip." and #invites == n + 2
+        and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Pip to the group? (sent with Blood Pact)" and #guildChat == tells + 1,
+        "in a group you don't lead, the leader is asked with one whisper")
+    GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
+end)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

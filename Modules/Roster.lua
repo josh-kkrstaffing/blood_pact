@@ -314,6 +314,60 @@ function R.Need(p)
     return h, 910
 end
 
+-- What an invite from the Roster will do right now. Pure.
+--   g = { grouped, raid, lead (I lead or assist), size (members incl. me), leader (name) }
+--   -> "invite", "raid" (make the full party a raid, then invite), "ask" (ask
+--      the leader), or nil and why not
+function R.InvitePlan(g, online, isMe)
+    if isMe then return nil, "That's you." end
+    if not online then return nil, "They're offline." end
+    if not g.grouped then return "invite" end
+    if not g.lead then
+        if not g.leader then return nil, "Only your group's leader can invite." end
+        return "ask"
+    end
+    if g.raid then
+        if g.size >= 40 then return nil, "The raid is full." end
+        return "invite"
+    end
+    if g.size >= 5 then return "raid" end
+    return "invite"
+end
+
+local function myGroup()
+    local grouped = IsInGroup and IsInGroup() and true or false
+    local raid = grouped and IsInRaid and IsInRaid() and true or false
+    return { grouped = grouped, raid = raid,
+        lead = grouped and (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) and true or false,
+        size = grouped and (GetNumGroupMembers and GetNumGroupMembers() or 0) or 1,
+        leader = grouped and ns.Summon.Leader() or nil }
+end
+
+-- Invite a guild member to my party or raid, from my click. A full party I
+-- lead becomes a raid first. In a group I don't lead, the leader is asked.
+-- -> a line for the player, or nil and why not
+function R.Invite(guid)
+    local m = ns.roster.byGUID[guid]
+    if not m then return nil, "They aren't in the guild." end
+    if ns.mock then return nil, "Test mode is on, so nobody is invited." end
+    local g = myGroup()
+    local plan, why = R.InvitePlan(g, m.online, guid == ns.MyGUID())
+    if not plan then return nil, why end
+    local name = U.ShortName(m.name)
+    if plan == "ask" then
+        local ok, reason = ns.Chat(("Could you invite %s to the group? (sent with Blood Pact)"):format(name), "WHISPER", U.ShortName(g.leader))
+        if not ok then return nil, (reason == "locked" and (ns.CHAT_LOCKED .. " ") or "") .. "Ask " .. g.leader .. " to invite " .. name .. "." end
+        return ("You don't lead this group, so %s was asked to invite %s."):format(g.leader, name)
+    end
+    if plan == "raid" then
+        local convert = C_PartyInfo and C_PartyInfo.ConvertToRaid
+        if not convert or not pcall(convert) then return nil, "Your party is full. Make it a raid first, then invite." end
+    end
+    local invite = (C_PartyInfo and C_PartyInfo.InviteUnit) or InviteUnit
+    if not invite or not pcall(invite, m.full or m.name) then return nil, "Type /invite " .. name end
+    return plan == "raid" and ("Your party is now a raid. Invited %s."):format(name) or ("Invited %s."):format(name)
+end
+
 function R.SetClassFilter(token) classFilter = token end
 function R.ClassFilter() return classFilter end
 
@@ -416,6 +470,14 @@ ns.UI.AddTab("roster", "Roster", "view", function(p)
         GameTooltip:Show()
     end)
     p.pvpHow:HookScript("OnLeave", GameTooltip_Hide)
+
+    -- Invite the picked member to my party or raid.
+    p.invite = W.Button(p, "Invite to group", 150, 20, function()
+        if not selected then return end
+        local line, why = R.Invite(selected)
+        ns.UI.Say(line or why or "That didn't work.")
+    end, "accent")
+    p.invite:SetPoint("RIGHT", p.pvpHow, "LEFT", -8, 0)
     p.list.key = "guid"
 
     -- Detail of the selected member
@@ -580,6 +642,7 @@ end, function(p)
     p.lootBtn:SetShown(false)
     p.classBtn:SetShown(members)
     p.pvpHow:SetShown(members)
+    if not members then p.invite:SetShown(false) end
     p.classBtn:SetEnabled(pane ~= "classes")
     p.classPane:SetShown(false)
     p.loot.scroll:SetShown(false)
@@ -629,6 +692,14 @@ end, function(p)
     p.link:SetEnabled(sel ~= nil and sel.main == nil)
     p.detailBtn:SetShown(sel ~= nil)
     p.lootBtn:SetShown(sel ~= nil)
+    -- The invite button says what a click will do.
+    p.invite:SetShown(sel ~= nil)
+    if sel then
+        local g = myGroup()
+        local plan = R.InvitePlan(g, sel.online, sel.guid == ns.MyGUID())
+        p.invite:SetEnabled(plan ~= nil and not ns.mock)
+        p.invite:SetText(plan == "ask" and "Ask leader to invite" or ((g.raid or plan == "raid") and "Invite to raid" or "Invite to party"))
+    end
     p.detailBtn:SetEnabled(pane ~= "details")
     p.lootBtn:SetEnabled(pane ~= "loot")
     if pane == "classes" then

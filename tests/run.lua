@@ -1358,6 +1358,20 @@ test("summon messages: who is called out, and long whispers cut to fit", functio
     eq(#C.Split(("x"):rep(600)), 3)                                   -- no spaces at all: cut anyway
 end)
 
+test("roster: what an invite will do", function()
+    local Ro = ns.Roster
+    local solo = { grouped = false }
+    eq(Ro.InvitePlan(solo, true, false), "invite")
+    eq(select(2, Ro.InvitePlan(solo, false, false)), "They're offline.")
+    eq(select(2, Ro.InvitePlan(solo, true, true)), "That's you.")
+    eq(Ro.InvitePlan({ grouped = true, lead = true, size = 3 }, true, false), "invite")
+    eq(Ro.InvitePlan({ grouped = true, lead = true, size = 5 }, true, false), "raid")          -- a full party becomes a raid
+    eq(Ro.InvitePlan({ grouped = true, lead = true, raid = true, size = 12 }, true, false), "invite")
+    eq(select(2, Ro.InvitePlan({ grouped = true, lead = true, raid = true, size = 40 }, true, false)), "The raid is full.")
+    eq(Ro.InvitePlan({ grouped = true, lead = false, leader = "Grim Tusk", size = 3 }, true, false), "ask")
+    eq(Ro.InvitePlan({ grouped = true, lead = false, size = 3 }, true, false), nil)
+end)
+
 test("recruit: Team Captain and above only", function()
     local RBAC = ns.RBAC
     for _, guid in ipairs({ "Player-1-GM", "Player-1-OFFICER1", "Player-1-CAPT" }) do
