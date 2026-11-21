@@ -268,17 +268,8 @@ function P.Publish(force)
     if st and not st.profs[ns.MyGUID()] then c.profs, c.profsAt = nil, nil end
     if not next(mine) and not c.profs then return false end       -- nothing to say yet
     local now = ns.Now()
-    -- What counts is whether the guild's log holds my professions. If it
-    -- doesn't (the saved guild data was lost or replaced), share them again
-    -- whatever this character remembers having sent.
-    local st = ns.Reducer.State()
-    local held = st and st.profs[ns.MyGUID()]
-    if held then
-        if c.profs and P.Same(c.profs, mine) then return false end
-        if c.profs and not force and now - (c.profsAt or 0) < 3600 then return false end
-    elseif not next(mine) then
-        return false
-    end
+    if c.profs and P.Same(c.profs, mine) then return false end
+    if c.profs and not force and now - (c.profsAt or 0) < 3600 then return false end
     if ns.Log.New("PROF", mine) then
         c.profs, c.profsAt = mine, now
         return true
