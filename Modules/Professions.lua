@@ -459,9 +459,47 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
             row:SetScript("OnLeave", GameTooltip_Hide)
         end
         row.order:SetShown(viewing ~= ns.MyGUID())
+        -- On my own list: tick the recipes to link when I advertise in Trade chat.
+        if not row.link then
+            row.link = W.Button(row, "Link", 54, 16, function()
+                if not (row.item and chosen) then return end
+                local ok, why = ns.Advert.ToggleLink(chosen, row.item.id)
+                if not ok then ns.UI.Say(why) end
+                ns.UI.Refresh()
+            end)
+            row.link:SetPoint("RIGHT", -4, 0)
+        end
+        local own = viewing == ns.MyGUID()
+        row.link:SetShown(own)
+        if own then row.link:SetText(ns.Advert.IsLinked(chosen, r.id) and "|cff40ff40Linked|r" or "Link") end
     end, function(r) picked = r.id; ns.UI.Refresh() end)
     p.recipes:Stretch(206, -52, 0, 100)
     p.recipes.key = "id"
+
+    -- Under my own recipes: advertise in Trade chat.
+    local ad = CreateFrame("Frame", nil, d)
+    ad:SetPoint("BOTTOMLEFT", 206, 24)
+    ad:SetPoint("BOTTOMRIGHT", 0, 24)
+    ad:SetHeight(72)
+    p.ad = ad
+    p.adPreview = W.Text(ad, "", "GameFontHighlightSmall")
+    p.adPreview:SetPoint("TOPLEFT", 0, 0)
+    p.adPreview:SetPoint("RIGHT", 0, 0)
+    p.adPreview:SetWordWrap(false)
+    W.Text(ad, "Extra words", "GameFontDisableSmall"):SetPoint("TOPLEFT", 0, -24)
+    p.adExtra = W.Edit(ad, 240, ns.Advert.EXTRA_MAX)
+    p.adExtra:SetPoint("TOPLEFT", 70, -20)
+    p.adExtra:SetScript("OnTextChanged", function(self, byUser)
+        if byUser then ns.Char().adExtra = self:GetText(); ns.UI.RefreshSoon() end
+    end)
+    p.adPost = W.Button(ad, "Post in Trade chat", 150, 22, function()
+        if not (p.adSkill and chosen) then return end
+        local line, why = ns.Advert.Post(chosen, p.adSkill)
+        ns.UI.Say(line or why or "That didn't work.")
+    end, "accent")
+    p.adPost:SetPoint("TOPLEFT", 320, -20)
+    p.adHint = W.Text(ad, "", "GameFontDisableSmall")
+    p.adHint:SetPoint("TOPLEFT", 0, -50)
 
     -- Order bar under the recipes: quantity, who supplies the mats, a note, send.
     local ob = CreateFrame("Frame", nil, d)
@@ -871,6 +909,7 @@ end, function(p)
     p.recipes.scroll:SetShown(inRecipes)
     p.empty:SetShown(false)
     p.ob:SetShown(false)
+    p.ad:SetShown(false)
 
     local total = 0
     for _ in pairs(ns.roster.byGUID) do total = total + 1 end
@@ -902,6 +941,19 @@ end, function(p)
             p.orderBtn:SetEnabled(picked ~= nil)
             p.wantBtn:SetEnabled(picked ~= nil)
             p.oCost:SetText(picked and (Orders.CostText(picked, tonumber(p.qty:GetText()) or 1, true) or "") or "")
+        end
+        -- My own recipes: the Trade chat advert.
+        local canAd = known > 0 and viewing == me
+        p.ad:SetShown(canAd)
+        if canAd then
+            p.adSkill = crafter
+            local lines = ns.Advert.Build(chosen, crafter)
+            local n = #ns.Advert.Links(chosen)
+            p.adPreview:SetText("Trade chat: " .. ns.Advert.Text(chosen, crafter.level, crafter.max, GetZoneText and GetZoneText() or "", ns.Advert.Extra())
+                .. (n > 0 and ("  + %d linked"):format(n) or ""))
+            if not p.adExtra:HasFocus() then p.adExtra:SetText(ns.Advert.Extra()) end
+            p.adHint:SetText(("Press Link on up to %d recipes to show them in the post%s. One post a minute, in a city."):format(
+                ns.Advert.MAX_LINKS, #lines > 1 and " (it goes out as two lines)" or ""))
         end
         p.who:SetText(name .. ": " .. chosen .. " " .. crafter.level .. (crafter.max and (" / " .. crafter.max) or ""))
         if known == 0 then

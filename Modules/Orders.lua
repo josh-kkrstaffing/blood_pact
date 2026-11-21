@@ -193,7 +193,9 @@ function O.ItemText(o)
 end
 
 -- A clickable link for the recipe when the game gives one, else its name.
-local function recipeLink(rid)
+local recipeLink
+function O.RecipeLink(rid) return recipeLink(rid) end
+recipeLink = function(rid)
     local api = C_TradeSkillUI
     if api and api.GetRecipeLink then
         local ok, link = pcall(api.GetRecipeLink, rid)

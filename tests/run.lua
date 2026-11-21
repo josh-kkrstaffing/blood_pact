@@ -35,6 +35,7 @@ load("Modules/Orders.lua")
 load("Modules/Mail.lua")
 load("Modules/Professions.lua")
 ns.Listen = function() end
+load("Modules/Advert.lua")
 load("Modules/Statics.lua")
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
@@ -1467,6 +1468,35 @@ test("statics: a captain's team of ten, one team per member", function()
         eq(select(2, Log.Insert(g, author(g, CAP, "STATIC", bad), true)), "payload")
     end
     eq(select(2, Log.Insert(g, author(g, CAP, "STATIC_NAME", { name = ("x"):rep(25) }), true)), "payload")
+end)
+
+test("advert: the Trade chat line, its links and the channel", function()
+    local A = ns.Advert
+    eq(A.Text("Enchanting", 225, 300, "Undercity", "Tips appreciated."), "[Enchanting] 225/300 LFW in Undercity. Tips appreciated.")
+    eq(A.Text("Alchemy", 94, nil, "", ""), "[Alchemy] 94 LFW.")
+    eq(#A.Text("Enchanting", 300, 300, "Orgrimmar", ("x"):rep(200)) <= 30 + A.EXTRA_MAX + 12, true)
+
+    local link = "|cffffd000|Henchant:13538|h[Enchanting: Enchant Chest - Lesser Absorption]|h|r"       -- about 80 letters
+    local lines, used = A.Pack("[Enchanting] 225/300 LFW in Undercity. Tips appreciated.", { link, link, link, link })
+    eq(#lines, 2); eq(used, 4)                                             -- four links take two lines
+    local long = "|cffffd000|Henchant:1|h[" .. ("Enchanting: A Very Long Recipe Name "):rep(4) .. "]|h|r"
+    eq(select(2, A.Pack("[Enchanting] 225/300 LFW in Undercity.", { long, long, long, long })), 2)   -- never a third line
+    for _, l in ipairs(lines) do eq(#l <= 255, true) end
+    lines, used = A.Pack("short", { "[a]", "[b]" })
+    eq(#lines, 1); eq(lines[1], "short [a] [b]"); eq(used, 2)
+    lines, used = A.Pack("just words", {})
+    eq(#lines, 1); eq(used, 0)
+
+    eq(A.TradeChannel(1, "General - Undercity", false, 2, "Trade - City", false, 3, "LocalDefense", false), 2)
+    eq(A.TradeChannel(1, "General - The Barrens", false), nil)                  -- no Trade channel outside a city
+    eq(A.TradeChannel(2, "Trade - City", true), nil)
+
+    local list = A.Toggle({}, 5)
+    eq(#list, 1)
+    list = A.Toggle(A.Toggle(A.Toggle(list, 6), 7), 8)
+    eq(#list, 4); eq(select(2, A.Toggle(list, 9)), "You can link 4 recipes at most. Untick one first.")
+    list = A.Toggle(list, 6)                                               -- untick
+    eq(table.concat(list, ","), "5,7,8")
 end)
 
 test("recruit: Team Captain and above only", function()

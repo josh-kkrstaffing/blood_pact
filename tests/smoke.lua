@@ -376,6 +376,8 @@ G.GetNumGroupMembers = function()
 end
 G.GetGuildInfo = function() return "Blood Pact" end
 G.GetNormalizedRealmName = function() return "Normal" end
+local CHANNELS = {}
+G.GetChannelList = function() return unpack(CHANNELS[ctx.guid] or {}) end
 G.GetZoneText = function() return ctx.zone end
 G.GetRealZoneText = function() return ctx.zone end
 G.GetNumGuildMembers = function() return #GUILD end
@@ -1989,6 +1991,26 @@ run(member, "removed", function()
 end)
 pressEverything(gm)
 clickText(member, "Members")
+
+-- Advertising in Trade chat from your own recipe list.
+run(gm, "advert", function()
+    local ns = gm.ns
+    local A = ns.Advert
+    local skill = { level = 225, max = 300 }
+    ns.Char().adExtra = nil                                    -- the standard words
+    assert(A.ToggleLink("Enchanting", 7418)); assert(A.ToggleLink("Enchanting", 7421))
+    check(A.IsLinked("Enchanting", 7418) and #A.Links("Enchanting") == 2, "recipes can be ticked for the advert")
+    check(select(2, A.Post("Enchanting", skill)) == "You're not in the Trade channel. It is only there in a city.", "outside a city there is no Trade channel to post in")
+    CHANNELS[gm.guid] = { 1, "General - Orgrimmar", false, 2, "Trade - City", false }
+    local n = #guildChat
+    check(A.Post("Enchanting", skill) == "Posted in Trade chat.", "one click posts the advert")
+    local line = guildChat[#guildChat] or ""
+    check(#guildChat == n + 1 and line:find("CHANNEL:2:[Enchanting] 225/300 LFW in Orgrimmar. Tips appreciated.", 1, true) == 1
+        and line:find("[Enchant Bracer - Minor Health] [Runed Copper Rod]", 1, true) ~= nil, "it goes to the Trade channel with the skill, the city and the ticked recipes as links")
+    check(select(2, A.Post("Enchanting", skill)):find("One post a minute.", 1, true) == 1 and #guildChat == n + 1, "a second post inside a minute isn't sent")
+    A.ToggleLink("Enchanting", 7418); A.ToggleLink("Enchanting", 7421)
+    CHANNELS[gm.guid] = nil
+end)
 
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- Professions: advertise your crafting in Trade chat. Open your own recipe list, press Link on up to four recipes, and "Post in Trade chat" sends a line such as "[Enchanting] 225/300 LFW in Undercity. Tips appreciated." with those recipes as clickable links
+- The city is filled in from where you are standing, and you can change the words after it
+- One post per click and no more than one a minute; Blood Pact never repeats it by itself. It needs the Trade channel, so it works in a city
+- Recipe links are long, so four of them go out as two chat lines
+
 ## 1.2.0
 
 - Roster > Statics: the guild's fixed 10-player raid teams, one for each Team Captain. Everyone in the guild can see them
