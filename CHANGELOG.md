@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Roster > Statics: the guild's fixed 10-player raid teams, one for each Team Captain. Everyone in the guild can see them
+- Each team shows its captain, how full it is, its tanks, healers and DPS, who is online, and where each member is
+- A Team Captain builds their own team: type a name, pick a role, press "Add to team". Click a member to change their role, right-click to take them off. Officers and above can edit any team
+- A team is the captain and up to nine more, and a member can be on one team at a time
+- A captain can name their team, and "Invite online members" invites the team to your group in one click
+
 ## 1.1.0
 
 - Recruit: search every zone for unguilded players in a level range, from 1 up to 60. Type the two levels next to "All zones" and press "Scan these levels"

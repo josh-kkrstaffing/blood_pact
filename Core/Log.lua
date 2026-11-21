@@ -142,6 +142,17 @@ L.KINDS = {
     ORDER_MAIL = { "signup", function(d) return str(d.id, 1, 80) and isInt(d.n, 1, 99) end },
     -- An Officer cancelling someone else's order to keep the board tidy.
     ORDER_MOD = { "void", function(d) return str(d.id, 1, 80) and d.st == "cancel" end },
+    -- Statics, the fixed 10-player raid teams. A Team Captain edits their own
+    -- team (STATIC); an Officer or above edits any captain's (STATIC_MOD).
+    -- on = true adds the member or sets their role; on = false removes them.
+    STATIC = { "schedule", function(d)
+        return isGUID(d.who) and type(d.on) == "boolean" and (d.role == nil or d.role == "tank" or d.role == "healer" or d.role == "dps")
+    end },
+    STATIC_MOD = { "void", function(d)
+        return isGUID(d.cap) and isGUID(d.who) and type(d.on) == "boolean"
+            and (d.role == nil or d.role == "tank" or d.role == "healer" or d.role == "dps")
+    end },
+    STATIC_NAME = { "schedule", function(d) return str(d.name, 0, 24) end },
     -- A player's own PvP rank, 0 (none) to 14.
     PVP = { "signup", function(d) return isInt(d.r, 0, 14) end },
     TASK = { "roster", function(d)

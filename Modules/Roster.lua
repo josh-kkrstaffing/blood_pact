@@ -302,6 +302,7 @@ end
 -- details with the alt tools under them (Officers), open or folded.
 function R.Need(p)
     local h = 200
+    if view == "statics" then return 250, 910 end
     if view == "members" then
         if pane == "classes" then
             h = RBAC.ICan("schedule") and 300 or 215
@@ -401,22 +402,26 @@ end
 ns.UI.AddTab("roster", "Roster", "view", function(p)
     p.membersBtn = W.Button(p, "Members", 90, 22, function() view = "members"; ns.UI.Refresh() end)
     p.membersBtn:SetPoint("TOPLEFT", 0, 0)
+    -- The 10-player raid teams, one per Team Captain (Modules/Statics.lua).
+    p.staticsBtn = W.Button(p, "Statics", 90, 22, function() view = "statics"; ns.UI.Refresh() end)
+    p.staticsBtn:SetPoint("TOPLEFT", 94, 0)
+    ns.Statics.Build(p)
     p.logBtn = W.Button(p, "Guild log", 90, 22, function() view = "log"; ns.UI.Refresh() end)
-    p.logBtn:SetPoint("TOPLEFT", 94, 0)
+    p.logBtn:SetPoint("TOPLEFT", 188, 0)
     p.tasksBtn = W.Button(p, "Officer tasks", 110, 22, function() view = "tasks"; ns.UI.Refresh() end)
-    p.tasksBtn:SetPoint("TOPLEFT", 188, 0)
+    p.tasksBtn:SetPoint("TOPLEFT", 282, 0)
     p.searchLabel = W.Text(p, "Search", "GameFontHighlightSmall")
-    p.searchLabel:SetPoint("TOPLEFT", 310, -5)
+    p.searchLabel:SetPoint("TOPLEFT", 404, -5)
     p.search = W.Edit(p, 120, 30)
-    p.search:SetPoint("TOPLEFT", 354, -1)
+    p.search:SetPoint("TOPLEFT", 448, -1)
     p.search:SetScript("OnTextChanged", function(self)
         filter = (self:GetText() or ""):lower()
         if view == "members" then ns.UI.Refresh() end
     end)
     p.count = W.Text(p, "", "GameFontDisableSmall")
     p.online = W.Check(p, "Online only", function(on) onlineOnly = on; ns.UI.Refresh() end)
-    p.online:SetPoint("TOPLEFT", 486, -4)
-    p.count:SetPoint("TOPLEFT", 590, -5)
+    p.online:SetPoint("TOPLEFT", 580, -4)
+    p.count:SetPoint("TOPLEFT", 684, -5)
     p.count:SetWidth(200)
     p.count:SetWordWrap(false)
 
@@ -624,6 +629,9 @@ end, function(p)
     if view == "tasks" and not canTasks then view = "members" end
     local members, tasks = view == "members", view == "tasks"
     p.membersBtn:SetEnabled(not members)
+    p.staticsBtn:SetEnabled(view ~= "statics")
+    ns.Statics.Refresh(p, view == "statics")
+    p.count:SetShown(view ~= "statics")
     p.logBtn:SetEnabled(view ~= "log")
     p.tasksBtn:SetShown(canTasks)
     p.tasksBtn:SetEnabled(not tasks)

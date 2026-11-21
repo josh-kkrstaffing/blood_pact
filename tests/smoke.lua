@@ -1946,6 +1946,50 @@ run(gm, "roster invite", function()
     GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
 end)
 
+-- Statics: a team is edited by its captain or an Officer, and everyone sees it.
+run(member, "member can't build a team", function()
+    check(select(2, member.ns.Statics.Add(MEMBER, "Vela", "dps")) == "Only the team's captain, or an Officer and above, can change a team.",
+        "a Member can't make or change a team")
+end)
+run(gm, "build a team", function()
+    local S = gm.ns.Statics
+    check(select(2, S.Add(gm.guid, "nobody here", "dps")) == "Nobody in the guild has that name.", "only guild members can be added")
+    assert(S.Add(gm.guid, "pip", "healer"))                      -- names aren't case sensitive
+    check(select(2, S.Add(gm.guid, "Pip", "dps")) == "They are already on this team.", "a member is added once")
+    assert(S.Rename("Night Shift"))
+end)
+advance(8)
+run(officer, "officer edits it", function()
+    local S = officer.ns.Statics
+    check(select(2, S.Add(officer.guid, "Pip", "dps")):find("They are on Binky Bee's team.", 1, true) == 1, "a member is on one team at a time")
+    assert(S.SetRole(gm.guid, MEMBER, "tank"))
+end)
+advance(8)
+open(member)
+clickText(member, "Roster")
+check(clickText(member, "Statics"), "the Roster has a Statics view next to Members")
+run(member, "team synced", function()
+    local ns = member.ns
+    local teams = ns.Statics.Teams(ns.Reducer.State().statics, ns.roster.byGUID)
+    check(#teams == 1 and teams[1].name == "Night Shift" and teams[1].n == 2 and teams[1].tank == 1
+        and teams[1].rows[1].isCap and teams[1].rows[2].name == "Pip" and teams[1].rows[2].role == "tank",
+        "every guild member sees the team, its name, and each member's role")
+    local seen = {}
+    for _, w in ipairs(member.widgets) do if w._.kind == "FontString" and w:IsVisible() then seen[w._.text] = true end end
+    check(seen["Night Shift"] == true,
+        "the view shows the picked team")
+    local add
+    for _, w in ipairs(member.widgets) do if w._.text == "Add to team" then add = w end end
+    check(add ~= nil and not add:IsVisible(), "a Member gets no editing controls")
+end)
+run(gm, "remove", function() assert(gm.ns.Statics.Remove(gm.guid, MEMBER)) end)
+advance(8)
+run(member, "removed", function()
+    check(member.ns.Statics.TeamOf(member.ns.Reducer.State().statics, MEMBER) == nil, "a removed member is off the team for everyone")
+end)
+pressEverything(gm)
+clickText(member, "Members")
+
 -- Alt linking: an officer types the name without capitals.
 run(gm, "link alt", function()
     local ns = gm.ns

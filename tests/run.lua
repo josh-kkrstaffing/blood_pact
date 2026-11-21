@@ -35,6 +35,7 @@ load("Modules/Orders.lua")
 load("Modules/Mail.lua")
 load("Modules/Professions.lua")
 ns.Listen = function() end
+load("Modules/Statics.lua")
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
 load("Modules/Summon.lua")
@@ -1401,6 +1402,71 @@ test("recruit: every zone by level range, split until the game's list fits", fun
     eq(Rc.SweepAdvance(sweep, true), "short"); eq(#sweep.queue, 8)                              -- one class of one level: as far as it goes
     for _ = 1, 8 do Rc.SweepAdvance(sweep, false) end
     eq(#sweep.queue, 0); eq(sweep.done, 12)
+end)
+
+test("statics: a captain's team of ten, one team per member", function()
+    local St = ns.Statics
+    local g = newStore()
+    local CAP, OFF, A, B, V = "Player-1-CAPT", "Player-1-OFFICER1", "Player-1-MEM1", "Player-1-MEM2", "Player-1-VET"
+    insertAll(g, { author(g, CAP, "STATIC", { who = A, on = true, role = "healer" }) })
+    insertAll(g, { author(g, CAP, "STATIC", { who = B, on = true }) })
+    insertAll(g, { author(g, CAP, "STATIC", { who = CAP, on = true, role = "tank" }) })       -- the captain's own role
+    insertAll(g, { author(g, CAP, "STATIC_NAME", { name = "Night Shift" }) })
+    local st = Red.Build(g)
+    local t = st.statics[CAP]
+    eq(t.members[A], "healer"); eq(t.members[B], "dps"); eq(t.n, 2); eq(t.capRole, "tank"); eq(t.name, "Night Shift")
+    eq(St.TeamOf(st.statics, A), CAP); eq(St.TeamOf(st.statics, V), nil)
+
+    -- A Member can't edit teams; an Officer edits any captain's team.
+    eq(select(2, Log.Insert(g, author(g, A, "STATIC", { who = V, on = true }), true)), "forbidden")
+    eq(select(2, Log.Insert(g, author(g, CAP, "STATIC_MOD", { cap = OFF, who = V, on = true }), true)), "forbidden")
+    insertAll(g, { author(g, OFF, "STATIC_MOD", { cap = CAP, who = A, on = true, role = "tank" }) })
+    eq(Red.Build(g).statics[CAP].members[A], "tank")
+
+    -- One team at a time: a second captain can't take a member who is already on a team.
+    insertAll(g, { author(g, OFF, "STATIC", { who = A, on = true }) })
+    st = Red.Build(g)
+    eq(st.statics[OFF].members[A], nil); eq(st.statics[CAP].members[A], "tank")
+    local nameOf = function() return "Cap" end
+    eq(select(2, St.CanAdd(st.statics, OFF, A, nameOf)), "They are on Cap's team. Remove them there first.")
+    eq(select(2, St.CanAdd(st.statics, CAP, A, nameOf)), "They are already on this team.")
+    eq(select(2, St.CanAdd(st.statics, CAP, CAP, nameOf)), "The captain is already on the team.")
+    eq(St.CanAdd(st.statics, CAP, V, nameOf), true)
+
+    -- Removed, then free to join another team.
+    insertAll(g, { author(g, CAP, "STATIC", { who = A, on = false }) })
+    insertAll(g, { author(g, OFF, "STATIC", { who = A, on = true }) })
+    st = Red.Build(g)
+    eq(st.statics[CAP].members[A], nil); eq(st.statics[CAP].n, 1); eq(st.statics[OFF].members[A], "dps")
+
+    -- Ten at most: the captain and nine more.
+    local g2 = newStore()
+    for i = 1, 12 do insertAll(g2, { author(g2, CAP, "STATIC", { who = "Player-1-X" .. i, on = true }) }) end
+    st = Red.Build(g2)
+    eq(st.statics[CAP].n, 9)
+    eq(select(2, St.CanAdd(st.statics, CAP, V, nameOf)), "The team has all 10 players.")
+
+    -- The view: a team for every Team Captain, the captain first, then tanks, healers, DPS.
+    local roster = {
+        c1 = { name = "Zed-Normal", rankIndex = 2, online = true, class = "WARRIOR", level = 60, zone = "Orgrimmar" },
+        c2 = { name = "Amy-Normal", rankIndex = 2, online = false },
+        m1 = { name = "Heal-Normal", rankIndex = 4, online = true }, m2 = { name = "Tank-Normal", rankIndex = 4, online = false },
+        m3 = { name = "Dps-Normal", rankIndex = 5, online = true },
+    }
+    local statics = { c1 = { members = { m1 = "healer", m2 = "tank", m3 = "dps", gone = "dps" }, capRole = "dps", name = "Alpha" } }
+    local teams = St.Teams(statics, roster)
+    eq(#teams, 2); eq(teams[1].capName, "Amy"); eq(teams[1].n, 1)                -- a captain with nobody yet still has a team
+    local z = teams[2]
+    eq(z.name, "Alpha"); eq(z.n, 4); eq(z.tank, 1); eq(z.healer, 1); eq(z.dps, 2); eq(z.online, 3)   -- a member who left the guild isn't counted
+    local order = {}
+    for i, r in ipairs(z.rows) do order[i] = r.name end
+    eq(table.concat(order, ","), "Zed,Tank,Heal,Dps")
+    eq(St.NextRole("tank"), "healer"); eq(St.NextRole("dps"), "tank"); eq(St.NextRole(nil), "tank")
+
+    for _, bad in ipairs({ { who = A }, { who = A, on = true, role = "boss" }, { on = true } }) do
+        eq(select(2, Log.Insert(g, author(g, CAP, "STATIC", bad), true)), "payload")
+    end
+    eq(select(2, Log.Insert(g, author(g, CAP, "STATIC_NAME", { name = ("x"):rep(25) }), true)), "payload")
 end)
 
 test("recruit: Team Captain and above only", function()

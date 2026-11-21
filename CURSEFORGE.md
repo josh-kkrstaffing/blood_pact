@@ -23,6 +23,7 @@ The tabs run in the order a guild does things.
 
 - Every member with rank, class, level, join date and last time online. Any column sorts, with a search box and an online-only filter.
 - A pie chart of the guild by class. Click a class to list only its members. Team Captains and above can message the online members of one class.
+- Statics: fixed 10-player raid teams, one per Team Captain, with each member's role and who is online.
 - PvP rank badge next to each name.
 - Main and alt linking, rank history for each member, and a guild log of joins, leaves, promotions and demotions.
 - Inactivity tracking (30, 60 and 90 days by default) and a shared officer task list for cleanup, promotions and alts.

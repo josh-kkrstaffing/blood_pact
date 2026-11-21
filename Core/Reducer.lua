@@ -78,6 +78,7 @@ function Red.Build(g)
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
         members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {}, pvp = {}, orders = {},
         resets = resets,          -- [what] = the reset record now in force
+        statics = {},             -- [captain] = { members = { [guid] = role }, n, name, capRole }
     }
     local signups, picks, attIdem, rosterIdem = {}, {}, {}, {}
     local function mainOf(guid) return st.alts[guid] or guid end
@@ -208,6 +209,30 @@ function Red.Build(g)
                 o.mailed = math.min(o.q, (o.mailed or 0) + d.n)
                 o.mailedAt, o.lastBy = e.t, e.a
             end
+        elseif k == "STATIC" or k == "STATIC_MOD" then
+            -- A team is the captain plus up to nine; a member is on one team at a time.
+            local cap = k == "STATIC" and e.a or d.cap
+            local team = st.statics[cap]
+            if not team then team = { members = {}, n = 0 }; st.statics[cap] = team end
+            if d.who == cap then
+                if d.on and d.role then team.capRole = d.role end
+            elseif d.on then
+                local other
+                for c, t in pairs(st.statics) do
+                    if c ~= cap and t.members[d.who] then other = c end
+                end
+                if not other and (team.members[d.who] or team.n < 9) then
+                    if not team.members[d.who] then team.n = team.n + 1 end
+                    team.members[d.who] = d.role or team.members[d.who] or "dps"
+                end
+            elseif team.members[d.who] then
+                team.members[d.who] = nil
+                team.n = team.n - 1
+            end
+        elseif k == "STATIC_NAME" then
+            local team = st.statics[e.a]
+            if not team then team = { members = {}, n = 0 }; st.statics[e.a] = team end
+            team.name = d.name ~= "" and d.name or nil
         elseif k == "PVP" then
             st.pvp[e.a] = { r = d.r, t = e.t }
         elseif k == "RECIPES" then
