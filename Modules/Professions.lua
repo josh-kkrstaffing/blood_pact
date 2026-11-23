@@ -332,18 +332,31 @@ local which, selOrder = nil, nil      -- which Orders list; nil = pick one on fi
 local nProf, nPick, nWho, nFilter = nil, nil, nil, ""   -- New order: profession, recipe, crafter asked, search
 local BAR_W = 130
 
--- "Cost to Craft" and "Buy It Now" over a recipe list's two price columns.
--- x1, x2 = the columns' left edges inside the parent, w = their width.
-local function priceHeads(parent, x1, x2, w, y)
+-- Sortable headers over a recipe list: Craft, Cost to Craft, Buy It Now, Net
+-- Profit. Both recipe lists share one sort. cols = { { key, x, width } }.
+local rSortKey, rSortDesc = "name", false
+local HEAD_TEXT = { name = "Craft", cost = "Cost to Craft", buy = "Buy It Now", net = "Net Profit" }
+local function recipeHeads(parent, cols, y)
     local heads = {}
-    for i, def in ipairs({ { "Cost to Craft", x1 }, { "Buy It Now", x2 } }) do
-        local fs = W.Text(parent, def[1], "GameFontNormalSmall")
-        fs:SetPoint("TOPLEFT", def[2], y)
-        fs:SetWidth(w)
-        fs:SetJustifyH("RIGHT")
-        heads[i] = fs
+    for i, c in ipairs(cols) do
+        local b = W.SortButton(parent, HEAD_TEXT[c[1]], c[3], function()
+            if rSortKey == c[1] then
+                rSortDesc = not rSortDesc
+            else
+                rSortKey, rSortDesc = c[1], c[1] ~= "name"      -- prices start highest first
+            end
+            ns.UI.Refresh()
+        end)
+        b.key = c[1]
+        b:SetPoint("TOPLEFT", c[2], y)
+        heads[i] = b
     end
-    function heads.SetShown(on) heads[1]:SetShown(on); heads[2]:SetShown(on) end
+    function heads.SetShown(on)
+        for _, b in ipairs(heads) do
+            b:SetShown(on)
+            b:SetSort(b.key == rSortKey and (rSortDesc and "down" or "up") or nil)
+        end
+    end
     return heads
 end
 
@@ -455,13 +468,14 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
     p.who = W.Text(d, "", "GameFontNormalSmall")
     p.who:SetPoint("TOPLEFT", 282, -33)
     p.recipes = W.List(d, 480, 300, 18, function(row, r)
-        p.recipes.Col(row, 1, 8, 216):SetText(U.Safe(r.name, 80))
-        local cost = p.recipes.Col(row, 2, 228, 92, "RIGHT")
+        p.recipes.Col(row, 1, 8, 198):SetText(U.Safe(r.name, 80))
+        local cost = p.recipes.Col(row, 2, 210, 82, "RIGHT")
         cost:SetText(Orders.CostText(r.id, 1) or "")
         cost:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        local buy = p.recipes.Col(row, 3, 324, 92, "RIGHT")
+        local buy = p.recipes.Col(row, 3, 296, 82, "RIGHT")
         buy:SetText(Orders.BuyText(r.id) or "")
         buy:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
+        p.recipes.Col(row, 4, 382, 82, "RIGHT"):SetText(Orders.NetText(r.id) or "")
         if not row.order then
             -- "Order" on the right of every recipe: picks it for the order bar below.
             row.order = W.Button(row, "Order", 54, 16, function()
@@ -491,9 +505,8 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         row.link:SetShown(own)
         if own then row.link:SetText(ns.Advert.IsLinked(chosen, r.id) and "|cff40ff40Linked|r" or "Link") end
     end, function(r) picked = r.id; ns.UI.Refresh() end)
-    p.recipes:Stretch(206, -68, 0, 100)
-    -- Column headers over the two price columns (Auctionator's last scan).
-    p.recipeHead = priceHeads(d, 206 + 228, 206 + 324, 92, -53)
+    p.recipes:Stretch(206, -72, 0, 100)
+    p.recipeHead = recipeHeads(d, { { "name", 208, 200 }, { "cost", 416, 84 }, { "buy", 502, 84 }, { "net", 588, 84 } }, -52)
     p.recipes.key = "id"
 
     -- Under my own recipes: advertise in Trade chat.
@@ -705,17 +718,18 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
     p.nCount = W.Text(nf, "", "GameFontDisableSmall")
     p.nCount:SetPoint("TOPLEFT", 416, -5)
     p.nRecipes = W.List(nf, 480, 240, 18, function(row, r)
-        p.nRecipes.Col(row, 1, 8, 196):SetText(U.Safe(r.name, 80))
-        local who = p.nRecipes.Col(row, 2, 208, 124)
+        p.nRecipes.Col(row, 1, 8, 164):SetText(U.Safe(r.name, 80))
+        local who = p.nRecipes.Col(row, 2, 176, 106)
         who:SetText(#r.crafters .. (#r.crafters == 1 and " crafter" or " crafters") .. (r.online > 0 and (", " .. r.online .. " online") or ""))
         local tone = r.online > 0 and W.C.text or W.C.muted
         who:SetTextColor(tone[1], tone[2], tone[3])
-        local cost = p.nRecipes.Col(row, 3, 336, 84, "RIGHT")
+        local cost = p.nRecipes.Col(row, 3, 284, 78, "RIGHT")
         cost:SetText(Orders.CostText(r.id, 1) or "")
         cost:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        local buy = p.nRecipes.Col(row, 4, 424, 84, "RIGHT")
+        local buy = p.nRecipes.Col(row, 4, 366, 78, "RIGHT")
         buy:SetText(Orders.BuyText(r.id) or "")
         buy:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
+        p.nRecipes.Col(row, 5, 448, 78, "RIGHT"):SetText(Orders.NetText(r.id) or "")
         if not row.hooked then
             row.hooked = true
             row:SetScript("OnEnter", function(self)
@@ -727,8 +741,8 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
             row:SetScript("OnLeave", GameTooltip_Hide)
         end
     end, function(r) nPick, nWho = r.id, nil; ns.UI.Refresh() end)
-    p.nRecipes:Stretch(206, -42, 0, 86)
-    p.nRecipeHead = priceHeads(nf, 206 + 336, 206 + 424, 84, -27)
+    p.nRecipes:Stretch(206, -46, 0, 86)
+    p.nRecipeHead = recipeHeads(nf, { { "name", 208, 166 }, { "cost", 490, 78 }, { "buy", 572, 78 }, { "net", 654, 78 } }, -26)
     p.nRecipes.key = "id"
     p.nEmpty = W.Text(nf, "", "GameFontHighlightSmall")
     p.nEmpty:SetPoint("TOPLEFT", 214, -50)
@@ -827,6 +841,7 @@ end, function(p)
             p.nProfs.selected = pick
             p.nProfs:SetItems(profs)
             local list = nProf and ns.Recipes.GuildRecipes(st, roster, nProf, nFilter, ns.Recipes.Name) or {}
+            Orders.SortRecipes(list, rSortKey, rSortDesc, Orders.Numbers)
             local sel
             for _, r in ipairs(list) do if r.id == nPick then sel = r end end
             if not sel then nPick, nWho = nil, nil end
@@ -952,6 +967,7 @@ end, function(p)
         local set = st.recipes[viewing] and st.recipes[viewing][chosen]
         local known = ns.Recipes.Count(st, viewing, chosen)
         local list = ns.Recipes.List(set, search, ns.Recipes.Name)
+        Orders.SortRecipes(list, rSortKey, rSortDesc, Orders.Numbers)
         if picked and not (set and set[picked]) then picked = nil end
         local sel
         for _, r in ipairs(list) do if r.id == picked then sel = r end end

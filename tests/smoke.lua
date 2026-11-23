@@ -916,6 +916,11 @@ run(member, "browse and price", function()
     check(#profs == 1 and profs[1].name == "Enchanting" and profs[1].count == 4 and #rows == 4 and rows[1].crafters[1] == gm.guid
         and rows[1].online == 1, "New order lists every recipe the guild has shared, with who can make it")
     check(ns.Orders.BuyText(7421) == ns.Orders.Money(12345), "Buy It Now is Auctionator's price for the item the recipe makes")
+    do
+        local cost, partial, buy, net = ns.Orders.Numbers(7418)
+        check(cost == 150 and partial == true and buy == nil and net == nil, "no Net Profit when a material has no price or nothing is made")
+        check(ns.Orders.NetText(7418) == nil, "and the Net Profit cell stays blank")
+    end
     check(ns.Orders.BuyText(7418) == nil, "an enchant makes no item, so it has no Buy It Now price")
     check(ns.Orders.CostText(7418, 2) == "3s+", "material cost is estimated from Auctionator's prices, flagging what has no price")
     check(ns.Orders.CostText(7418, 2, true) == "Est. materials: 3s from Auctionator's last scan, plus 1 with no price.",

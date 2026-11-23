@@ -301,6 +301,23 @@ test("bis: an item counts once across shared slots", function()
     eq(by["Ring 1"].score, 1); eq(by["Ring 2"].score, 0)
 end)
 
+test("orders: recipe sort by craft, cost, buy and net; blanks last either way", function()
+    local nums = { [1] = { 500, false, 800, 300 }, [2] = { 200, false, 100, -100 }, [3] = { 900, true, 950, nil }, [4] = {} }
+    local function numbers(id) local n = nums[id]; return n[1], n[2], n[3], n[4] end
+    local function order(key, desc)
+        local list = { { id = 1, name = "Copper Rod" }, { id = 2, name = "Anvil" }, { id = 3, name = "Belt" }, { id = 4, name = "Zed" } }
+        ns.Orders.SortRecipes(list, key, desc, numbers)
+        local s = ""
+        for _, r in ipairs(list) do s = s .. r.id end
+        return s
+    end
+    eq(order("name", false), "2314"); eq(order("name", true), "4132")
+    eq(order("cost", false), "2134"); eq(order("cost", true), "3124")
+    eq(order("buy", true), "3124")
+    eq(order("net", true), "1234")     -- best profit first; no number sinks, by name
+    eq(order("net", false), "2134")
+end)
+
 -- Raids ---------------------------------------------------------------------
 local function insertAll(g, list) for _, e in ipairs(list) do assert(Log.Insert(g, e, true) == "new") end end
 

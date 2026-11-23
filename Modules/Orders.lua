@@ -260,6 +260,58 @@ function O.BuyText(rid)
     return price and O.Money(price) or nil
 end
 
+-- One recipe's numbers in copper: cost = materials (nil when nothing has a
+-- price), partial = some materials have no price, buy = the finished item's
+-- auction price, net = buy - cost. net is only given when both are known and
+-- every material has a price; the auction house's cut is not taken off.
+function O.Numbers(rid)
+    local cost, partial
+    local list = O.HasPrices() and ns.Recipes.Reagents(rid)
+    if list then
+        local total, missing, all = O.Estimate(list, 1, O.PriceOf)
+        if missing < all then cost, partial = total, missing > 0 end
+    end
+    local buy = O.BuyPrice(rid)
+    local net = cost and buy and not partial and (buy - cost) or nil
+    return cost, partial or false, buy, net
+end
+
+-- "+12s 5c" in green or "-3s" in red, or nil.
+function O.NetText(rid)
+    local _, _, _, net = O.Numbers(rid)
+    if not net then return nil end
+    if net < 0 then return "|cffff5050-" .. O.Money(-net) .. "|r" end
+    return "|cff40d060+" .. O.Money(net) .. "|r"
+end
+
+-- Sort recipe rows ({ id, name }) in place. key = "name", "cost", "buy" or
+-- "net"; numbers(id) -> cost, partial, buy, net. Rows with no number for the
+-- column always go to the bottom; ties go by name.
+function O.SortRecipes(list, key, desc, numbers)
+    local val = {}
+    for _, r in ipairs(list) do
+        if key == "name" then
+            val[r] = (r.name or ""):lower()
+        else
+            local cost, _, buy, net = numbers(r.id)
+            val[r] = (key == "cost" and cost) or (key == "buy" and buy) or (key == "net" and net) or nil
+        end
+    end
+    table.sort(list, function(a, b)
+        local x, y = val[a], val[b]
+        if x == nil or y == nil then
+            if x ~= nil or y ~= nil then return x ~= nil end
+        elseif x ~= y then
+            if desc then return x > y end
+            return x < y
+        end
+        local m, n = (a.name or ""):lower(), (b.name or ""):lower()
+        if m ~= n then return m < n end
+        return (a.id or 0) < (b.id or 0)
+    end)
+    return list
+end
+
 -- Place an order. toGUID = a guild crafter, or nil for the Wanted board.
 function O.Create(rid, prof, qty, mats, note, toGUID)
     if not ns.RBAC.ICan("signup") then return nil, "Your guild rank can't place orders." end

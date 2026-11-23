@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.2
+
+- Professions: new Net Profit column on the recipe lists. It is Buy It Now minus Cost to Craft, green when you would make money and red when you would lose it
+- Net Profit stays blank when the item has no auction price or a material has no price (a cost marked "+"), because the number would be wrong. The auction house's cut is not taken off
+- The recipe name column now has a "Craft" header, and all four headers sort: click once to sort, click again to flip the order. Recipes with no number for that column go to the bottom
+
 ## 1.4.1
 
 - Professions: recipe lists now show two price columns with headers, "Cost to Craft" and "Buy It Now"
