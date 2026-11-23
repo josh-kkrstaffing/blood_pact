@@ -243,6 +243,23 @@ function O.CostText(rid, qty, long)
         missing > 0 and (", plus " .. missing .. " with no price") or "")
 end
 
+-- What the finished item sells for: Auctionator's last scanned auction price
+-- for the item the recipe makes. nil when the recipe makes no item (an
+-- enchant put straight on gear), the game won't say, or nobody has listed it.
+function O.BuyPrice(rid)
+    if not O.HasPrices() then return nil end
+    local item = ns.Recipes.Output(rid)
+    if not item then return nil end
+    local ok, price = pcall(Auctionator.API.v1.GetAuctionPriceByItemID, "BloodPact", item)
+    if ok and type(price) == "number" and price > 0 then return price end
+    return nil
+end
+
+function O.BuyText(rid)
+    local price = O.BuyPrice(rid)
+    return price and O.Money(price) or nil
+end
+
 -- Place an order. toGUID = a guild crafter, or nil for the Wanted board.
 function O.Create(rid, prof, qty, mats, note, toGUID)
     if not ns.RBAC.ICan("signup") then return nil, "Your guild rank can't place orders." end

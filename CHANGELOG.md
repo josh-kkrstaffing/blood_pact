@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1
+
+- Professions: recipe lists now show two price columns with headers, "Cost to Craft" and "Buy It Now"
+- Buy It Now is Auctionator's last scanned auction price for the finished item, next to the material cost that was already there
+- A recipe that makes no item (an enchant put straight on gear), or an item nobody has listed, leaves Buy It Now blank
+
 ## 1.4.0
 
 - BiS Check: the pre-raid lists for 24 specs are rebuilt from the WoW Forever class guides on Wowhead, each written by a named guide author. The old lists came from sites that rank items automatically

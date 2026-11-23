@@ -297,7 +297,7 @@ local function tradeWindow() return TRADE[ctx.guid] end
 G.Auctionator = { API = { v1 = {
     GetAuctionPriceByItemID = function(caller, item)
         assert(caller == "BloodPact", "Auctionator wants the caller's name")
-        return item == 10940 and 150 or nil
+        return (item == 10940 and 150) or (item == 6218 and 12345) or nil
     end,
     GetVendorPriceByItemID = function() return nil end,
 } } }
@@ -915,6 +915,8 @@ run(member, "browse and price", function()
     local rows = ns.Recipes.GuildRecipes(st, ns.roster.byGUID, "Enchanting", "", ns.Recipes.Name)
     check(#profs == 1 and profs[1].name == "Enchanting" and profs[1].count == 4 and #rows == 4 and rows[1].crafters[1] == gm.guid
         and rows[1].online == 1, "New order lists every recipe the guild has shared, with who can make it")
+    check(ns.Orders.BuyText(7421) == ns.Orders.Money(12345), "Buy It Now is Auctionator's price for the item the recipe makes")
+    check(ns.Orders.BuyText(7418) == nil, "an enchant makes no item, so it has no Buy It Now price")
     check(ns.Orders.CostText(7418, 2) == "3s+", "material cost is estimated from Auctionator's prices, flagging what has no price")
     check(ns.Orders.CostText(7418, 2, true) == "Est. materials: 3s from Auctionator's last scan, plus 1 with no price.",
         "the order bar says where the estimate comes from")
