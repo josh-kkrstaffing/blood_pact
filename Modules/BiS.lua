@@ -1,4 +1,4 @@
--- Blood Pact: BiS check. Compares your gear with Blood Pact's ranked pre-raid
+-- Blood Pact: BiS check. Compares your gear with Blood Pact's pre-raid
 -- list for your spec (Modules/BiSData.lua, all 28 specs) and ranks your
 -- biggest upgrades. Reads only your own equipped items, bags and bank.
 -- The one thing shared with the guild is your readiness score: your spec and
@@ -7,6 +7,13 @@
 local _, ns = ...
 local BiS = {}
 ns.BiS = BiS
+
+-- Where a list came from, for the title line. list.old = no expert list was readable, older list kept.
+function BiS.SourceText(list)
+    if list.old then return "older auto-ranked list: " .. list.old end
+    if list.by then return ("from %s's Wowhead guide, updated %s"):format(list.by, list.asof or "?") end
+    return "updated " .. (ns.BiSUpdated or "?")
+end
 
 -- Item name from an item link: |cff...|Hitem:...|h[Name]|h|r
 function BiS.NameFromLink(link)
@@ -24,6 +31,11 @@ function BiS.Evaluate(list, owned)
     local function best(items, taken, wornOnly)
         for _, it in ipairs(items) do
             local where = owned[it.name] or (it.ally and owned[it.ally])
+            if not where and it.also then
+                for _, other in ipairs(it.also) do
+                    if owned[other] then where = owned[other]; break end
+                end
+            end
             if where and not taken[it.name] and (not wornOnly or where == "equipped") then
                 taken[it.name] = true
                 return it, where
@@ -301,9 +313,9 @@ end, function(p)
         b:Show()
     end
     local rows, owned, worn = BiS.Evaluate(list, BiS.Owned())
-    p.title:SetText(("Pre-raid BiS: %s  (%s; ranked from %d guides, %s)"):format(list.label,
+    p.title:SetText(("Pre-raid BiS: %s  (%s; %s)"):format(list.label,
         how == "picked" and "you picked this list" or (how == "talents" and "from your talents" or "pick your spec below"),
-        list.guides or 0, ns.BiSUpdated or "?"))
+        BiS.SourceText(list)))
     p.summary:SetText("Your readiness score: " .. pct(owned) .. " (wearing " .. pct(worn)
         .. "). Raid leaders see it on your sign-ups. No raid lists yet: the raid loot isn't published.")
     p.list:SetItems(rows)

@@ -1,0 +1,1335 @@
+# Pre-raid BiS rows read from Wowhead's WoW Forever class guides on 2026-11-23.
+# Header: @CLASS|Spec key|Label|Author|Last updated|URL
+# Row:    Slot|Rank label on the page|Item[=other faction's name]|Source
+# "of {A,B}" = the page accepts either random suffix. Rows are in page order; raid drops, PvP rank
+# gear and (where four better rows exist) Option rows are left out. Edits made while copying are in NOTES.md.
+
+@WARRIOR|Arms|Arms Warrior|shoop|2026-11-22|https://www.wowhead.com/forever/guide/classes/warrior/arms/bis-gear
+Head|BiS|Lionheart Helm|Blacksmithing
+Head|Great|Fury Visor|Quest: Voodoo Feathers
+Head|Good|Eye of Rend|Blackrock Spire, Warchief Rend Blackhand
+Head|Good|Mask of the Unforgiven|Stratholme, The Unforgiven
+Shoulder|BiS|Dark Warder's Pauldrons|Blackrock Depths, Warder Stilgiss
+Shoulder|Great|Darkspear Epaulets=Theramore Epaulets|Darkspear Raiders / Theramore, Exalted
+Shoulder|Great|Truestrike Shoulders|Princess Moira Bronzebeard
+Shoulder|Great|Hermit's Pauldron|Quest: Work Well Done
+Back|BiS|Howler's Furs|Pix Xizzix, 75 Tarnished Undermine Real
+Back|Great|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Good|Shroud of Domination|Blackrock Spire, Lord Valthalak
+Chest|BiS|Timbermaw Tunic|Leatherworking
+Chest|Great|Breastplate of Heroism|Tier 0.5 questline
+Chest|Great|Savage Gladiator Chain|Blackrock Depths, Gorosh the Dervish
+Chest|Good|Tombstone Breastplate|Quest
+Wrist|BiS|Vambraces of the Sadist|Stratholme, Timmy the Cruel
+Wrist|Great|Spike Crested Bracers|Bonesnout the Unbroken
+Wrist|Great|Gargantuan Wristguards|Titanosaur
+Wrist|Good|Battleborn Armbraces|Blackrock Spire, Warchief Rend Blackhand
+Hands|BiS|Devilsaur Gauntlets|Leatherworking
+Hands|BiS|Raider Gauntlets=Theramore Gauntlets|Darkspear Raiders / Theramore, Exalted
+Hands|Great|Gauntlets of Heroism|Tier 0.5 questline
+Hands|Good|Death Grips|Stratholme, Magistrate Barthilas
+Waist|BiS|Valiant's Waistguard|Pix Xizzix, 100 Tarnished Undermine Real
+Waist|Great|Defiler's Plate Girdle=Highlander's Plate Girdle|The Defilers / League of Arathor, Honored
+Waist|Great|Brigam Girdle|Blackrock Spire, General Drakkisath
+Waist|Good|Omokk's Girth Restrainer|Quest: Warlord's Command
+Legs|BiS|Devilsaur Leggings|Leatherworking
+Legs|BiS|Outrider's Plate Legguards=Sentinel's Plate Legguards|Warsong Outriders / Silverwing Sentinels, Exalted
+Legs|Good|Legplates of Heroism|Tier 0.5 questline
+Legs|Good|Legplates of Reinforced Crystal|Nanaya
+Feet|BiS|Boots of Heroism|Tier 0.5 questline
+Feet|Good|Bloodmail Boots|Scholomance
+Neck|BiS|Mark of Fordring|Quest: In Dreams
+Neck|BiS|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Great|Beads of Ogre Might|Quest: Falrin's Vendetta
+Neck|Good|Imperial Jewel|Blackrock Depths, Emperor Dagran Thaurissan
+Ring|BiS|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, 75 Tarnished Undermine Real
+Ring|Great|Thrall's Resolve=Magni's Will|Quest: The Princess Saved? / The Princess's Surprise
+Ring|Great|Painweaver Band|Blackrock Spire, General Drakkisath
+Trinket|BiS|Heart of Wyrmthalak|Blackrock Spire, Overlord Wyrmthalak
+Trinket|BiS|Blackhand's Breadth|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|BiS Situational|Hand of Justice|Blackrock Depths, Emperor Dagran Thaurissan
+Trinket|Situational|Darkmoon Card: Maelstrom|Darkmoon Elementals Deck
+Two-Hand|BiS|Destiny|World drop
+Two-Hand|Great|Blackblade of Shahram|Blackrock Spire, General Drakkisath
+Two-Hand|Great|Runeblade of Baron Rivendare|Stratholme, Baron Rivendare
+Two-Hand|Good|The Unstoppable Force|Frostwolf Clan / Stormpike Guard, Exalted
+Ranged|BiS|Bloodseeker|Quest: Hero of the Frostwolf / Hero of the Stormpike
+Ranged|Great|Satyr's Bow|Dire Maul, Zevrim Thornhoof
+Ranged|Great|Deep Jungle Rifle|Thunderhoof
+Ranged|Good|Truesight Rifle|Sabella No-Eyes
+
+@WARRIOR|Protection|Protection Warrior|Riyani|2026-11-22|https://www.wowhead.com/forever/guide/classes/warrior/protection/bis-gear
+Head|BiS|Lionheart Helm|Blacksmithing
+Head|Great|Helm of the Executioner|Stratholme, Baron Rivendare
+Head|Great|Faceguard of Heroism|Tier 0.5 questline
+Head|Great|Crown of Heroism|Tier 0.5 questline
+Neck|BiS|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Great|Beads of Ogre Might|Quest: Falrin's Vendetta
+Neck|Great|Mark of Fordring|Quest: In Dreams
+Neck|Great|Horn of Ve'han|Quest: Work Well Done
+Shoulder|BiS|Pauldrons of Heroism|Tier 0.5 questline
+Shoulder|Offensive BiS|Spaulders of Containment|Alcaz Prison
+Shoulder|Great|Ebonsteel Spaulders|Blackrock Depths, Princess Moira Bronzebeard
+Shoulder|Great|Razorsteel Shoulders|Quest: Voodoo Feathers
+Back|BiS|Stalwart Cloak|Pix Xizzix, 75 Tarnished Undermine Real
+Back|Offensive BiS|Howler's Furs|Pix Xizzix, 75 Tarnished Undermine Real
+Back|Great|Shifting Cloak|Leatherworking
+Back|Good|Stoneskin Gargoyle Cape|Stratholme, Stonespine
+Chest|BiS|Breastplate of the Chromatic Flight|Quest: Breastplate of the Chromatic Flight
+Chest|Offensive BiS|Breastplate of Heroism|Tier 0.5 questline
+Chest|Great|Savage Gladiator Chain|Blackrock Depths, Gorosh the Dervish
+Chest|Great|Chestguard of Heroism|Tier 0.5 questline
+Wrist|BiS|Wristguards of Heroism|Tier 0.5 questline
+Wrist|Offensive BiS|Battleborn Armbraces|Blackrock Spire, Warchief Rend Blackhand
+Wrist|Great|Gargantuan Wristguards|Titanosaur
+Wrist|Good|Vambraces of the Sadist|Stratholme, Timmy the Cruel
+Hands|BiS|Handguards of Heroism|Tier 0.5 questline
+Hands|Offensive BiS|Gauntlets of Heroism|Tier 0.5 questline
+Hands|Offensive BiS|Edgemaster's Handguards|World drop
+Hands|Great|Reiver Claws|Blackrock Spire, Overlord Wyrmthalak
+Waist|BiS|Valiant's Waistguard|Pix Xizzix, 100 Tarnished Undermine Real
+Waist|Offensive BiS|Girdle of Extracted Answers|The Questioner
+Waist|Great|Brigam Girdle|Blackrock Spire, General Drakkisath
+Waist|Good|Waistguard of Heroism|Tier 0.5 questline
+Legs|BiS|Handcrafted Mastersmith Leggings|Blackrock Spire, Goraluk Anvilcrack
+Legs|Great|Outrider's Plate Legguards=Sentinel's Plate Legguards|Warsong Outriders / Silverwing Sentinels, Exalted
+Legs|Good|Legguards of Heroism|Tier 0.5 questline
+Legs|Good|Legplates of Reinforced Crystal|Nanaya
+Feet|BiS|Furbolg Berserker's Boots|Blackmaw Hold
+Feet|Great|Sabatons of Heroism|Tier 0.5 questline
+Feet|Good|Ribsteel Footguards|Blackrock Spire, Urok Doomhowl
+Feet|Good|Sapphiron's Scale Boots|World drop
+Ring|BiS|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Ring|Great|Cutthroat's Signet|Pix Xizzix, 75 Tarnished Undermine Real
+Ring|Great|Blackstone Ring|Maraudon, Princess Theradras
+Ring|Great|Thrall's Resolve=Magni's Will|Quest: The Princess Saved? / The Princess's Surprise
+Trinket|BiS|Adaptive Combat Assistant|Pix Xizzix, 125 Tarnished Undermine Real
+Trinket|Great|Royal Seal of Eldre'Thalas|Quest: Codex of Defense
+Trinket|Great|Heart of Wyrmthalak|Blackrock Spire, Overlord Wyrmthalak
+Trinket|Great|Darkmoon Card: Maelstrom|Darkmoon Elementals Deck
+Main Hand|BiS|Ironfoe|Blackrock Depths, Emperor Dagran Thaurissan
+Main Hand|Great|Persuader|Blacksmithing
+Main Hand|Great|Iceblade Hacker|Scholomance, Ras Frostwhisper
+Main Hand|Great|Felstriker|Blackrock Spire, Warchief Rend Blackhand
+Off Hand|BiS|The Immovable Object|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|Offensive BiS|Blackskull Shield|World drop
+Off Hand|Great|Intricately Runed Shield|Scholomance, Ras Frostwhisper
+Off Hand|Great|Avalanchion's Stony Hide|Avalanchion
+Ranged|BiS|Satyr's Bow|Dire Maul, Zevrim Thornhoof
+Ranged|Great|Deep Jungle Rifle|Thunderhoof
+Ranged|Good|Bloodseeker|Quest: Hero of the Frostwolf / Hero of the Stormpike
+Ranged|Good|Blackcrow|Blackrock Spire, Shadow Hunter Vosh'gajin
+
+@PALADIN|Holy|Holy Paladin|Harreks|2026-11-22|https://www.wowhead.com/forever/guide/classes/paladin/holy/bis-gear
+Head|BiS|Bad Hat|Quest: Deadliest Catch
+Head|Great|Tribal War Feathers|Blackrock Spire, Gyth
+Head|Good|Insightful Hood|Dire Maul, Cho'Rush the Observer
+Head|Good|Black Guard Skullcap|Stratholme, Black Guard Swordsmith
+Neck|BiS|Animated Chain Necklace|Stratholme, Ramstein the Gorger
+Neck|Good|Heart of the Fiend|Scholomance, Kirtonos the Herald
+Shoulder|Good|Royal Cap Spaulders|Scholomance, Jandice Barov
+Shoulder|Good|Mantle of the Scarlet Crusade|Stratholme, Cannon Master Willey
+Back|BiS|Drape of Recovery|Pix Xizzix, Stranglethorn Vale
+Back|Great|Battle Healer's Cloak=Caretaker's Cape|Alterac Valley vendor
+Back|Good|Cloak of the Cosmos|Dire Maul, Immol'thar
+Back|Good|Soulwoven Drape|Scholomance, Vectus
+Chest|BiS|Crownroar Chestplate|The Shaper's Terrace, Snowtalon, Vitrix and King Op
+Chest|Great|Robes of the Exalted|Stratholme, Baron Rivendare
+Chest|Great|Frostfang Mail Vest|The Shaper's Terrace, Tor'Rel
+Wrist|BiS|Loomguard Armbraces|Scholomance, Kirtonos the Herald
+Wrist|Great|Bracers of Prosperity|Dire Maul, King Gordok
+Hands|Great|Harmonious Gauntlets|Dire Maul, King Gordok
+Hands|Great|Gilded Gauntlets|Blackrock Spire, Mother Smolderweb
+Hands|Good|Heartflame Gauntlets|The Shaper's Terrace, Cinder and Vitrix
+Hands|Good|Fallbrush Handgrips|Blackrock Spire, Crystal Fang
+Waist|BiS|Whipvine Cord|Dire Maul, Alzzin the Wildshaper
+Waist|Great|Eyestalk Cord|Dire Maul, Immol'thar
+Waist|Great|Belt of the Ordained|Scholomance, zone drop
+Legs|BiS|Padre's Trousers|Dire Maul, Illyanna Ravenoak
+Legs|Great|Ghoul Skin Leggings|Scholomance
+Legs|Good|Tanglemoss Leggings|Dire Maul, Tendris Warpwood
+Legs|Good|Maelstrom Leggings|Scholomance, Ras Frostwhisper
+Feet|BiS|Verdant Footpads|Stratholme, Stonespine
+Feet|Good|Boots of the Full Moon|Dire Maul, Captain Kromcrush
+Feet|Good|Ogreseer Tower Boots|Blackrock Spire, Spirestone Lord Magus
+Feet|Good|Faith Healer's Boots|Blackrock Spire, Warchief Rend Blackhand
+Ring|BiS|Band of Mending|Stratholme, zone drop
+Ring|BiS|Fordring's Seal|Quest: In Dreams
+Ring|Great|Blessed Band of Light|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Serenity Field|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Second Wind|Blackrock Depths, Golem Lord Argelmach
+Trinket|Great|Dormant Heart of the Mountain|Enchanting
+Main Hand|BiS|Masterwork Crimson Hammer|Stratholme, Crimson Hammersmith
+Main Hand|Great|Hammer of the Grand Crusader|Stratholme, Grand Crusader Dathrohan
+Main Hand|Good|Hammer of Divine Might|Scholomance, Kormok
+Off Hand|BiS|Lei of the Lifegiver|Alterac Valley vendor
+Off Hand|Great|Brightly Glowing Stone|Dire Maul, King Gordok
+Off Hand|Good|Rattlecage Buckler|Scholomance, Rattlegore
+Ranged|BiS|Libram of Economy|Pix Xizzix, Stranglethorn Vale
+Ranged|Good|Libram of Divinity|Scholomance
+
+@PALADIN|Protection|Protection Paladin|Riyani|2026-11-18|https://www.wowhead.com/forever/guide/classes/paladin/protection/bis-gear
+Head|BiS|Stalwart Helm|Blacksmithing
+Head|Great|Enriched Thorium Helm|Blacksmithing
+Head|Good|Soulforge Faceguard|Tier 0.5 questline
+Shoulder|BiS|Stockade Pauldrons|World drop
+Shoulder|BiS|Soulforge Spaulders|Tier 0.5 questline
+Shoulder|Great|Soulforge Pauldrons|Tier 0.5 questline
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, 75 Tarnished Undermine Real
+Back|Great|Shifting Cloak|Leatherworking
+Back|Good|Redoubt Cloak|Dire Maul, Mizzle the Crafty
+Chest|BiS|Soulforge Chestguards|Tier 0.5 questline
+Chest|Great|Breastplate of the Chromatic Flight|Quest: Breastplate of the Chromatic Flight
+Chest|Great|Enriched Thorium Breastplate|Blacksmithing
+Chest|Great|Soulforge Breastplate|Tier 0.5 questline
+Wrist|BiS|Soulforge Wristguards|Tier 0.5 questline
+Wrist|Great|Warder's Wristguards|Blacksmithing
+Wrist|Good|Soulforge Bracers|Quest: An Earnest Proposition
+Hands|BiS|Soulforge Handguards|Tier 0.5 questline
+Hands|Great|Warder's Gloves|Blacksmithing
+Hands|Great|Soulforge Gauntlets|Tier 0.5 questline
+Hands|Good|Deathbone Gauntlets|Scholomance, several bosses
+Waist|BiS|Soulforge Belt|Tier 0.5 questline
+Waist|Great|Warder's Waistguard|Blacksmithing
+Waist|Great|Vindicator's Belt|Pix Xizzix, 100 Tarnished Undermine Real
+Waist|Great|Soulforge Waistguard|Tier 0.5 questline
+Legs|BiS|Sentinel's Lamellar Legguards=Outrider's Lamellar Legguards|Silverwing Sentinels / Warsong Outriders, Exalted
+Legs|Great|Soulforge Legguards|Tier 0.5 questline
+Legs|Great|Enriched Thorium Leggings|Blacksmithing
+Legs|Good|Legplates of Vigilance|Stratholme, Sothos and Jarien's Heirlooms
+Feet|BiS|Soulforge Warboots|Tier 0.5 questline
+Feet|Great|Warder's Sabatons|Blacksmithing
+Feet|Good|Deathbone Sabatons|Scholomance, several bosses
+Neck|BiS|Horn of Ve'han|Quest: Work Well Done
+Neck|Great|Orb of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Good|Nacreous Shell Necklace|Stratholme, Cannon Master Willey
+Neck|Good|Beads of Ogre Mojo|Quest: Falrin's Vendetta
+Ring|BiS|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Ring|BiS|Ring of Awareness|Pix Xizzix, 75 Tarnished Undermine Real
+Ring|Great|Drakeclaw Band of the Defender|Weaver
+Ring|Great|Rune Band of Wizardry|Blackrock Spire, Lord Valthalak
+Trinket|Defensive BiS|The Lion Horn of Stormwind|World drop
+Trinket|Offensive BiS|Adaptive Combat Assistant|Pix Xizzix, 125 Tarnished Undermine Real
+Trinket|Defensive Great|Defender's Grip Stabilizer|Pix Xizzix, 125 Tarnished Undermine Real
+Trinket|Offensive Great|Sanctified Orb|Quest: Forging the Mightstone (Alliance only)
+Main Hand|BiS|Sageblade|Blacksmithing
+Main Hand|BiS|Hand of Edward the Odd|World drop
+Main Hand|Great|Flurry Axe|World drop
+Main Hand|Good|Blade of Necromancy|Scholomance, Kormok
+Off Hand|BiS|The Immovable Object|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|Offensive BiS|Blackskull Shield|World drop
+Off Hand|Great|Draconian Deflector|Blackrock Spire, General Drakkisath
+Off Hand|Great|Skullflame Shield|World drop
+Relic|BiS|Libram of Fervor|World drop
+Relic|Great|Libram of Law|Pix Xizzix, 50 Tarnished Undermine Real
+Relic|Good|Steadfast Libram|Enchanting
+
+@HUNTER|Beast Mastery|Beast Mastery Hunter|Docoda|2026-11-19|https://www.wowhead.com/forever/guide/classes/hunter/beast-mastery/bis-gear
+Head|BiS|Black Dragonscale Helm|Leatherworking
+Head|Good|Backwood Helm|Quest, Dire Maul
+Head|Good|Beastmaster's Cap|Quest: Saving the Best for Last
+Shoulder|BiS|Darkspear Epaulets=Theramore Epaulets|Darkspear Raiders / Theramore, Exalted
+Shoulder|Good|Shadowcraft Spaulders|Stratholme, Black Market
+Shoulder|Good|Stratholme Militia Shoulderguard|Stratholme, zone drop
+Back|BiS|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Great|Shifting Cloak|Leatherworking
+Back|Good|Shadow Prowler's Cloak|Blackrock Spire
+Chest|BiS|Dawn Armor|Leatherworking
+Chest|Good|Beastmaster's Tunic|Quest: Saving the Best for Last
+Chest|Good|Furbolg Rib Protector|Sabella No-Eyes
+Chest|Option|Ogre Forged Hauberk|Dire Maul, zone drop
+Wrist|BiS|Beastmaster's Bindings|Tier 0.5 questline
+Wrist|Great|Bracers of the Eclipse|Dire Maul
+Wrist|Great|Satyrhide Armbands|Quest, Dire Maul
+Hands|BiS|Devilsaur Gauntlets|Leatherworking
+Hands|Good|Voone's Vice Grips|Quest, Blackrock Spire
+Hands|Good|Gauntlets of Accuracy|Dire Maul, Illyanna Ravenoak
+Waist|BiS|Warpwood Binding|Dire Maul
+Waist|Great|Ranger's Belt|Pix Xizzix, Stranglethorn Vale
+Waist|Great|Marksman's Girdle|Blackrock Spire
+Legs|BiS|Devilsaur Leggings|Leatherworking
+Legs|Great|Plaguehound Leggings|Source not listed in the guide
+Legs|Good|Defias Enforcer's Legguards|Alcaz Prison, Blazeroar
+Legs|Good|Legguards of the Chromatic Defier|Quest: Legplates of the Chromatic Defier
+Feet|BiS|Beastmaster's Treads|Tier 0.5 questline
+Feet|Great|Windreaver Greaves|Scholomance
+Feet|Great|Shadowcraft Boots|Scholomance, Rattlegore
+Neck|BiS|Mark of Fordring|Quest: In Dreams
+Neck|Great|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Good|Prismatic Pendant of Agility|Stratholme
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, Stranglethorn Vale
+Ring|BiS|Tarnished Elven Ring|Dire Maul, zone drop
+Ring|Great|Blackstone Ring|Maraudon
+Ring|Great|Painweaver Band|Blackrock Spire
+Trinket|BiS|Blackhand's Breadth|Quest, Blackrock Spire
+Trinket|BiS|Rune of the Guard Captain=Cleansed Vilebranch Medallion|Quest: Job Opening: Guard Captain of Revantusk Village / Saving Sharpbeak
+Trinket|Great|Heart of Wyrmthalak|Blackrock Spire
+Trinket|Good|Flamebreak Talisman|Blackmaw Hold, Unbound Spirit
+Main Hand|Great|Shadowblade|Drop
+Main Hand|Great|King Mosh's Tooth|Un'Goro Crater
+Two-Hand|BiS|Legionite Glaive|Blacksmithing
+Off Hand|Great|Tooth of the Matriarch|Direhorn Matriarch
+Off Hand|Great|Heartseeker|Blacksmithing
+Ranged|BiS|Bloodseeker|Quest, Alterac Valley
+Ranged|Great|Eaglehorn Long Bow|Drop
+Ranged|Great|Hawkeye Bow of Agility|Drop
+Ranged|Good|Dwarven Hand Cannon|Drop
+
+@HUNTER|Marksmanship|Marksmanship Hunter|Docoda|2026-11-22|https://www.wowhead.com/forever/guide/classes/hunter/marksmanship/bis-gear
+Head|BiS|Black Dragonscale Helm|Leatherworking
+Head|Good|Backwood Helm|Quest, Dire Maul
+Head|Good|Beastmaster's Cap|Quest: Saving the Best for Last
+Head|Option|Dinofrill Casque|Thunderhoof
+Shoulder|BiS|Darkspear Epaulets=Theramore Epaulets|Darkspear Raiders / Theramore, Exalted
+Shoulder|Good|Shadowcraft Spaulders|Stratholme, Black Market
+Shoulder|Good|Stratholme Militia Shoulderguard|Stratholme, zone drop
+Back|BiS|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Great|Heliotrope Cloak|Dire Maul, zone drop
+Back|Great|Shifting Cloak|Leatherworking
+Back|Good|Shadow Prowler's Cloak|Blackrock Spire
+Chest|BiS|Dawn Armor|Leatherworking
+Chest|Good|Beastmaster's Tunic|Quest: Saving the Best for Last
+Chest|Option|Shadowcraft Tunic|Blackrock Spire, Black Market
+Chest|Option|Ogre Forged Hauberk|Dire Maul, zone drop
+Wrist|BiS|Beastmaster's Bindings|Tier 0.5 questline
+Wrist|Great|Satyrhide Armbands|Quest, Dire Maul
+Wrist|Good|Bracers of the Eclipse|Dire Maul
+Wrist|Option|Shadowcraft Bracers|Drop
+Hands|BiS|Devilsaur Gauntlets|Leatherworking
+Hands|Good|Gauntlets of Accuracy|Dire Maul
+Hands|Good|Voone's Vice Grips|Quest, Blackrock Spire
+Hands|Good|Gordok's Gloves|Quest: Unfinished Gordok Business
+Waist|BiS|Ranger's Belt|Pix Xizzix, Stranglethorn Vale
+Waist|Great|Warpwood Binding|Dire Maul
+Waist|Good|Defiler's Chain Girdle=Highlander's Chain Girdle|The Defilers / League of Arathor, Honored
+Legs|BiS|Devilsaur Leggings|Leatherworking
+Legs|Great|Plaguehound Leggings|Source not listed in the guide
+Legs|Good|Legguards of the Chromatic Defier|Quest: Legplates of the Chromatic Defier
+Legs|Good|Beastmaster's Pants|Quest: Anthion's Parting Words
+Feet|BiS|Windreaver Greaves|Scholomance
+Feet|Great|Beastmaster's Treads|Tier 0.5 questline
+Feet|Good|Bloodmail Boots|Scholomance, zone drop
+Feet|Good|Timmy's Galoshes|Stratholme
+Neck|BiS|Pendant of Celerity|Blackrock Spire
+Neck|Great|Beads of Ogre Might|Quest: Falrin's Vendetta
+Neck|Great|Mark of Fordring|Quest: In Dreams
+Neck|Good|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, Stranglethorn Vale
+Ring|BiS|Tarnished Elven Ring|Dire Maul, zone drop
+Ring|Great|Blackstone Ring|Maraudon
+Ring|Great|Channeler's Ring|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Blackhand's Breadth|Quest, Blackrock Spire
+Trinket|BiS|Heart of Wyrmthalak|Blackrock Spire
+Trinket|Great|Highborne Research Tablet|Quest: Your Final Reward
+Trinket|Good|Flamebreak Talisman|Blackmaw Hold, Unbound Spirit
+Main Hand|Great|Shadowblade|Drop
+Main Hand|Great|Tooth of the Matriarch|Direhorn Matriarch
+Main Hand|Great|King Mosh's Tooth|Un'Goro Crater
+Main Hand|Great|Heartseeker|Blacksmithing
+Two-Hand|BiS|Legionite Glaive|Blacksmithing
+Two-Hand|Great|Beastslayer's Trident|Quest: The Dark Crystal / Mapping the Way Forward
+Ranged|BiS (when AoE involved)|Bloodseeker|Quest, Alterac Valley
+Ranged|BiS (pure single target)|Eaglehorn Long Bow|Drop
+Ranged|Great|Dwarven Hand Cannon|Drop
+Ranged|Good|Hawkeye Bow of Agility|Drop
+
+@HUNTER|Survival|Survival Hunter|Docoda|2026-11-19|https://www.wowhead.com/forever/guide/classes/hunter/survival/bis-gear
+Head|BiS|Black Dragonscale Helm|Leatherworking
+Head|Good|Beastmaster's Cap|Tier 0.5 questline
+Head|Option|Backwood Helm|Quest, Dire Maul
+Shoulder|BiS|Darkspear Epaulets=Theramore Epaulets|Darkspear Raiders / Theramore, Exalted
+Shoulder|Great|Bone Golem Shoulders|Scholomance, Rattlegore
+Shoulder|Option|Wyrmhide Spaulders|Quest: A Taste of Flame
+Back|BiS|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Great|Howler's Furs|Pix Xizzix, Stranglethorn Vale
+Back|Great|Heliotrope Cloak|Dire Maul, zone drop
+Chest|BiS|Dawn Armor|Leatherworking
+Chest|Good|Beastmaster's Tunic|Tier 0.5 questline
+Chest|Good|Timbermaw Tunic|Leatherworking
+Wrist|BiS|Bracers of the Eclipse|Dire Maul, Prince Tortheldrin
+Wrist|Great|Beastmaster's Bindings|Tier 0.5 questline
+Wrist|Great|Satyrhide Armbands|Quest, Dire Maul
+Hands|BiS|Devilsaur Gauntlets|Leatherworking
+Hands|Good|Voone's Vice Grips|Quest, Blackrock Spire
+Hands|Good|Gauntlets of Accuracy|Dire Maul, Illyanna Ravenoak
+Waist|BiS|Ranger's Belt|Pix Xizzix, Stranglethorn Vale
+Waist|Great|Marksman's Girdle|Blackrock Spire, Urok Doomhowl
+Waist|Great|Defiler's Chain Girdle=Highlander's Chain Girdle|The Defilers / League of Arathor, Honored
+Legs|BiS|Devilsaur Leggings|Leatherworking
+Legs|Good|Plaguehound Leggings|Source not listed in the guide
+Legs|Good|Blademaster Leggings|Blackrock Spire, The Beast
+Feet|BiS|Beastmaster's Boots|Tier 0.5 questline
+Feet|Great|Windreaver Greaves|Scholomance, Kirtonos the Herald
+Feet|Good|Bloodmail Boots|Scholomance, zone drop
+Neck|BiS|Mark of Fordring|Quest: In Dreams
+Neck|Great|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Great|Beads of Ogre Might|Quest: Falrin's Vendetta
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, Stranglethorn Vale
+Ring|BiS|Painweaver Band|Blackrock Spire, General Drakkisath
+Ring|Great|Channeler's Ring|Pix Xizzix, Stranglethorn Vale
+Ring|Great|Blackstone Ring|Maraudon, Princess Theradras
+Trinket|BiS|Heart of Wyrmthalak|Blackrock Spire, Overlord Wyrmthalak
+Trinket|BiS|Darkmoon Card: Maelstrom|Darkmoon Elementals Deck
+Trinket|Great|Rune of the Guard Captain=Cleansed Vilebranch Medallion|Quest: Job Opening: Guard Captain of Revantusk Village / Saving Sharpbeak
+Trinket|Great|Adaptive Combat Assistant|Pix Xizzix, Stranglethorn Vale
+Main Hand|BiS|Teebu's Blazing Longsword|World drop
+Main Hand|Great|Sword of Zeal|World drop
+Main Hand|Good|Dal'Rend's Sacred Charge|Blackrock Spire, Warchief Rend Blackhand
+Off Hand|BiS|Distracting Dagger|Dire Maul, Prince Tortheldrin
+Off Hand|Great|Alcor's Sunrazor|World drop
+Off Hand|Great|Bonescraper|Stratholme, Baron Rivendare
+Ranged|BiS|Satyr's Bow|Dire Maul, Zevrim Thornhoof
+Ranged|Great|Riphook|Blackrock Spire, Shadow Hunter Vosh'gajin
+Ranged|Great|Archstrike Bow of the Falcon|World drop
+
+@ROGUE|Combat|Combat Rogue|warstry|2026-11-22|https://www.wowhead.com/forever/guide/classes/rogue/combat/bis-gear
+Head|BiS|Darkmantle Cap|Quest: Saving the Best for Last
+Head|Great|Mask of the Unforgiven|Stratholme, The Unforgiven
+Head|Great|Eye of Rend|Blackrock Spire, Warchief Rend Blackhand
+Head|Good|Shadowcraft Cap|Scholomance
+Shoulder|BiS|Darkspear Pauldrons=Theramore Pauldrons|Darkspear Raiders / Theramore, Exalted
+Shoulder|Great|Darkmantle Spaulders|Quest: Anthion's Parting Words
+Shoulder|Great|Truestrike Shoulders|Blackrock Spire
+Shoulder|Great|Shadowcraft Spaulders|Stratholme
+Back|BiS|Howler's Furs|Pix Xizzix, Stranglethorn Vale
+Back|BiS|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Great|Deathguard's Cloak=Cloak of the Honor Guard|The Defilers / League of Arathor, Exalted
+Back|Great|Blackveil Cape|Blackrock Depths
+Chest|BiS|Dawn Armor|Leatherworking
+Chest|Great|Timbermaw Tunic|Leatherworking
+Chest|Great|Darkmantle Tunic|Quest: Saving the Best for Last
+Chest|Good|Shadowcraft Tunic|Blackrock Spire
+Wrist|BiS|Bracers of the Eclipse|Dire Maul
+Wrist|Great|Darkmantle Bracers|Quest: An Earnest Proposition
+Wrist|Great|Deepfury Bracers|World drop
+Wrist|Good|Shadowcraft Bracers|Scholomance
+Hands|BiS|Devilsaur Gauntlets|Leatherworking
+Hands|BiS|Darkmantle Grips|Quest: Just Compensation
+Hands|Great|Stormshroud Gloves|Leatherworking
+Hands|Good|Shadowcraft Gloves|Blackrock Spire
+Waist|BiS|Assassin's Waistguard|Pix Xizzix, Stranglethorn Vale
+Waist|Great|Defiler's Leather Girdle=Highlander's Leather Girdle|The Defilers / League of Arathor, Honored
+Waist|Good|Might of the Timbermaw|Leatherworking
+Waist|Good|Darkmantle Belt|Quest: Just Compensation
+Legs|BiS|Devilsaur Leggings|Leatherworking
+Legs|Great|Darkmantle Pants|Quest: Anthion's Parting Words
+Legs|Good|Shadowcraft Pants|Stratholme
+Legs|Good|Stormshroud Pants|Leatherworking
+Feet|BiS|Darkmantle Footpads|Quest: Anthion's Parting Words
+Feet|Great|Swiftwalker Boots|Blackrock Depths
+Feet|Great|Shadowcraft Boots|Scholomance
+Feet|Great|Mongoose Boots|Leatherworking
+Neck|BiS|Mark of Fordring|Quest: In Dreams
+Neck|BiS|Beads of Ogre Might|Quest: Falrin's Vendetta
+Neck|Great|Pendant of Celerity|Blackrock Spire
+Neck|Good|Imperial Jewel|Blackrock Depths
+Ring|BiS|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, Stranglethorn Vale
+Ring|Great|Blackstone Ring|Maraudon
+Ring|Great|Tarnished Elven Ring|Dire Maul
+Trinket|BiS|Heart of Wyrmthalak|Blackrock Spire
+Trinket|BiS|Highborne Research Tablet|Quest: Your Final Reward
+Trinket|Great|Hand of Justice|Blackrock Depths
+Trinket|Great|Blackhand's Breadth|Quest: For The Horde! / General Drakkisath's Demise
+Main Hand|BiS|Teebu's Blazing Longsword|World drop
+Main Hand|BiS|Persuader|Blacksmithing
+Main Hand|BiS|Felstriker|Blackrock Spire
+Main Hand|Great|Ironfoe|Blackrock Depths
+Main Hand|Great|Sword of Zeal|World drop
+Off Hand|BiS|Flurry Axe|World drop
+Off Hand|Great|Talon of Tor'Rel|The Shaper's Terrace
+Off Hand|Great|Distracting Dagger|Dire Maul
+Off Hand|Great|Mirah's Song|Quest: Kirtonos the Herald
+Ranged|BiS|Precisely Calibrated Boomstick|World drop
+Ranged|BiS|Satyr's Bow|Dire Maul
+Ranged|Great|Deep Jungle Rifle|The Shaper's Terrace
+Ranged|Great|Blackcrow|Blackrock Spire
+
+@ROGUE|Subtlety|Subtlety Rogue|warstry|2026-11-22|https://www.wowhead.com/forever/guide/classes/rogue/subtlety/bis-gear
+Head|BiS|Darkmantle Cap|Quest: Saving the Best for Last
+Head|Great|Eye of Rend|Blackrock Spire
+Head|Great|Mask of the Unforgiven|Stratholme
+Head|Good|Shadowcraft Cap|Scholomance
+Shoulder|BiS|Darkspear Pauldrons=Theramore Pauldrons|Darkspear Raiders / Theramore, Exalted
+Shoulder|Great|Darkmantle Spaulders|Quest: Anthion's Parting Words
+Shoulder|Great|Truestrike Shoulders|Blackrock Spire
+Shoulder|Good|Shadowcraft Spaulders|Stratholme
+Back|BiS|Howler's Furs|Pix Xizzix, Stranglethorn Vale
+Back|BiS|Cape of the Black Baron|Stratholme
+Back|Great|Deathguard's Cloak=Cloak of the Honor Guard|The Defilers / League of Arathor, Exalted
+Back|Good|Blackveil Cape|Blackrock Depths
+Chest|BiS|Dawn Armor|Leatherworking
+Chest|Great|Timbermaw Tunic|Leatherworking
+Chest|Great|Darkmantle Tunic|Quest: Saving the Best for Last
+Chest|Good|Shadowcraft Tunic|Blackrock Spire
+Wrist|BiS|Bracers of the Eclipse|Dire Maul
+Wrist|BiS|Darkmantle Bracers|Quest: An Earnest Proposition
+Wrist|Great|Deepfury Bracers|World drop
+Wrist|Good|Shadowcraft Bracers|Scholomance
+Hands|BiS|Devilsaur Gauntlets|Leatherworking
+Hands|BiS|Darkmantle Grips|Quest: Just Compensation
+Hands|BiS|Stormshroud Gloves|Leatherworking
+Hands|Good|Shadowcraft Gloves|Blackrock Spire
+Waist|BiS|Assassin's Waistguard|Pix Xizzix, Stranglethorn Vale
+Waist|Great|Defiler's Leather Girdle=Highlander's Leather Girdle|The Defilers / League of Arathor, Honored
+Waist|Great|Might of the Timbermaw|Leatherworking
+Waist|Good|Darkmantle Belt|Quest: Just Compensation
+Legs|BiS|Devilsaur Leggings|Leatherworking
+Legs|Great|Darkmantle Pants|Quest: Anthion's Parting Words
+Legs|Good|Shadowcraft Pants|Stratholme
+Legs|Good|Stormshroud Pants|Leatherworking
+Feet|BiS|Darkmantle Footpads|Quest: Anthion's Parting Words
+Feet|Great|Swiftwalker Boots|Blackrock Depths
+Feet|Great|Shadowcraft Boots|Scholomance
+Feet|Good|Mongoose Boots|Leatherworking
+Neck|BiS|Mark of Fordring|Quest: In Dreams
+Neck|Great|Beads of Ogre Might|Quest: Falrin's Vendetta
+Neck|Great|Pendant of Celerity|Blackrock Spire
+Neck|Good|Imperial Jewel|Blackrock Depths
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, Stranglethorn Vale
+Ring|BiS|Blackstone Ring|Maraudon
+Ring|Great|Tarnished Elven Ring|Dire Maul
+Trinket|BiS|Heart of Wyrmthalak|Blackrock Spire
+Trinket|BiS|Highborne Research Tablet|Quest: Your Final Reward
+Trinket|BiS|Hand of Justice|Blackrock Depths
+Trinket|Great|Blackhand's Breadth|Quest: For The Horde! / General Drakkisath's Demise
+Main Hand|BiS|Felstriker|Blackrock Spire
+Main Hand|Great|Persuader|Blacksmithing
+Main Hand|Great|Teebu's Blazing Longsword|World drop
+Main Hand|Great|Ironfoe|Blackrock Depths
+Off Hand|BiS|Distracting Dagger|Dire Maul
+Off Hand|BiS|Flurry Axe|World drop
+Off Hand|Great|Talon of Tor'Rel|The Shaper's Terrace
+Off Hand|Great|Mirah's Song|Quest: Kirtonos the Herald
+Ranged|BiS|Precisely Calibrated Boomstick|World drop
+Ranged|BiS|Satyr's Bow|Dire Maul
+Ranged|Great|Deep Jungle Rifle|The Shaper's Terrace
+Ranged|Great|Blackcrow|Blackrock Spire
+
+@PRIEST|Holy|Holy Priest|Spanklord|2026-11-17|https://www.wowhead.com/forever/guide/classes/priest/holy/bis-gear
+Head|BiS|Bad Hat|Quest, Azshara
+Head|Great|Mooncloth Circlet|Tailoring
+Head|Good|Earthenweave Crown|Tailoring
+Shoulder|BiS|Mooncloth Shoulders|Tailoring
+Shoulder|Great|Mantle of the Scarlet Crusade|Stratholme
+Shoulder|Good|Nethergeld Shoulders|Tailoring
+Back|BiS|Hide of the Wild|Leatherworking
+Chest|BiS|Truefaith Vestments|Tailoring
+Wrist|BiS|Wyrmthalak's Shackles|Quest, Blackrock Spire
+Hands|BiS|Hands of the Exalted Herald|Blackrock Depths, zone drop
+Waist|BiS|Wisdom of the Timbermaw|Tailoring
+Legs|BiS|Padre's Trousers|Dire Maul
+Feet|BiS|Ogreseer Tower Boots|Blackrock Spire
+Neck|BiS|Jeweled Amulet of Cainwyn|World drop
+Neck|Great|Animated Chain Necklace|Stratholme
+Neck|Good|Heart of the Fiend|Scholomance
+Ring|BiS|Fordring's Seal|Quest: In Dreams
+Ring|BiS|Band of Mending|Stratholme, zone drop
+Trinket|BiS|Serenity Field|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Royal Seal of Eldre'Thalas|Quest, Dire Maul
+Main Hand|BiS|Gift of the Elven Magi|Stratholme, zone drop
+Off Hand|BiS|Penelope's Rose|Quest, Scholomance
+
+@PRIEST|Shadow|Shadow Priest|Jereico|2026-11-17|https://www.wowhead.com/forever/guide/classes/priest/shadow/bis-gear
+Head|BiS|Spellweaver's Turban|Blackrock Spire, General Drakkisath
+Head|Great|Master's Hat of Shadow Wrath|World drop
+Head|Good|Green Lens|Engineering
+Head|Option|Crimson Felt Hat|Stratholme
+Neck|BiS|Nacreous Shell Necklace|Stratholme, Cannon Master Willey
+Neck|Great|Orb of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Good|Chains of the Lich|Stratholme
+Neck|Option|Dark Advisor's Pendant|Scholomance
+Shoulder|BiS|Virtuous Epaulets|Tier 0.5 questline
+Shoulder|Great|Mantle of the Timbermaw|Tailoring
+Shoulder|Good|Master's Mantle of Shadow Wrath|World drop
+Shoulder|Option|Argent Shoulders|Tailoring
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Stranglethorn Vale
+Back|Great|Fel Cape|Tailoring
+Back|Good|Master's Cloak of Shadow Wrath|World drop
+Chest|BiS|Robe of Winter Night|Tailoring
+Chest|Great|Robes of Dark Summons|Blackmaw Hold
+Chest|Good|Alanna's Embrace|Scholomance
+Chest|Option|Master's Vest of Shadow Wrath|World drop
+Wrist|BiS|Tearfall Bracers of Shadow Wrath|Stratholme, The Unforgiven
+Wrist|Great|Master's Bracers of Shadow Wrath|World drop
+Wrist|Good|Netherpearl Cuffs|Tailoring
+Hands|BiS|Gloves of Spell Mastery|Tailoring
+Hands|Great|Felcloth Gloves|Tailoring
+Hands|Good|Master's Gloves of Shadow Wrath|World drop
+Hands|Option|Hands of Power|Blackrock Spire vendor
+Waist|BiS|Belt of the Archmage|Tailoring
+Waist|Great|Master's Belt of Shadow Wrath|World drop
+Waist|Good|Ban'thok Sash|Blackrock Depths
+Legs|BiS|Master's Leggings of Shadow Wrath|World drop
+Legs|Great|Leggings of Torment|Blackrock Spire
+Legs|Good|Skyshroud Leggings|Blackrock Spire
+Legs|Option|Virtuous Leggings|Tier 0.5 questline
+Feet|BiS|Master's Boots of Shadow Wrath|World drop
+Feet|Great|Virtuous Slippers|Tier 0.5 questline
+Feet|Good|Omnicast Boots|Blackrock Depths
+Feet|Option|Venomspew Footpads|Tailoring
+Ring|BiS|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire, Lord Valthalak
+Ring|Great|Don Mauricio's Band of Domination|Scholomance
+Ring|Great|Emperor's Seal of Shadow Wrath|Blackrock Depths
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Eye of the Beast|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|Great|Briarwood Reed|Blackrock Spire, Jed Runewatcher
+Trinket|Good|Jewel of the Guard Captain=Cleansed Vilebranch Icon|Quest: Job Opening: Guard Captain of Revantusk Village / Saving Sharpbeak
+Main Hand|BiS|Blade of the New Moon|Dire Maul
+Main Hand|BiS|Scepter of the Unholy|Stratholme
+Main Hand|Great|Witchblade|Scholomance
+Main Hand|Good|Mastersmith's Hammer|Blackrock Spire
+Off Hand|BiS|Obsidian Bauble|Dire Maul
+Off Hand|Great|Master's Rod of Shadow Wrath|World drop
+Two-Hand|BiS|Rod of the Ogre Magi|Dire Maul
+
+@SHAMAN|Elemental|Elemental Shaman|Lucenia|2026-11-18|https://www.wowhead.com/forever/guide/classes/shaman/elemental/bis-gear
+Head|BiS|Coif of The Five Thunders|Tier 0.5 questline
+Head|Great|Spellweaver's Turban|Blackrock Spire
+Head|Great|Blue Dragonscale Helm|Leatherworking
+Head|Good|Mask of the Unforgiven|Stratholme
+Shoulder|BiS|Pauldrons of The Five Thunders|Tier 0.5 questline
+Shoulder|Great|Mantle of the Timbermaw|Tailoring
+Shoulder|Great|Argent Shoulders|Tailoring
+Shoulder|Good|Masterwork Pauldrons of Magic|World drop
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Tarnished Undermine Real
+Back|Great|Archivist Cape of Magic|Stratholme
+Back|Great|Master's Cloak of Magic|World drop
+Back|Good|Hide of the Wild|Leatherworking
+Chest|BiS|Robes of Dark Summons|Blackmaw Hold
+Chest|Great|Alanna's Embrace|Scholomance
+Chest|Great|Vest of The Five Thunders|Tier 0.5 questline
+Chest|Good|Masterwork Breastplate of Magic|World drop
+Wrist|BiS|Bindings of The Five Thunders|Tier 0.5 questline
+Wrist|Great|Masterwork Bracers of Magic|World drop
+Wrist|Great|Darkwater Bracers of Magic|Temple of Atal'Hakkar
+Wrist|Good|Tearfall Bracers of Magic|Stratholme
+Hands|BiS|Gauntlets of The Five Thunders|Tier 0.5 questline
+Hands|Great|Skyfury Gauntlets|Quest: The Darkreaver Menace
+Hands|Great|Storm Gauntlets|Leatherworking
+Hands|Good|Slaghide Gauntlets of Magic|Blackrock Spire
+Waist|BiS|Cord of The Five Thunders|Tier 0.5 questline
+Waist|Great|Belt of the Archmage|Tailoring
+Waist|Great|Sash of the Windreaver|Silithus
+Waist|Great|Ban'thok Sash|Blackrock Depths
+Legs|BiS|Ironfeather Leggings|Leatherworking
+Legs|Great|Pristine Scorpid Leggings|Leatherworking
+Legs|Good|Kilt of The Five Thunders|Tier 0.5 questline
+Legs|Good|Masterwork Legplates of Magic|World drop
+Feet|BiS|Slippers of The Five Thunders|Tier 0.5 questline
+Feet|Great|Greaves of Withering Despair|Blackrock Depths
+Feet|Great|Masterwork Boots of Magic|World drop
+Feet|Great|Waterspout Boots|Dire Maul
+Neck|BiS|Nacreous Shell Necklace|Stratholme
+Neck|Great|Orb of the Darkmoon|Darkmoon Faire
+Neck|Great|Star of Mystaria|Stratholme
+Neck|Great|Chains of the Lich|Stratholme
+Ring|BiS|Channeler's Ring|Pix Xizzix, Tarnished Undermine Real
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire
+Ring|Great|Elemental Focus Band|Silithus
+Ring|Great|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Tarnished Undermine Real
+Trinket|BiS|Royal Seal of Eldre'Thalas|Quest: Frost Shock and You
+Trinket|Great|Eye of the Beast|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|Great|Briarwood Reed|Blackrock Spire
+Main Hand|Great|Hand of Edward the Odd|World drop
+Main Hand|Great|Witchblade|Scholomance
+Main Hand|Great|Mastersmith's Hammer|Blackrock Spire
+Main Hand|Good|Grove Subjugator's Blade|Azshara
+Off Hand|Great|Obsidian Bauble|Dire Maul
+Off Hand|Great|Spirit of Aquementas|Quest: It's Dangerous to Go Alone
+Off Hand|Great|Tome of the Lost|Blackrock Spire
+Two-Hand|Great|Staff of Sorrow|Blackmaw Hold
+Two-Hand|Great|Nanaya's Control Spire|The Shaper's Terrace
+Two-Hand|Great|Lord Valthalak's Staff of Command|Blackrock Spire
+Two-Hand|Good|Headmaster's Charge|Scholomance
+Relic|BiS|Totem of the Storm|World drop
+Relic|Good|Totem of Thunder|Enchanting
+Relic|Good|Burning Totem|Pix Xizzix, Tarnished Undermine Real
+Relic|Good|Polished Driftwood Icon|Enchanting
+
+@SHAMAN|Enhancement|Enhancement Shaman|Yebb|2026-11-20|https://www.wowhead.com/forever/guide/classes/shaman/enhancement/bis-gear
+Head|BiS|Coif of The Five Thunders|Tier 0.5 questline
+Head|Great|Black Dragonscale Helm|Leatherworking
+Head|Good|Skyfury Helm|Quest: The Darkreaver Menace
+Head|Option|Eye of Rend|Blackrock Spire, Warchief Rend Blackhand
+Shoulder|BiS|Pauldrons of The Five Thunders|Tier 0.5 questline
+Shoulder|Great|Savage Gladiator Shoulders|Blackrock Depths, Grizzle
+Shoulder|Good|Death's Clutch|Scholomance, Ras Frostwhisper
+Shoulder|Option|Mantle of the Timbermaw|Tailoring
+Back|BiS|Arcanoweave Cloak|Pix Xizzix
+Back|Great|Howler's Furs|Pix Xizzix
+Back|Good|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Option|Heliotrope Cloak|Dire Maul, Guard Mol'dar / Guard Slip'kik
+Chest|BiS|Chain of The Five Thunders|Tier 0.5 questline
+Chest|Great|Timbermaw Tunic|Leatherworking
+Chest|Good|Savage Gladiator Chain|Blackrock Depths, Gorosh the Dervish
+Chest|Option|Tombstone Breastplate|Scholomance, Darkmaster Gandling
+Wrist|BiS|Bands of The Five Thunders|Tier 0.5 questline
+Wrist|Great|Blackmist Armguards|Blackrock Spire, The Beast
+Wrist|Option|Wildheart Bracers|Stratholme / Scholomance
+Hands|BiS|Fists of The Five Thunders|Tier 0.5 questline
+Hands|Great|Bloodmail Gauntlets|Scholomance
+Hands|Good|Skyfury Gauntlets|Quest: The Darkreaver Menace
+Hands|Option|Devilsaur Gauntlets|Leatherworking
+Waist|BiS|Girdle of The Five Thunders|Tier 0.5 questline
+Waist|Great|Belt of the Archmage|Tailoring
+Waist|Good|Windseeker's Belt|Pix Xizzix
+Waist|Option|Clutch of Andros|Scholomance, Kirtonos the Herald
+Legs|BiS|Pristine Scorpid Leggings|Leatherworking
+Legs|Great|Ironfeather Leggings|Leatherworking
+Legs|Good|Bloodmail Legguards|Scholomance
+Legs|Option|Devilsaur Leggings|Leatherworking
+Feet|BiS|Bloodmail Boots|Scholomance
+Feet|Great|Treads of The Five Thunders|Tier 0.5 questline
+Feet|Good|Greaves of Withering Despair|Blackrock Depths, High Interrogator Gerstahn
+Feet|Option|Kayser's Boots of Precision|Blackrock Spire, War Master Voone
+Neck|BiS|Mark of Fordring|Quest: In Dreams
+Neck|Great|Beads of Ogre Might|Quest: Falrin's Vendetta
+Neck|Good|Nacreous Shell Necklace|Stratholme, Cannon Master Willey
+Ring|BiS|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Ring|Great|Channeler's Ring|Pix Xizzix
+Ring|Good|Blackstone Ring|Maraudon, Princess Theradras
+Ring|Option|Ring of Demonic Guile|Dire Maul, Alzzin the Wildshaper
+Trinket|BiS|Blackhand's Breadth|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|Great|Adaptive Combat Assistant|Pix Xizzix
+Trinket|Good|Hand of Justice|Blackrock Depths, Emperor Dagran Thaurissan
+Trinket|Option|Heart of Wyrmthalak|Blackrock Spire, Overlord Wyrmthalak
+Two-Hand|BiS|The Unstoppable Force|Frostwolf Clan / Stormpike Guard, Exalted
+Two-Hand|Great|Flameslash Crescent|Blackmaw Hold, Impaan the Imprisoner
+Two-Hand|Good|Hammer of Thundering Hooves|Thunderhoof
+Two-Hand|Option|Stormcarver|Blacksmithing
+Relic|BiS|Totem of the Storm|World drop
+Relic|Great|Totem of Rage|Blackrock Depths, Magmus
+Relic|Option|Polished Driftwood Icon|Enchanting
+
+@SHAMAN|Restoration|Restoration Shaman|Woah|2026-11-18|https://www.wowhead.com/forever/guide/classes/shaman/restoration/bis-gear
+Head|BiS|Blue Dragonscale Helm|Leatherworking
+Head|Great|Master's Hat of Healing|World drop
+Head|Great|Coif of The Five Thunders|Tier 0.5 questline
+Head|Great|Helm of Latent Power|Quest: The Darkreaver Menace
+Neck|BiS|Orb of the Darkmoon|Darkmoon Faire
+Neck|Great|Chains of the Lich|Stratholme
+Neck|Good|Horn of Ve'han|Quest: Work Well Done
+Neck|Good|Beads of Ogre Mojo|Quest: Falrin's Vendetta
+Shoulder|BiS|Mantle of the Timbermaw|Tailoring
+Shoulder|Great|Pauldrons of The Five Thunders|Tier 0.5 questline
+Shoulder|Good|Argent Shoulders|Tailoring
+Back|BiS|Master's Cloak of Healing|World drop
+Back|Great|Cloak of Earth and Sky|Tailoring
+Back|Good|Deep Woodlands Cloak|Quest: WANTED: Vile Priestess Hexx and Her Minions
+Chest|BiS|Masterwork Breastplate of Healing|World drop
+Chest|Great|Vest of The Five Thunders|Tier 0.5 questline
+Chest|Great|Vest of Elements|Blackrock Spire
+Wrist|Great|Bindings of The Five Thunders|Tier 0.5 questline
+Wrist|Good|Master's Bracers of Healing|World drop
+Hands|BiS|Gloves of the Greatfather|Leatherworking
+Hands|Great|Storm Gauntlets|Leatherworking
+Hands|Great|Gauntlets of The Five Thunders|Tier 0.5 questline
+Hands|Good|Adventurer's Gloves of Healing|World drop
+Waist|BiS|Belt of the Archmage|Tailoring
+Waist|Good|High Councillor's Sash of Healing|World drop
+Waist|Good|Ketharas' Linked Belt|Source not listed in the guide
+Legs|BiS|Ironfeather Leggings|Leatherworking
+Legs|Great|Pristine Scorpid Leggings|Leatherworking
+Legs|Good|Kilt of The Five Thunders|Tier 0.5 questline
+Legs|Good|Masterwork Legplates of Healing|World drop
+Feet|BiS|Earthen Silk Slippers|Tailoring
+Feet|Great|Boots of The Five Thunders|Tier 0.5 questline
+Feet|Good|Adventurer's Boots of Healing|World drop
+Feet|Good|Bileblister Boots|Leatherworking
+Ring|BiS|Warden's Signet of Brilliance|The Watchers, Exalted
+Ring|BiS|Blessed Band of Light|Pix Xizzix
+Ring|Great|Watcher's Signet of Brilliance|The Watchers, Revered
+Ring|Great|Tracker's Signet of Brilliance|The Watchers, Honored
+Trinket|BiS|Weakness Analyzer|Pix Xizzix
+Trinket|BiS|Frozen Heart of the Mountain|Enchanting
+Trinket|Great|Arcanite Dragonling|Engineering
+Trinket|Great|Scented Runewood Brooch|Source not listed in the guide
+Main Hand|Great|Elderwild Construction Hammer|Source not listed in the guide
+Main Hand|Good|Bloodstrike Dagger of Healing|World drop
+Main Hand|Good|Notched Ritual Rib|Source not listed in the guide
+Off Hand|BiS|Master's Rod of Healing|World drop
+Off Hand|Good|Evergreen Shield|Blacksmithing
+Two-Hand|BiS|Resurgence Rod|Quest: Corruption of Earth and Seed
+Two-Hand|Great|Wisepaw Totem|Barkskin Burrow, Revered
+Two-Hand|Good|Death Striker of Healing|World drop
+Two-Hand|Good|Radiant Staff|Enchanting
+Relic|BiS|Polished Driftwood Icon|Enchanting
+
+@MAGE|Arcane|Arcane Mage|Foolipe|2026-11-22|https://www.wowhead.com/forever/guide/classes/mage/arcane/bis-gear
+Head|BiS|Sorcerer's Crown|Quest: Saving the Best for Last
+Head|BiS|Spellweaver's Turban|Blackrock Spire
+Head|Great|Crimson Felt Hat|Stratholme
+Head|Good|Cowl of Dark Ambition|Blackmaw Hold, Unbound Spirit
+Neck|BiS|Nacreous Shell Necklace|Stratholme
+Neck|Great|Star of Mystaria|Stratholme
+Neck|Great|Courier's Clasp|Quest: Shaw Needs To Know
+Neck|Good|Arcane Crystal Pendant|Quest: Destroy Morphaz
+Shoulder|BiS|Sorcerer's Mantle|Quest: Anthion's Parting Words
+Shoulder|BiS|Mantle of the Timbermaw|Tailoring, Timbermaw Hold
+Shoulder|Great|Burial Shawl|Scholomance
+Shoulder|Great|Soulstealer Mantle|Stratholme
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Tarnished Undermine Real
+Back|Great|Spritecaster Cape|Blackrock Depths
+Back|Good|Shroud of the Exile|Quest: In Dreams
+Chest|BiS|Robe of the Archmage|Tailoring
+Chest|Great|Robes of Dark Summons|Blackmaw Hold
+Chest|Great|Alanna's Embrace|Scholomance
+Chest|Good|Sorcerer's Robes|Tier 0.5 questline
+Wrist|BiS|Sorcerer's Bindings|Tier 0.5 questline
+Wrist|Good|Sublime Wristguards|Dire Maul
+Wrist|Option|Manacle Cuffs|Quest: The Love Potion
+Wrist|Option|Runecloth Cuffs|Tailoring
+Hands|BiS|Sorcerer's Gauntlets|Tier 0.5 questline
+Hands|Great|Gloves of Spell Mastery|Tailoring
+Hands|Good|Hands of Power|Blackrock Spire vendor
+Hands|Option|Compound Gloves|Alcaz Prison, trash
+Waist|BiS|Belt of the Archmage|Tailoring
+Waist|Great|Ban'thok Sash|Blackrock Depths
+Waist|Great|Magician's Cord|Pix Xizzix, Tarnished Undermine Real
+Waist|Good|Sorcerer's Belt|Tier 0.5 questline
+Legs|BiS|Sorcerer's Leggings|Tier 0.5 questline
+Legs|Great|Magister's Leggings|Stratholme
+Legs|Good|Skyshroud Leggings|Blackrock Spire
+Legs|Good|Leggings of Curation|The Shaper's Terrace
+Feet|BiS|Sorcerer's Sandals|Tier 0.5 questline
+Feet|Great|Kayser's Boots of Precision|Blackrock Spire
+Feet|Good|Dragonrider Boots|Blackrock Spire
+Feet|Good|Omnicast Boots|Blackrock Depths
+Ring|BiS|Channeler's Ring|Pix Xizzix, Tarnished Undermine Real
+Ring|BiS|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire
+Ring|Great|Don Mauricio's Band of Domination|Scholomance
+Trinket|BiS|Draconic Infused Emblem|Blackrock Spire
+Trinket|BiS|Eye of the Beast|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Tarnished Undermine Real
+Trinket|Great|Jewel of the Guard Captain=Cleansed Vilebranch Icon|Quest: Job Opening: Guard Captain of Revantusk Village / Saving Sharpbeak
+Main Hand|BiS|Sageblade|Blacksmithing
+Main Hand|Good|Wit's Edge|Scroll of Wit on Witchblade
+Main Hand|Good|Witchblade|Scholomance
+Main Hand|Option|Darkspear Insurgent's Spellblade=Clever Expeditionary's Spellblade|Darkspear Islands, Revered
+Off Hand|BiS|Obsidian Bauble|Dire Maul
+Off Hand|Good|Tome of the Lost|Blackrock Spire
+Off Hand|Good|Spirit of Aquementas|Quest: It's Dangerous to Go Alone
+Off Hand|Option|Personal Spellbook|Quest: A Lesson in Literacy
+Two-Hand|Great|Headmaster's Charge|Scholomance
+Two-Hand|Great|Lord Valthalak's Staff of Command|Blackrock Spire
+Two-Hand|Great|Staff of Sorrow|Blackmaw Hold
+Two-Hand|Great|Rod of the Ogre Magi|Dire Maul
+Ranged|BiS|Bonecreeper Stylus|Scholomance
+Ranged|Great|Oblivion's Touch|Scholomance
+Ranged|Great|Brilliant Wand|Enchanting (enchanters only)
+Ranged|Good|Ritssyn's Wand of Bad Mojo|Stratholme
+
+@MAGE|Fire|Fire Mage|Foolipe|2026-11-20|https://www.wowhead.com/forever/guide/classes/mage/fire/bis-gear
+Head|BiS|Sorcerer's Crown|Tier 0.5 questline
+Head|BiS|Spellweaver's Turban|Blackrock Spire
+Head|Great|Eye of Flame|World drop
+Head|Great|Crimson Felt Hat|Stratholme
+Shoulder|BiS|Sorcerer's Mantle|Tier 0.5 questline
+Shoulder|BiS|Mantle of the Timbermaw|Tailoring, Timbermaw Hold
+Shoulder|Great|Shroud of the Nathrezim|Stratholme
+Shoulder|Great|Argent Shoulders|Tailoring
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Tarnished Undermine Real
+Back|Great|Spritecaster Cape|Blackrock Depths
+Back|Good|Shroud of the Exile|Quest: In Dreams
+Chest|BiS|Robe of the Archmage|Tailoring
+Chest|Great|Robes of Dark Summons|Blackmaw Hold
+Chest|Great|Alanna's Embrace|Scholomance
+Chest|Good|Sorcerer's Robes|Tier 0.5 questline
+Wrist|BiS|Sorcerer's Bindings|Tier 0.5 questline
+Wrist|Great|Dryad's Wrist Bindings|Warsong Outriders / Silverwing Sentinels, Exalted
+Wrist|Good|Master's Bracers of Fiery Wrath|World drop
+Wrist|Option|Sublime Wristguards|Dire Maul
+Hands|BiS|Sorcerer's Gauntlets|Tier 0.5 questline
+Hands|Great|Gloves of Spell Mastery|Tailoring
+Hands|Great|Inferno Gloves|Tailoring
+Hands|Good|Hands of Power|Blackrock Spire vendor
+Waist|BiS|Ban'thok Sash|Blackrock Depths
+Waist|Great|Belt of the Archmage|Tailoring
+Waist|Great|Magician's Cord|Pix Xizzix, Tarnished Undermine Real
+Waist|Good|Sorcerer's Belt|Tier 0.5 questline
+Legs|BiS|Sorcerer's Leggings|Tier 0.5 questline
+Legs|Great|Skyshroud Leggings|Blackrock Spire
+Legs|Good|Magister's Leggings|Stratholme
+Legs|Good|Leggings of Curation|The Shaper's Terrace
+Feet|BiS|Sorcerer's Sandals|Tier 0.5 questline
+Feet|Great|Kayser's Boots of Precision|Blackrock Spire
+Feet|Good|Omnicast Boots|Blackrock Depths
+Feet|Good|Dragonrider Boots|Blackrock Spire
+Neck|BiS|Nacreous Shell Necklace|Stratholme
+Neck|Great|Star of Mystaria|Stratholme
+Neck|Good|Courier's Clasp|Quest: Shaw Needs To Know
+Neck|Good|Emberfury Talisman|Blackrock Spire
+Ring|BiS|Channeler's Ring|Pix Xizzix, Tarnished Undermine Real
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire
+Ring|Great|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Ring|Great|Don Mauricio's Band of Domination|Scholomance
+Trinket|BiS|Eye of the Beast|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Tarnished Undermine Real
+Trinket|Great|Smolderweb's Eye|Blackrock Spire
+Trinket|Great|Jewel of the Guard Captain=Cleansed Vilebranch Icon|Quest: Job Opening: Guard Captain of Revantusk Village / Saving Sharpbeak
+Main Hand|BiS|Sageblade|Blacksmithing
+Main Hand|Good|Wit's Edge|Scroll of Wit on Witchblade
+Main Hand|Good|Witchblade|Scholomance
+Two-Hand|BiS|Elemental Mage Staff|World drop
+Off Hand|BiS|Tome of Fiery Arcana|Alterac Valley vendor
+Off Hand|Good|Obsidian Bauble|Dire Maul
+Off Hand|Good|Spirit of Aquementas|Quest: It's Dangerous to Go Alone
+Off Hand|Good|Scepter of Interminable Focus|Tier 0.5 questline
+Ranged|BiS|Bonecreeper Stylus|Scholomance
+Ranged|Great|Oblivion's Touch|Scholomance
+Ranged|Great|Ritssyn's Wand of Bad Mojo|Stratholme
+Ranged|Option|Felflick's Fire Flicker|Quest: A Revenge Now Bitter
+
+@MAGE|Frost|Frost Mage|Porom|2026-11-20|https://www.wowhead.com/forever/guide/classes/mage/frost/bis-gear
+Head|BiS|Sorcerer's Crown|Tier 0.5 questline
+Head|BiS|Spellweaver's Turban|Blackrock Spire
+Head|Great|Crimson Felt Hat|Stratholme
+Head|Good|Cowl of Dark Ambition|Blackmaw Hold
+Neck|BiS|Nacreous Shell Necklace|Stratholme
+Neck|Great|Star of Mystaria|Stratholme
+Neck|Good|Arcane Crystal Pendant|Quest: Destroy Morphaz
+Neck|Good|Beads of Ogre Mojo|Quest: Falrin's Vendetta
+Shoulder|BiS|Sorcerer's Mantle|Tier 0.5 questline
+Shoulder|BiS|Mantle of the Timbermaw|Tailoring, Timbermaw Hold
+Shoulder|Great|Burial Shawl|Scholomance
+Shoulder|Great|Soulstealer Mantle|Stratholme
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Tarnished Undermine Real
+Back|Great|Spritecaster Cape|Blackrock Depths
+Back|Good|Shroud of the Exile|Quest: In Dreams
+Chest|BiS|Robe of the Archmage|Tailoring
+Chest|Great|Robes of Dark Summons|Blackmaw Hold
+Chest|Great|Alanna's Embrace|Scholomance
+Chest|Good|Sorcerer's Robes|Tier 0.5 questline
+Wrist|BiS|Sorcerer's Bindings|Tier 0.5 questline
+Wrist|Good|Sublime Wristguards|Dire Maul
+Wrist|Option|Manacle Cuffs|Quest: The Love Potion
+Wrist|Option|Runecloth Cuffs|Tailoring
+Hands|BiS|Sorcerer's Gauntlets|Tier 0.5 questline
+Hands|Great|Gloves of Spell Mastery|Tailoring
+Hands|Good|Hands of Power|Blackrock Spire vendor
+Hands|Option|Compound Gloves|Alcaz Prison, trash
+Waist|BiS|Belt of the Archmage|Tailoring
+Waist|Great|Ban'thok Sash|Blackrock Depths
+Waist|Great|Magician's Cord|Pix Xizzix, Tarnished Undermine Real
+Waist|Good|Sorcerer's Belt|Tier 0.5 questline
+Legs|BiS|Sorcerer's Leggings|Tier 0.5 questline
+Legs|Great|Magister's Leggings|Stratholme
+Legs|Good|Skyshroud Leggings|Blackrock Spire
+Legs|Good|Leggings of Curation|The Shaper's Terrace
+Feet|BiS|Sorcerer's Sandals|Tier 0.5 questline
+Feet|Great|Kayser's Boots of Precision|Blackrock Spire
+Feet|Good|Dragonrider Boots|Blackrock Spire
+Feet|Good|Omnicast Boots|Blackrock Depths
+Ring|BiS|Channeler's Ring|Pix Xizzix, Tarnished Undermine Real
+Ring|BiS|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire
+Ring|Great|Don Mauricio's Band of Domination|Scholomance
+Trinket|BiS|Eye of the Beast|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Tarnished Undermine Real
+Trinket|Great|Draconic Infused Emblem|Blackrock Spire
+Trinket|Great|Jewel of the Guard Captain=Cleansed Vilebranch Icon|Quest: Job Opening: Guard Captain of Revantusk Village / Saving Sharpbeak
+Main Hand|Great|Sageblade|Blacksmithing
+Main Hand|Good|Wit's Edge|Scroll of Wit on Witchblade
+Main Hand|Good|Witchblade|Scholomance
+Two-Hand|BiS|Elemental Mage Staff|World drop
+Two-Hand|Great|Headmaster's Charge|Scholomance
+Two-Hand|Great|Lord Valthalak's Staff of Command|Blackrock Spire
+Two-Hand|Great|Rod of the Ogre Magi|Dire Maul
+Off Hand|Great|Obsidian Bauble|Dire Maul
+Off Hand|Good|Tome of the Lost|Blackrock Spire
+Off Hand|Option|Personal Spellbook|Quest: A Lesson in Literacy
+Ranged|BiS|Wand of Biting Cold|Quest: Hero of the Frostwolf / Hero of the Stormpike
+Ranged|Great|Bonecreeper Stylus|Scholomance
+Ranged|Great|Oblivion's Touch|Scholomance
+
+@WARLOCK|Affliction|Affliction Warlock|Zephan|2026-11-21|https://www.wowhead.com/forever/guide/classes/warlock/affliction/bis-gear
+Head|BiS|Master's Hat of Shadow Wrath|World drop
+Head|BiS (Technical and Realistic)|Spellweaver's Turban|Blackrock Spire, General Drakkisath
+Head|Good|Crimson Felt Hat|Stratholme, Magistrate Barthilas
+Head|Good|Felcloth Hood|Tailoring 245
+Neck|BiS|Dark Advisor's Pendant|Scholomance, Vectus
+Neck|BiS|Orb of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Good|Nacreous Shell Necklace|Stratholme, Cannon Master Willey
+Neck|Good|Beads of Ogre Mojo|Quest: Falrin's Vendetta
+Shoulder|BiS (Technical)|Mantle of the Timbermaw|Tailoring 290, Timbermaw Hold Revered
+Shoulder|BiS|Master's Mantle of Shadow Wrath|World drop
+Shoulder|BiS (Realistic)|Felcloth Shoulders|Tailoring 265
+Shoulder|BiS|Burial Shawl|Scholomance, several bosses
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Stranglethorn Vale
+Back|Great|Archivist Cape of Shadow Wrath|Stratholme, Archivist Galford
+Back|Good|Hide of the Wild|Leatherworking 300
+Back|Optional|Spritecaster Cape|Blackrock Depths, Houndmaster Grebmar
+Chest|BiS (Technical)|Robe of the Void|Tailoring 295 (tailors only)
+Chest|BiS (Realistic)|Robe of Winter Night|Tailoring 245
+Chest|Great|Master's Vest of Shadow Wrath|World drop
+Chest|Good|Felcloth Robe|Tailoring 260
+Wrist|BiS (Technical)|Dryad's Wrist Bindings|Warsong Outriders / Silverwing Sentinels, Exalted
+Wrist|BiS (Realistic)|Tearfall Bracers of Shadow Wrath|Stratholme, The Unforgiven
+Wrist|Good|Netherpearl Cuffs|Tailoring 205
+Wrist|Good|Sublime Wristguards|Dire Maul, Guard Mol'dar / Guard Slip'kik
+Hands|BiS|Felcloth Gloves|Tailoring 280
+Hands|BiS|Gloves of Spell Mastery|Tailoring 295
+Hands|Great|Master's Gloves of Shadow Wrath|World drop
+Hands|Good|Hands of Power|Blackrock Spire, Quartermaster Zigris
+Waist|BiS (Technical)|Belt of the Archmage|Tailoring 295
+Waist|BiS (Realistic)|Master's Belt of Shadow Wrath|World drop
+Waist|Great|Defiler's Cloth Girdle=Highlander's Cloth Girdle|The Defilers / League of Arathor, Honored
+Waist|Good|Black Waistcord|Tailoring 215
+Legs|BiS|High Councillor's Pants of Shadow Wrath|World drop
+Legs|BiS (Technical and Realistic)|Leggings of Torment|Blackrock Spire, Lord Valthalak
+Legs|Good|Outrider's Silk Leggings=Sentinel's Silk Leggings|Warsong Outriders / Silverwing Sentinels, Exalted
+Legs|Good|Skyshroud Leggings|Blackrock Spire, Highlord Omokk
+Feet|BiS|Master's Boots of Shadow Wrath|World drop
+Feet|Good|Omnicast Boots|Blackrock Depths, Golem Lord Argelmach
+Feet|Good|Dragonrider Boots|Blackrock Spire, Warchief Rend Blackhand
+Feet|Good|Black Sandals|Tailoring 235
+Ring|BiS|Warden's Signet of Brilliance|The Watchers, Exalted
+Ring|BiS|Emperor's Seal of Shadow Wrath|Blackrock Depths, Emperor Dagran Thaurissan
+Ring|BiS (Technical and Realistic)|Rune Band of Wizardry|Blackrock Spire, Lord Valthalak
+Ring|BiS (Technical and Realistic)|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Royal Seal of Eldre'Thalas|Quest: Harnessing Shadows
+Trinket|Great|Eye of the Beast|Quest: For The Horde!
+Trinket|Great|Briarwood Reed|Blackrock Spire, Jed Runewatcher
+Main Hand|BiS|Sageblade|Blacksmithing 300
+Main Hand|BiS|Mindfang=Sageclaw|The Defilers / League of Arathor, Exalted
+Main Hand|BiS (Realistic)|Blade of the New Moon|Dire Maul, Immol'thar
+Off Hand|BiS (Technical)|Tome of Shadow Force|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|BiS|Therazane's Touch|Alterac Valley, Grunnda Wolfheart
+Off Hand|BiS (Realistic)|Obsidian Bauble|Dire Maul, Pusillin
+Off Hand|BiS|High Councillor's Scepter of Shadow Wrath|World drop
+Two-Hand|BiS (Technical)|Ironbark Staff|The Defilers / League of Arathor, Exalted
+Two-Hand|BiS|Whiteout Staff=Crackling Staff|Alterac Valley, Revered
+Two-Hand|BiS|Headmaster's Charge|Scholomance, Darkmaster Gandling
+Two-Hand|BiS (Realistic)|Rod of the Ogre Magi|Dire Maul, Gordok Tribute
+Wand|BiS|Skul's Ghastly Touch|Stratholme, Skul
+Wand|BiS|Lunar Wand of Shadow Wrath|World drop
+Wand|Great|Bonecreeper Stylus|Scholomance, Darkmaster Gandling
+Wand|Great|Oblivion's Touch|Scholomance, Death Knight Darkreaver
+
+@WARLOCK|Demonology|Demonology Warlock|Zephan|2026-11-21|https://www.wowhead.com/forever/guide/classes/warlock/demonology/bis-gear
+Head|BiS|Spellweaver's Turban|Blackrock Spire, General Drakkisath
+Head|Great|Crimson Felt Hat|Stratholme, Magistrate Barthilas
+Head|Good|Master's Hat of {Magic,Shadow Wrath}|World drop
+Neck|BiS|Nacreous Shell Necklace|Stratholme, Cannon Master Willey
+Neck|Great|Orb of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Great|Star of Mystaria|Stratholme, Grand Crusader Dathrohan
+Neck|Good|Dark Advisor's Pendant|Scholomance, Vectus
+Shoulder|BiS (Technical)|Mantle of the Timbermaw|Tailoring 290, Timbermaw Hold Revered
+Shoulder|BiS|Argent Shoulders|Tailoring 290, Argent Dawn Revered
+Shoulder|BiS|Master's Mantle of {Magic,Shadow Wrath}|World drop
+Shoulder|BiS (Realistic)|Burial Shawl|Scholomance, several bosses
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Stranglethorn Vale
+Chest|BiS (Technical)|Robe of the Void|Tailoring 295 (tailors only)
+Chest|BiS (Realistic)|Robes of Dark Summons|Blackmaw Hold, Impaan the Imprisoner
+Wrist|BiS (Technical)|Dryad's Wrist Bindings|Warsong Outriders / Silverwing Sentinels, Exalted
+Wrist|BiS|Tearfall Bracers of {Magic,Shadow Wrath}|Stratholme, The Unforgiven
+Wrist|BiS (Realistic)|Sublime Wristguards|Dire Maul, Guard Mol'dar
+Wrist|Great|Runecloth Cuffs|Tailoring 250
+Hands|BiS (Technical)|Deathmist Wraps|Quest: Just Compensation
+Hands|BiS|Gloves of Spell Mastery|Tailoring 295
+Hands|BiS (Shadow, Realistic)|Felcloth Gloves|Tailoring 280
+Hands|BiS (Fire, Realistic)|Inferno Gloves|Tailoring 280
+Waist|BiS (Technical)|Belt of the Archmage|Tailoring 295
+Waist|BiS (Realistic)|Ban'thok Sash|Blackrock Depths, Ok'thor the Breaker
+Waist|Great|Defiler's Cloth Girdle=Highlander's Cloth Girdle|The Defilers / League of Arathor, Honored
+Waist|Good|High Councillor's Sash of {Magic,Shadow Wrath}|World drop
+Legs|BiS (Technical)|Outrider's Silk Leggings=Sentinel's Silk Leggings|Warsong Outriders / Silverwing Sentinels, Exalted
+Legs|BiS (Fire, Realistic)|Skyshroud Leggings|Blackrock Spire, Highlord Omokk
+Legs|BiS (Shadow, Realistic)|Leggings of Torment|Blackrock Spire, Lord Valthalak
+Legs|BiS|High Councillor's Pants of {Magic,Shadow Wrath}|World drop
+Feet|BiS|Master's Boots of {Magic,Shadow Wrath}|World drop
+Feet|BiS (Fire)|Omnicast Boots|Blackrock Depths, Golem Lord Argelmach
+Feet|BiS (Shadow)|Kayser's Boots of Precision|Blackrock Spire, War Master Voone
+Feet|BiS|Venomspew Footpads|Tailoring 295
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire, Lord Valthalak
+Ring|BiS|Channeler's Ring|Pix Xizzix, Stranglethorn Vale
+Ring|Great|Warden's Signet of Brilliance|The Watchers, Exalted
+Ring|Great|Blessed Band of Light|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS (Technical and Realistic)|Weakness Analyzer|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS (Fire)|Royal Seal of Eldre'Thalas|Quest: Harnessing Shadows
+Trinket|BiS (Shadow)|Eye of the Beast|Quest: For The Horde!
+Trinket|Great|Briarwood Reed|Blackrock Spire, Jed Runewatcher
+Main Hand|BiS (Technical)|Sageblade|Blacksmithing 300
+Main Hand|BiS|Mindfang=Sageclaw|The Defilers / League of Arathor, Exalted
+Main Hand|BiS (Realistic)|Witchblade|Scholomance, Darkmaster Gandling
+Main Hand|Great|Grove Subjugator's Blade|Azshara, Legashi demons
+Two-Hand|BiS (Technical)|Ironbark Staff|The Defilers / League of Arathor, Exalted
+Two-Hand|BiS|Whiteout Staff=Crackling Staff|Alterac Valley, Revered
+Two-Hand|BiS|Headmaster's Charge|Scholomance, Darkmaster Gandling
+Two-Hand|BiS (Realistic)|Staff of Sorrow|Blackmaw Hold, Mopes
+Off Hand|BiS (Technical)|Therazane's Touch|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|BiS (Fire)|Tome of Fiery Arcana|Alterac Valley vendor
+Off Hand|BiS (Shadow)|Tome of Shadow Force|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|BiS (Realistic)|Obsidian Bauble|Dire Maul, Pusillin
+Wand|BiS|Bonecreeper Stylus|Scholomance, Darkmaster Gandling
+Wand|BiS|Skul's Ghastly Touch|Stratholme, Skul
+Wand|Great|Oblivion's Touch|Scholomance, Death Knight Darkreaver
+Wand|Great|Brilliant Wand|Enchanting 275
+
+@WARLOCK|Destruction|Destruction Warlock|Zephan|2026-11-21|https://www.wowhead.com/forever/guide/classes/warlock/destruction/bis-gear
+Head|BiS|Spellweaver's Turban|Blackrock Spire, General Drakkisath
+Neck|BiS|Orb of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|BiS (Realistic)|Nacreous Shell Necklace|Stratholme, Cannon Master Willey
+Neck|Good|Beads of Ogre Mojo|Quest: Falrin's Vendetta
+Neck|Good|Star of Mystaria|Stratholme, Grand Crusader Dathrohan
+Shoulder|BiS|Mantle of the Timbermaw|Tailoring 290
+Shoulder|BiS|Argent Shoulders|Tailoring 290
+Shoulder|BiS|Master's Mantle of Magic|World drop
+Shoulder|BiS (Realistic)|Burial Shawl|Scholomance, several bosses
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Stranglethorn Vale
+Chest|BiS|Robe of the Void|Tailoring 295 (tailors only)
+Chest|BiS|Robes of Dark Summons|Blackmaw Hold, Impaan the Imprisoner
+Chest|Great|Alanna's Embrace|Scholomance, Ras Frostwhisper
+Chest|Good|Master's Vest of Magic|World drop
+Wrist|BiS|Dryad's Wrist Bindings|Warsong Outriders / Silverwing Sentinels, Exalted
+Wrist|BiS|Tearfall Bracers of Magic|Stratholme, The Unforgiven
+Wrist|BiS (Realistic)|Sublime Wristguards|Dire Maul, Guard Mol'dar / Guard Slip'kik
+Wrist|Great|Runecloth Cuffs|Tailoring 250
+Hands|BiS|Gloves of Spell Mastery|Tailoring 295
+Hands|BiS|Deathmist Wraps|Quest: Just Compensation
+Hands|BiS|Hands of Power|Blackrock Spire, Quartermaster Zigris
+Hands|Great|Master's Gloves of Magic|World drop
+Waist|BiS (Technical)|Belt of the Archmage|Tailoring 295
+Waist|BiS (Realistic)|Ban'thok Sash|Blackrock Depths, Ok'thor the Breaker
+Waist|BiS|Defiler's Cloth Girdle=Highlander's Cloth Girdle|The Defilers / League of Arathor, Honored
+Waist|Great|High Councillor's Sash of Magic|World drop
+Legs|BiS (Technical)|Outrider's Silk Leggings=Sentinel's Silk Leggings|Warsong Outriders / Silverwing Sentinels, Exalted
+Legs|BiS (Realistic)|Skyshroud Leggings|Blackrock Spire, Highlord Omokk
+Legs|BiS|High Councillor's Pants of Magic|World drop
+Legs|Good|Ghostweave Pants|Tailoring 245
+Feet|BiS|Master's Boots of Magic|World drop
+Feet|BiS (Technical and Realistic)|Omnicast Boots|Blackrock Depths, Golem Lord Argelmach
+Feet|BiS|Venomspew Footpads|Tailoring 295
+Feet|BiS|Dragonrider Boots|Blackrock Spire, Warchief Rend Blackhand
+Ring|BiS (Technical and Realistic)|Rune Band of Wizardry|Blackrock Spire, Lord Valthalak
+Ring|BiS|Warden's Signet of Brilliance|The Watchers, Exalted
+Ring|BiS|Watcher's Signet of Brilliance|The Watchers, Revered
+Ring|BiS (Technical and Realistic)|Channeler's Ring|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Royal Seal of Eldre'Thalas|Quest: Harnessing Shadows
+Trinket|Great|Eye of the Beast|Quest: For The Horde!
+Trinket|Great|Briarwood Reed|Blackrock Spire, Jed Runewatcher
+Main Hand|BiS (Technical)|Sageblade|Blacksmithing 300
+Main Hand|BiS|Mindfang=Sageclaw|The Defilers / League of Arathor, Exalted
+Main Hand|BiS (Realistic)|Witchblade|Scholomance, Darkmaster Gandling
+Main Hand|Great|Grove Subjugator's Blade|Azshara, Legashi demons
+Two-Hand|BiS (Technical)|Ironbark Staff|The Defilers / League of Arathor, Exalted
+Two-Hand|BiS|Whiteout Staff=Crackling Staff|Alterac Valley, Revered
+Two-Hand|BiS|Headmaster's Charge|Scholomance, Darkmaster Gandling
+Two-Hand|BiS (Realistic)|Staff of Sorrow|Blackmaw Hold, Mopes
+Off Hand|BiS (Technical)|Therazane's Touch|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|BiS|Tome of Fiery Arcana|Alterac Valley vendor
+Off Hand|BiS (Realistic)|Obsidian Bauble|Dire Maul, Pusillin
+Off Hand|BiS|Spirit of Aquementas|Quest: It's Dangerous to Go Alone
+Wand|BiS|Bonecreeper Stylus|Scholomance, Darkmaster Gandling
+Wand|Great|Oblivion's Touch|Scholomance, Death Knight Darkreaver
+Wand|Great|Brilliant Wand|Enchanting 275
+Wand|Great|Lunar Wand of Magic|World drop
+
+@DRUID|Balance|Balance Druid|DrWonder|2026-11-20|https://www.wowhead.com/forever/guide/classes/druid/balance/bis-gear
+Head|BiS|Feralheart Cowl|Tier 0.5 questline
+Head|Great|Spellweaver's Turban|Blackrock Spire
+Head|Good|Master's Hat of Magic|World drop
+Head|Option|Mask of the Unforgiven|Stratholme
+Shoulder|BiS|Feralheart Spaulders|Tier 0.5 questline
+Shoulder|Great|Mantle of the Timbermaw|Tailoring
+Shoulder|Good|Argent Shoulders|Tailoring
+Shoulder|Option|Ironfeather Shoulders|Leatherworking
+Back|BiS|Arcanoweave Cloak|Pix Xizzix, Stranglethorn Vale
+Back|Great|Archivist Cape of Magic|Stratholme
+Back|Good|Master's Cloak of Magic|World drop
+Back|Option|Hide of the Wild|Leatherworking
+Chest|BiS|Feralheart Vest|Tier 0.5 questline
+Chest|Great|Robes of Dark Summons|Blackmaw Hold
+Chest|Good|Ironfeather Breastplate|Leatherworking
+Chest|Option|Robe of Everlasting Night|Dire Maul
+Wrist|BiS|Feralheart Wraps|Tier 0.5 questline
+Wrist|Great|Master's Bracers of Magic|World drop
+Wrist|Good|Tearfall Bracers of Magic|Stratholme
+Wrist|Option|Darkwater Bracers of Magic|Temple of Atal'Hakkar
+Hands|BiS|Feralheart Hands|Tier 0.5 questline
+Hands|Great|Slaghide Gauntlets of Magic|Blackrock Spire
+Hands|Good|Hands of Power|Blackrock Spire vendor
+Hands|Option|Master's Gloves of Magic|World drop
+Waist|BiS|Belt of the Archmage|Tailoring
+Waist|Great|Ban'thok Sash|Blackrock Depths
+Waist|Good|Feralheart Sash|Tier 0.5 questline
+Waist|Option|Master's Belt of Magic|World drop
+Legs|BiS|Ironfeather Leggings|Leatherworking
+Legs|Great|Master's Leggings of Magic|World drop
+Legs|Good|Skyshroud Leggings|Blackrock Spire
+Legs|Option|Elegant Leggings of Magic|World drop
+Feet|BiS|Feralheart Galoshes|Tier 0.5 questline
+Feet|Great|Supreme Shoes of Magic|World drop
+Feet|Good|Waterspout Boots|Dire Maul
+Feet|Option|Omnicast Boots|Blackrock Depths
+Neck|BiS|Orb of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Great|Nacreous Shell Necklace|Stratholme
+Neck|Good|Chains of the Lich|Stratholme
+Ring|BiS|Eye of Orgrimmar=Songstone of Ironforge|Quest: The Princess Saved? / The Princess's Surprise
+Ring|BiS|Rune Band of Wizardry|Blackrock Spire, Lord Valthalak
+Ring|Great|Channeler's Ring|Pix Xizzix, Stranglethorn Vale
+Ring|Good|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Trinket|BiS|Weakness Analyzer|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Eye of the Beast|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|Great|Briarwood Reed|Blackrock Spire
+Trinket|Good|Smolderweb's Eye|Blackrock Spire
+Main Hand|BiS|Mindfang=Sageclaw|The Defilers / League of Arathor, Exalted
+Main Hand|Great|Hand of Edward the Odd|World drop
+Main Hand|Good|Witchblade|Scholomance
+Main Hand|Good|Mastersmith's Hammer|Blackrock Spire
+Two-Hand|BiS|Ironbark Staff|The Defilers / League of Arathor, Exalted
+Two-Hand|Good|Headmaster's Charge|Scholomance
+Two-Hand|Good|Nanaya's Control Spire|The Shaper's Terrace
+Two-Hand|Good|Rod of the Ogre Magi|Dire Maul
+Off Hand|BiS|Therazane's Touch|Frostwolf Clan / Stormpike Guard, Exalted
+Off Hand|Great|Obsidian Bauble|Dire Maul
+Off Hand|Good|Spirit of Aquementas|Quest: It's Dangerous to Go Alone
+Off Hand|Option|Tome of the Lost|Blackrock Spire
+Relic|BiS|Swarming Idol|Pix Xizzix, Stranglethorn Vale
+Relic|Great|Idol of the Moon|Dire Maul
+Relic|Good|Talons of Wrath|Enchanting
+
+@DRUID|Feral (Cat)|Feral (Cat) Druid|Lexolas|2026-11-22|https://www.wowhead.com/forever/guide/classes/druid/feral/bis-gear-dps
+# Head, Shoulder and Back are the page's ranked tables; the other slots come from its one-row-per-slot overview table.
+Head|BiS|Feralheart Cap|Tier 0.5 questline
+Head|Alternative BiS|Outlaw's Collar|Leatherworking
+Head|Alternative BiS|Eye of Rend|Blackrock Spire, Warchief Rend Blackhand
+Head|Great|Supreme Crown of the Tiger|World drop
+Shoulder|BiS|Darkspear Pauldrons=Theramore Pauldrons|Darkspear Raiders / Theramore, Exalted
+Shoulder|Great|Defiler's Leather Shoulders=Highlander's Leather Shoulders|The Defilers / League of Arathor, Exalted
+Shoulder|Great|Dark Warder's Pauldrons|Blackrock Depths, Warder Stilgiss
+Shoulder|Good|Adventurer's Shoulders of the Tiger|World drop
+Back|BiS|Cape of the Black Baron|Stratholme, Baron Rivendare
+Back|Great|Blackveil Cape|Blackrock Depths, High Interrogator Gerstahn
+Back|Great|Howler's Furs|Pix Xizzix, Stranglethorn Vale
+Back|Great|Deathguard's Cloak=Cloak of the Honor Guard|The Defilers / League of Arathor, Exalted
+Neck|BiS|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Chest|BiS|Timbermaw Tunic|Leatherworking
+Wrist|BiS|Warpwood Bracers|Quest: Lethtendris's Web
+Hands|BiS|Timbermaw Brawlers|Leatherworking
+Waist|BiS|Shifter's Belt|Pix Xizzix, Stranglethorn Vale
+Legs|BiS|Warbear Woolies|Leatherworking
+Feet|BiS|Swiftwalker Boots|Blackrock Depths, zone drop
+Ring|BiS|Cutthroat's Signet|Pix Xizzix, Stranglethorn Vale
+Ring|BiS|Don Julio's Band|Frostwolf Clan / Stormpike Guard, Exalted
+Trinket|BiS|Blackhand's Breadth|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|BiS|Behemoth Bones|Blackmaw Behemoth
+Two-Hand|BiS|The Unstoppable Force|Frostwolf Clan / Stormpike Guard, Exalted
+Relic|BiS|Idol of the Dream|Enchanting
+
+@DRUID|Feral (Bear)|Feral (Bear) Druid|L0uki|2026-11-22|https://www.wowhead.com/forever/guide/classes/druid/feral/bis-gear-tank
+Head|BiS|Feralheart Faceguard|Tier 0.5 questline
+Head|Great|Warbear Helm|Leatherworking (auction house)
+Head|Great (hit)|Mask of the Unforgiven|Stratholme, The Unforgiven
+Neck|BiS (hit)|Horn of Ve'han|Quest: Work Well Done
+Neck|BiS|Amulet of the Darkmoon|Darkmoon Faire, 1200 tickets
+Neck|Great (hit)|Beads of Ogre Might|Quest: Falrin's Vendetta
+Shoulder|BiS|Feralheart Pauldrons|Tier 0.5 questline
+Shoulder|Great|Atal'ai Spaulders|Temple of Atal'Hakkar, balcony bosses
+Shoulder|Good (hit)|Truestrike Shoulders|Blackrock Spire, Pyroguard Emberseer
+Back|BiS (hit, defensive)|Stalwart Cloak|Pix Xizzix, 75 Tarnished Undermine Real
+Back|BiS (hit, offensive)|Howler's Furs|Pix Xizzix, 75 Tarnished Undermine Real
+Back|Option|Cloak of Warding|Auction house
+Chest|BiS (defensive)|Feralheart Armor|Tier 0.5 questline
+Chest|BiS (offensive)|Timbermaw Tunic|Leatherworking
+Chest|Good|Songbird Blouse|Stratholme, Hearthsinger Forresten
+Wrist|BiS|Feralheart Wristguards|Tier 0.5 questline
+Wrist|Good (hit)|Blackmist Armguards|Blackrock Spire, The Beast
+Hands|BiS|Slaghide Gauntlets|Blackrock Spire, Urok Doomhowl
+Hands|Great|Warden's Leather Gauntlets|Leatherworking
+Hands|Great|Feralheart Grips|Tier 0.5 questline
+Waist|BiS|Dinosaur Hide Belt|The Shaper's Terrace, world drop
+Waist|Great|Warden's Leather Waistguard|Leatherworking
+Waist|Great|Cloudrunner Girdle|Blackrock Spire, Quartermaster Zigris
+Waist|Good|Feralheart Waistguard|Tier 0.5 questline
+Legs|BiS|Feralheart Legguards|Tier 0.5 questline
+Legs|Great|Outrider's Lizardhide Pants=Sentinel's Lizardhide Pants|Warsong Outriders / Silverwing Sentinels, Exalted
+Legs|Good|Warbear Woolies|Leatherworking
+Feet|BiS|Feralheart Treads|Tier 0.5 questline
+Feet|Great|Warden's Leather Boots|Leatherworking
+Feet|Option|Boots of Ferocity|Dire Maul, Isalien
+Ring|BiS|Ring of Protection|Quest: Hidden Treasures
+Ring|BiS|Ouroboros Ring|Quest: Blackmaw Reclamation
+Ring|BiS|Thrall's Resolve=Magni's Will|Quest: The Princess Saved? / The Princess's Surprise
+Ring|Great|Band of Flesh|Stratholme, Ramstein the Gorger
+Trinket|BiS|Adaptive Combat Assistant|Pix Xizzix, 125 Tarnished Undermine Real
+Trinket|Great|Defiler's Talisman=Talisman of Arathor|The Defilers / League of Arathor
+Trinket|Great|Glimmering Mithril Insignia|Quest: Did You Lose This?
+Trinket|Great|Mark of Tyranny|Quest: For The Horde! / General Drakkisath's Demise
+Trinket|Great|Blackhand's Breadth|Quest: For The Horde! / General Drakkisath's Demise
+Two-Hand|BiS (again)|Manual Crowd Pummeler|Gnomeregan, Crowd Pummeler 9-60
+Two-Hand|BiS (defensive)|Unyielding Maul|Dire Maul, Gordok Tribute
+Two-Hand|BiS (offensive)|Tuskblade Halberd|Bonesnout the Unbroken
+Two-Hand|Great (offensive)|The Unstoppable Force|Frostwolf Clan / Stormpike Guard, Exalted
+Relic|BiS|Idol of Brutality|Stratholme, Magistrate Barthilas
+Relic|BiS|Enraged Idol|Pix Xizzix, 50 Tarnished Undermine Real
+
+@DRUID|Restoration|Restoration Druid|Frankensteak|2026-11-22|https://www.wowhead.com/forever/guide/classes/druid/restoration/bis-gear
+Head|BiS|Living Crown|Leatherworking
+Head|Great|Feralheart Headdress|Tier 0.5 questline
+Head|Good|Bad Hat|Quest: Deadliest Catch
+Head|Optional|Mooncloth Circlet|Tailoring
+Shoulder|BiS|Mooncloth Shoulders|Tailoring
+Shoulder|Great|Feralheart Mantle|Tier 0.5 questline
+Shoulder|Good|Living Shoulders|Leatherworking
+Shoulder|Optional|Mantle of the Scarlet Crusade|Stratholme, Cannon Master Willey
+Back|BiS|Hide of the Wild|Leatherworking
+Back|Great|Archivist Cape of Healing|Stratholme, Archivist Galford
+Back|Good|Drape of Recovery|Pix Xizzix, Stranglethorn Vale
+Chest|BiS|Embrace of the Wind Serpent|Temple of Atal'Hakkar, Shade of Hakkar
+Chest|Great|Robes of the Exalted|Stratholme, Baron Rivendare
+Chest|Good|Forest's Embrace|Quest: A Better Ingredient
+Chest|Optional|Mooncloth Vest|Tailoring
+Wrist|BiS|Bleak Howler Armguards|Blackrock Spire, Gizrul the Slavener
+Wrist|Great|Wyrmthalak's Shackles|Quest, Blackrock Spire
+Wrist|Good|Feralheart Bindings|Tier 0.5 questline
+Wrist|Optional|Verek's Loyal Wraps|Blackrock Depths, Verek
+Hands|BiS|Feralheart Gauntlets|Tier 0.5 questline
+Hands|Great|Hands of the Exalted Herald|Blackrock Depths, Princess Moira Bronzebeard
+Hands|Good|Mender's Leather Gauntlets|Leatherworking
+Hands|Optional|Gilded Gloves|Crafted
+Waist|BiS|Sash of Mercy|World drop
+Waist|Great|Caretaker's Cord|Pix Xizzix, Stranglethorn Vale
+Waist|Good|Wisdom of the Timbermaw|Tailoring
+Waist|Optional|Feralheart Cord|Tier 0.5 questline
+Legs|BiS|Devout Skirt|Stratholme, Baron Rivendare
+Legs|Great|Feralheart Pants|Tier 0.5 questline
+Legs|Good|Senior Designer's Pantaloons|Blackrock Depths, Fineous Darkvire
+Legs|Optional|Padre's Trousers|Dire Maul, Illyanna Ravenoak
+Feet|BiS|Feralheart Sandals|Tier 0.5 questline
+Feet|Great|Boots of the Full Moon|Dire Maul, Captain Kromcrush
+Feet|Good|Ogreseer Tower Boots|Blackrock Spire, Spirestone Lord Magus
+Feet|Optional|Faith Healer's Boots|Blackrock Spire, Warchief Rend Blackhand
+Neck|BiS|Animated Chain Necklace|Stratholme, Ramstein the Gorger
+Neck|Great|Heart of the Fiend|Scholomance, Kirtonos the Herald
+Neck|Good|Jeweled Amulet of Cainwyn|World drop
+Neck|Optional|Dragon's Eye|Temple of Atal'Hakkar, Shade of Eranikus
+Ring|BiS|Fordring's Seal|Quest: In Dreams
+Ring|BiS|Blessed Band of Light|Pix Xizzix, Stranglethorn Vale
+Ring|Great|High Clerist's Seal|Scarlet High Clerist
+Ring|Good|Emerald Flame Ring|Dire Maul, Prince Tortheldrin
+Trinket|BiS|Serenity Field|Pix Xizzix, Stranglethorn Vale
+Trinket|BiS|Royal Seal of Eldre'Thalas|Quest: The Emerald Dream...
+Trinket|Great|Darkmoon Card: Blue Dragon|Darkmoon Beast Deck (not available yet)
+Trinket|Good|Weakness Analyzer|Pix Xizzix, Stranglethorn Vale
+Main Hand|BiS|Gift of the Elven Magi|Stratholme, Grand Crusader Dathrohan
+Main Hand|Great|Lorespinner|Quest: Lethtendris's Web
+Main Hand|Good|Masterwork Crimson Hammer|Stratholme, Crimson Hammersmith
+Main Hand|Optional|Fist of Revelation|Blackmaw Hold, Gortek the Apprentice
+Off Hand|BiS|Lei of the Lifegiver|Alterac Valley, Exalted
+Off Hand|Great|Penelope's Rose|Scholomance, Kirtonos the Herald
+Off Hand|Good|Thaurissan's Royal Scepter|Blackrock Depths, Emperor Dagran Thaurissan
+Two-Hand|BiS|Glowing Brightwood Staff|World drop
+Two-Hand|Great|Hammer of the Grand Crusader|Stratholme, Grand Crusader Dathrohan
+Two-Hand|Good|Staff of Metanoia|Scholomance, Jandice Barov
+Two-Hand|Optional|Redemption|Stratholme, Cannon Master Willey
+Relic|BiS|Idol of Synthesis|Pix Xizzix, Stranglethorn Vale
+Relic|Great|Mystic Mushroom|Enchanting
+Relic|Good|Talons of Wrath|Enchanting

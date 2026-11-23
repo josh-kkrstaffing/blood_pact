@@ -239,6 +239,26 @@ test("bis data: 28 specs in 9 classes; every slot has a BiS at score 1 and score
     eq(#ns.BiSData.WARLOCK.Demonology.slots, 17)
 end)
 
+test("bis data: 24 lists name their Wowhead author, 4 older lists say why", function()
+    local named, old = 0, 0
+    for _, lists in pairs(ns.BiSData) do
+        for _, list in pairs(lists) do
+            if list.old then
+                old = old + 1
+                assert(ns.BiS.SourceText(list):find("older auto%-ranked list"), "old list is flagged")
+            else
+                named = named + 1
+                assert(list.by and list.asof and list.url:find("wowhead.com/forever/guide", 1, true), "source fields")
+                assert(ns.BiS.SourceText(list):find(list.by, 1, true), "title names the author")
+            end
+        end
+    end
+    eq(named, 24); eq(old, 4)
+    local aff = ns.BiSData.WARLOCK.Affliction
+    eq(aff.by, "Zephan")
+    eq(aff.slots[2].items[1].name, "Dark Advisor's Pendant")   -- shadow damage neck leads for Affliction
+end)
+
 test("bis: name from item link", function()
     eq(ns.BiS.NameFromLink("|cffa335ee|Hitem:12345::::::::60:::::|h[Robe of the Void]|h|r"), "Robe of the Void")
     eq(ns.BiS.NameFromLink(nil), nil)
@@ -255,15 +275,15 @@ test("bis: owned items, bag vs worn, step-up, one ring per slot", function()
     local list = ns.BiSData.WARLOCK.Demonology
     local owned = {
         ["Robe of the Void"] = "equipped",          -- chest BiS worn
-        ["Crimson Felt Hat"] = "bags",               -- head alt, not worn
+        ["Master's Hat of Shadow Wrath"] = "bags",   -- head alt under its other accepted suffix, not worn
         ["Rune Band of Wizardry"] = "equipped",      -- ring 1 BiS
     }
     local rows = ns.BiS.Evaluate(list, owned)
     local by = {}
     for _, r in ipairs(rows) do by[r.slot] = r end
     eq(by.Chest.gap, 0)
-    eq(by.Head.have.name, "Crimson Felt Hat"); eq(by.Head.where, "bags")
-    eq(by.Head.alt.name, "Deathmist Mask")      -- nearest better item
+    eq(by.Head.have.name, "Master's Hat of Magic"); eq(by.Head.where, "bags")
+    eq(by.Head.alt.name, "Crimson Felt Hat")    -- nearest better item
     eq(by["Ring 1"].score, 1)
     eq(by["Ring 2"].score, 0)
     assert(rows[1].gap >= rows[#rows].gap, "sorted by biggest upgrade first")

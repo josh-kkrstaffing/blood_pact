@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0
+
+- BiS Check: the pre-raid lists for 24 specs are rebuilt from the WoW Forever class guides on Wowhead, each written by a named guide author. The old lists came from sites that rank items automatically
+- The tab now says whose guide the list is from and when that guide was last updated
+- Example: Affliction Warlock now leads with shadow damage pieces (Dark Advisor's Pendant, Felcloth Gloves, "of Shadow Wrath" world drops) instead of Intellect pieces
+- Scores follow the guide's own labels: BiS 100%, Great 75%, Good 50%, Option 25%
+- World drops with a random suffix count under any suffix the guide accepts, for example "of Magic" or "of Shadow Wrath" for Demonology
+- Fury Warrior, Retribution Paladin, Assassination Rogue and Discipline Priest keep their earlier lists for now, marked "older auto-ranked list", because no guide list could be read for them yet
+- Your readiness score will change, because the lists changed
+
 ## 1.3.0
 
 - Professions: advertise your crafting in Trade chat. Open your own recipe list, press Link on up to four recipes, and "Post in Trade chat" sends a line such as "[Enchanting] 225/300 LFW in Undercity. Tips appreciated." with those recipes as clickable links

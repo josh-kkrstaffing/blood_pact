@@ -22,3 +22,21 @@ Horde twins: Theramore <shoulder> = Darkspear <shoulder>; Theramore Gloves/Gaunt
 NEXT: write rank.py -> BiSData.lua + sheet; then addon score + Raids column; fix screenshot layout (prog checkbox label overflow, scrollbar look).
 Warlock Demonology + Destruction: keep the earlier 6-7 guide rankings (work/demo.py DATA; Destro = sheet tab "Ranked: Destro Lock").
 Note: fs sources were edited to Horde (Darkspear Raiders / Warsong / Frostwolf / Defilers) where the page gave the Alliance faction.
+
+# 2026-11-23 rebuild (Blood Pact 1.4.0): Wowhead guides replace the generator sites
+Why: guild feedback that the lists were auto-generated slop (FrostyBoost / ForeverSpec / ConquestCapped rank by stat weights).
+Source now: Wowhead WoW Forever class guides, one named author per spec. URL pattern
+  https://www.wowhead.com/forever/guide/classes/<class>/<spec>/bis-gear  (feral: bis-gear-dps, bis-gear-tank).
+  WebFetch reads them, but only after the URL has shown up in a WebSearch result. Warlock pages are ~200k chars (3 offsets).
+Icy Veins WoW Forever gear pages: mostly empty slots on Nov 23, not used.
+Files: wowhead.txt (rows as copied), build.py (writes Modules/BiSData.lua), legacy/ (old lists kept for 4 specs).
+rank.py + raw/ + presets.json are the OLD pipeline; kept for history, no longer run.
+No list readable for: Fury Warrior (fetch returned an old placeholder copy; a search snippet shows the page now has a list
+  by Babyhoof: retry), Retribution Paladin, Assassination Rogue, Discipline Priest (pages only have tier set overviews).
+Score rule is ours: BiS 1 / Great 0.75 / Good 0.5 / Option 0.25, divided by the slot's best label.
+Edits made while copying: raid drops and PvP rank gear dropped; Horde name first with =Alliance name; rep sources list both
+  factions; Shadow Priest "Master's X" / "Tearfall Bracers" / "Emperor's Seal" given "of Shadow Wrath" (page prints no suffix);
+  Demonology "of {Magic,Shadow Wrath}" where the page accepts both builds; Demonology head rows 2-3 come from the page's prose;
+  Holy Priest and Balance "A / B" ring and trinket rows split into two rows; Feral Cat slots below Back come from the page's
+  overview table (its ranked tables there were empty); Paladin "Sentinel's Lamellar Legguards" Horde name is a guess by pattern.
+Not checked in game: that these item names match the live client exactly.
