@@ -260,6 +260,29 @@ function O.BuyText(rid)
     return price and O.Money(price) or nil
 end
 
+-- What a vendor pays for the finished item: the game's own sell price, or the
+-- one Auctionator has seen. nil when the recipe makes no item, the game hasn't
+-- loaded the item yet, or vendors won't buy it.
+function O.VendorPrice(rid)
+    local item = ns.Recipes.Output(rid)
+    if not item then return nil end
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    if type(get) == "function" then
+        local ok, _, _, _, _, _, _, _, _, _, _, sell = pcall(get, item)
+        if ok and type(sell) == "number" and sell > 0 then return sell end
+    end
+    if O.HasPrices() and Auctionator.API.v1.GetVendorPriceByItemID then
+        local ok, sell = pcall(Auctionator.API.v1.GetVendorPriceByItemID, "BloodPact", item)
+        if ok and type(sell) == "number" and sell > 0 then return sell end
+    end
+    return nil
+end
+
+function O.VendorText(rid)
+    local price = O.VendorPrice(rid)
+    return price and O.Money(price) or nil
+end
+
 -- One recipe's numbers in copper: cost = materials (nil when nothing has a
 -- price), partial = some materials have no price, buy = the finished item's
 -- auction price, net = buy - cost. net is only given when both are known and
@@ -273,7 +296,7 @@ function O.Numbers(rid)
     end
     local buy = O.BuyPrice(rid)
     local net = cost and buy and not partial and (buy - cost) or nil
-    return cost, partial or false, buy, net
+    return cost, partial or false, buy, net, O.VendorPrice(rid)
 end
 
 -- "+12s 5c" in green or "-3s" in red, or nil.
@@ -284,8 +307,8 @@ function O.NetText(rid)
     return "|cff40d060+" .. O.Money(net) .. "|r"
 end
 
--- Sort recipe rows ({ id, name }) in place. key = "name", "cost", "buy" or
--- "net"; numbers(id) -> cost, partial, buy, net. Rows with no number for the
+-- Sort recipe rows ({ id, name }) in place. key = "name", "cost", "buy", "net"
+-- or "vendor"; numbers(id) -> cost, partial, buy, net, vendor. Rows with no number for the
 -- column always go to the bottom; ties go by name.
 function O.SortRecipes(list, key, desc, numbers)
     local val = {}
@@ -293,8 +316,9 @@ function O.SortRecipes(list, key, desc, numbers)
         if key == "name" then
             val[r] = (r.name or ""):lower()
         else
-            local cost, _, buy, net = numbers(r.id)
-            val[r] = (key == "cost" and cost) or (key == "buy" and buy) or (key == "net" and net) or nil
+            local cost, _, buy, net, vendor = numbers(r.id)
+            val[r] = (key == "cost" and cost) or (key == "buy" and buy) or (key == "net" and net)
+                or (key == "vendor" and vendor) or nil
         end
     end
     table.sort(list, function(a, b)

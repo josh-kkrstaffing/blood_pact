@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.3
+
+- Professions: new Vendor column on the recipe lists, showing what a vendor pays for the finished item. It sorts like the other columns
+- Vendor is blank when the recipe makes no item or vendors won't buy it. It can take a moment to fill in the first time the game loads an item
+- The window is a little wider at its smallest on the Professions tab so the five columns fit
+
 ## 1.4.2
 
 - Professions: new Net Profit column on the recipe lists. It is Buy It Now minus Cost to Craft, green when you would make money and red when you would lose it

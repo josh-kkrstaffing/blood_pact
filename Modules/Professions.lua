@@ -335,7 +335,7 @@ local BAR_W = 130
 -- Sortable headers over a recipe list: Craft, Cost to Craft, Buy It Now, Net
 -- Profit. Both recipe lists share one sort. cols = { { key, x, width } }.
 local rSortKey, rSortDesc = "name", false
-local HEAD_TEXT = { name = "Craft", cost = "Cost to Craft", buy = "Buy It Now", net = "Net Profit" }
+local HEAD_TEXT = { name = "Craft", cost = "Cost to Craft", buy = "Buy It Now", net = "Net Profit", vendor = "Vendor" }
 local function recipeHeads(parent, cols, y)
     local heads = {}
     for i, c in ipairs(cols) do
@@ -468,14 +468,17 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
     p.who = W.Text(d, "", "GameFontNormalSmall")
     p.who:SetPoint("TOPLEFT", 282, -33)
     p.recipes = W.List(d, 480, 300, 18, function(row, r)
-        p.recipes.Col(row, 1, 8, 198):SetText(U.Safe(r.name, 80))
-        local cost = p.recipes.Col(row, 2, 210, 82, "RIGHT")
+        p.recipes.Col(row, 1, 8, 184):SetText(U.Safe(r.name, 80))
+        local cost = p.recipes.Col(row, 2, 196, 84, "RIGHT")
         cost:SetText(Orders.CostText(r.id, 1) or "")
         cost:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        local buy = p.recipes.Col(row, 3, 296, 82, "RIGHT")
+        local buy = p.recipes.Col(row, 3, 284, 78, "RIGHT")
         buy:SetText(Orders.BuyText(r.id) or "")
         buy:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        p.recipes.Col(row, 4, 382, 82, "RIGHT"):SetText(Orders.NetText(r.id) or "")
+        p.recipes.Col(row, 4, 366, 84, "RIGHT"):SetText(Orders.NetText(r.id) or "")
+        local vend = p.recipes.Col(row, 5, 454, 72, "RIGHT")
+        vend:SetText(Orders.VendorText(r.id) or "")
+        vend:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
         if not row.order then
             -- "Order" on the right of every recipe: picks it for the order bar below.
             row.order = W.Button(row, "Order", 54, 16, function()
@@ -506,7 +509,7 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         if own then row.link:SetText(ns.Advert.IsLinked(chosen, r.id) and "|cff40ff40Linked|r" or "Link") end
     end, function(r) picked = r.id; ns.UI.Refresh() end)
     p.recipes:Stretch(206, -72, 0, 100)
-    p.recipeHead = recipeHeads(d, { { "name", 208, 200 }, { "cost", 416, 84 }, { "buy", 502, 84 }, { "net", 588, 84 } }, -52)
+    p.recipeHead = recipeHeads(d, { { "name", 208, 186 }, { "cost", 402, 84 }, { "buy", 490, 78 }, { "net", 572, 84 }, { "vendor", 660, 72 } }, -52)
     p.recipes.key = "id"
 
     -- Under my own recipes: advertise in Trade chat.
@@ -723,13 +726,16 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         who:SetText(#r.crafters .. (#r.crafters == 1 and " crafter" or " crafters") .. (r.online > 0 and (", " .. r.online .. " online") or ""))
         local tone = r.online > 0 and W.C.text or W.C.muted
         who:SetTextColor(tone[1], tone[2], tone[3])
-        local cost = p.nRecipes.Col(row, 3, 284, 78, "RIGHT")
+        local cost = p.nRecipes.Col(row, 3, 284, 84, "RIGHT")
         cost:SetText(Orders.CostText(r.id, 1) or "")
         cost:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        local buy = p.nRecipes.Col(row, 4, 366, 78, "RIGHT")
+        local buy = p.nRecipes.Col(row, 4, 372, 78, "RIGHT")
         buy:SetText(Orders.BuyText(r.id) or "")
         buy:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        p.nRecipes.Col(row, 5, 448, 78, "RIGHT"):SetText(Orders.NetText(r.id) or "")
+        p.nRecipes.Col(row, 5, 454, 84, "RIGHT"):SetText(Orders.NetText(r.id) or "")
+        local vend = p.nRecipes.Col(row, 6, 542, 66, "RIGHT")
+        vend:SetText(Orders.VendorText(r.id) or "")
+        vend:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
         if not row.hooked then
             row.hooked = true
             row:SetScript("OnEnter", function(self)
@@ -742,7 +748,7 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
         end
     end, function(r) nPick, nWho = r.id, nil; ns.UI.Refresh() end)
     p.nRecipes:Stretch(206, -46, 0, 86)
-    p.nRecipeHead = recipeHeads(nf, { { "name", 208, 166 }, { "cost", 490, 78 }, { "buy", 572, 78 }, { "net", 654, 78 } }, -26)
+    p.nRecipeHead = recipeHeads(nf, { { "name", 208, 166 }, { "cost", 490, 84 }, { "buy", 578, 78 }, { "net", 660, 84 }, { "vendor", 748, 66 } }, -26)
     p.nRecipes.key = "id"
     p.nEmpty = W.Text(nf, "", "GameFontHighlightSmall")
     p.nEmpty:SetPoint("TOPLEFT", 214, -50)
@@ -1025,3 +1031,7 @@ end, function(p)
     p.sort:SetSort(ascending and "up" or "down")
     p.count:SetText(#rows .. (#rows == 1 and " member" or " members") .. " with " .. chosen)
 end)
+
+-- Five price columns need room: the window won't go narrower than this here.
+P.MIN_W = 850
+ns.UI.Need("profs", function() return nil, P.MIN_W end)

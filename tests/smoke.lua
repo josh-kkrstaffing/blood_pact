@@ -367,6 +367,7 @@ G.ITEM_QUALITY_COLORS = { [4] = { r = 0.64, g = 0.21, b = 0.93 } }
 G.GetItemInfo = function(id)
     if id == 1001 then return "Test Blade", "|cffa335ee|Hitem:1001|h[Test Blade]|h|r", 4, 60, 55, "Weapon", "Sword", 1, "INVTYPE_WEAPON", 135274 end
     if id == 1002 and itemsAsked[id] then return "Test Cloak", "|Hitem:1002|h[Test Cloak]|h", 2, 30, 25, "Armor", "Cloth", 1, "INVTYPE_CLOAK", 133762 end
+    if id == 6218 then return "Runed Copper Rod", "|Hitem:6218|h[Runed Copper Rod]|h", 1, 5, 1, "Trade Goods", "", 1, "", 135138, 124 end
     itemsAsked[id] = true
     return nil
 end
@@ -921,6 +922,9 @@ run(member, "browse and price", function()
         check(cost == 150 and partial == true and buy == nil and net == nil, "no Net Profit when a material has no price or nothing is made")
         check(ns.Orders.NetText(7418) == nil, "and the Net Profit cell stays blank")
     end
+    check(ns.Orders.VendorText(7421) == "1s 24c", "Vendor is what a vendor pays for the finished item")
+    check(ns.Orders.VendorText(7418) == nil, "no vendor price when the recipe makes no item")
+    check(select(5, ns.Orders.Numbers(7421)) == 124, "the vendor price is there to sort by")
     check(ns.Orders.BuyText(7418) == nil, "an enchant makes no item, so it has no Buy It Now price")
     check(ns.Orders.CostText(7418, 2) == "3s+", "material cost is estimated from Auctionator's prices, flagging what has no price")
     check(ns.Orders.CostText(7418, 2, true) == "Est. materials: 3s from Auctionator's last scan, plus 1 with no price.",
