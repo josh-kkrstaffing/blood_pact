@@ -156,7 +156,7 @@ def main():
                 L.append("    } },")
                 counts["wowhead"] += 1
             else:
-                body = open(os.path.join(HERE, "legacy", "%s_%s.lua" % (cls, key)), encoding="utf-8").read().rstrip("\n")
+                body = open(os.path.join(HERE, "legacy", "%s_%s.txt" % (cls, key)), encoding="utf-8").read().rstrip("\n")
                 L.append("    [%s] = { label = %s, guides = 1, old = %s, slots = {"
                          % (q(key), q(key + " " + CLASS_NAME[cls]), q(LEGACY_WHY[(cls, key)])))
                 L.append(body)
