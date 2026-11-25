@@ -78,6 +78,10 @@ function Red.Build(g)
         raids = {}, attendDays = {}, attendance = {}, raidNights = 0,
         members = {}, rosterLog = {}, tasks = {}, lastSeen = {}, gear = {}, profs = {}, recipes = {}, pvp = {}, orders = {},
         resets = resets,          -- [what] = the reset record now in force
+        kit = {},                 -- [guid] = { role, have, need, t }: their own kit count
+        kitChecks = {},           -- [day][guid] = { f, fd, w, e, t }: their own buffs at a ready check
+        kitRules = { hours = 3, charge = 30 },      -- the guild leader's answers; Team Captains and above change them
+        kitItems = {},            -- [list][item] = { on, mins, n }: changes to the built-in kit lists
         statics = {},             -- [captain] = { members = { [guid] = role }, n, name, capRole }
     }
     local signups, picks, attIdem, rosterIdem = {}, {}, {}, {}
@@ -160,6 +164,19 @@ function Red.Build(g)
         elseif k == "GEAR" then
             -- Each player reports their own; the latest one stands.
             st.gear[e.a] = { spec = d.spec, pre = d.pre, worn = d.worn, raid = d.raid, t = e.t }
+        elseif k == "KIT" then
+            st.kit[e.a] = { role = d.role, have = d.have, need = d.need, t = e.t }
+        elseif k == "KIT_CHECK" then
+            local day = st.kitChecks[d.day] or {}
+            st.kitChecks[d.day] = day
+            day[e.a] = { f = d.f, fd = d.fd, w = d.w, e = d.e, t = e.t }
+        elseif k == "KIT_RULE" then
+            if d.hours then st.kitRules.hours = d.hours end
+            if d.charge then st.kitRules.charge = d.charge end
+        elseif k == "KIT_ITEM" then
+            local list = st.kitItems[d.list] or {}
+            st.kitItems[d.list] = list
+            list[d.item] = { on = d.on, mins = d.mins, n = d.n }
         elseif k == "PROF" then
             st.profs[e.a] = { p1 = d.p1, l1 = d.l1, x1 = d.x1, p2 = d.p2, l2 = d.l2, x2 = d.x2,
                 fa = d.fa, xfa = d.xfa, ck = d.ck, xck = d.xck, fi = d.fi, xfi = d.xfi, t = e.t }

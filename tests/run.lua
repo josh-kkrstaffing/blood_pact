@@ -34,6 +34,7 @@ load("Modules/Recipes.lua")
 load("Modules/Orders.lua")
 load("Modules/Mail.lua")
 load("Modules/Professions.lua")
+load("Modules/Kit.lua")
 ns.Listen = function() end
 load("Modules/Advert.lua")
 load("Modules/Statics.lua")
@@ -317,6 +318,54 @@ test("orders: recipe sort by craft, cost, buy and net; blanks last either way", 
     eq(order("net", true), "1234")     -- best profit first; no number sinks, by name
     eq(order("net", false), "2134")
     eq(order("vendor", true), "2134"); eq(order("vendor", false), "1234")
+end)
+
+-- Raid Kit ------------------------------------------------------------------
+test("kit: bring enough for the raid; progression doubles potions and runes only", function()
+    local K = ns.Kit
+    eq(K.Need({ mins = 120 }, 3), 2); eq(K.Need({ mins = 30 }, 3), 6); eq(K.Need({ mins = 15 }, 3), 12)
+    eq(K.Need({ mins = 20 }, 3), 9); eq(K.Need({ mins = 30 }, 3, true), 6)
+    eq(K.Need({ n = 5 }, 3), 5); eq(K.Need({ n = 5 }, 3, true), 10); eq(K.Need({}, 3, true), nil)
+end)
+
+test("kit: list = built-in + captains' changes + this raid's extras", function()
+    local K = ns.Kit
+    eq(#K.List(nil, "tank"), 6); eq(#K.List(nil, "healer"), 9)
+    local st = { kitItems = {
+        tank = { ["Savory Turtle Stew"] = { on = false }, ["Greater Stoneshield Potion"] = { on = true, n = 4 },
+            ["Elixir of Greater Defense"] = { on = true, mins = 60 } },
+        [K.RaidKey("Onyxia's Lair")] = { ["Greater Fire Protection Potion"] = { on = true, n = 3 } },
+    } }
+    local list = K.List(st, "tank", "Hyjal Summit")
+    eq(#list, 6); eq(list[5].item, "Greater Stoneshield Potion"); eq(list[5].n, 4)
+    eq(list[6].item, "Elixir of Greater Defense"); eq(list[6].mins, 60)
+    list = K.List(st, "tank", "Onyxia's Lair")
+    eq(#list, 7); eq(list[7].item, "Greater Fire Protection Potion"); eq(list[7].slot, "This raid")
+    eq(#K.List(st, "healer", "Onyxia's Lair"), 10)       -- the raid's extras are for everyone
+    local held = { ["Flask of the Titans"] = 2, ["Greater Stoneshield Potion"] = 9, ["Greater Fire Protection Potion"] = 5 }
+    local rows, have, need = K.Evaluate(list, 3, true, function(n) return held[n] end)
+    eq(need, 7); eq(have, 2)                                -- flask, and 9 potions cover 4 x 2
+    eq(rows[7].need, 6); eq(rows[7].short, 1)               -- 3 doubled, 5 held
+end)
+
+test("kit: buffs, what is missing, the next raid and the ready-check rows", function()
+    local K = ns.Kit
+    local c = K.Classify({ "Well Fed", "Flask of the Titans", "Elixir of the Mongoose", "Winterfall Firewater", "Mark of the Wild" }, true)
+    eq(c.f, true); eq(c.fd, true); eq(c.w, true); eq(c.e, 2); eq(K.Missing(c), nil)
+    eq(K.Missing(K.Classify({}, false)), "flask and food"); eq(K.Missing(K.Classify({ "Well Fed" })), "flask"); eq(K.Missing(nil), nil)
+    local st = { raids = {
+        a = { at = 5000, signups = { me = { st = "no" } }, picked = {} },
+        b = { at = 90000, signups = { me = { st = "yes" } }, picked = {}, prog = true },
+        c = { at = 80000, signups = {}, picked = { me = "cap" }, cancelled = true },
+        d = { at = 95000, signups = {}, picked = { me = "cap" } },
+    }, kitChecks = { ["2026-12-09"] = { x = { f = true, fd = true, w = true, e = 2 }, y = { f = false, fd = true, w = true, e = 0 } },
+        ["2026-08-01"] = { x = { f = true, fd = true, w = true, e = 0 } } } }
+    eq(K.NextRaid(st, "me", 70000), st.raids.b); eq(K.NextRaid(st, "you", 70000), nil)
+    local rows = K.CheckRows(st, "2026-12-09", { "x", "y", "z" }, function(g) return g:upper() end)
+    eq(rows[1].guid, "y"); eq(rows[1].missing, "flask"); eq(rows[2].guid, "z"); eq(rows[2].check, nil); eq(rows[3].guid, "x")
+    local days = K.Days(st, "2026-12-10")
+    eq(#days, 1); eq(days[1], "2026-12-09")                 -- older than 90 days is not shown
+    assert(K.ScoreText({ have = 6, need = 6 }):find("kit 6/6", 1, true)); assert(K.ScoreText(nil):find("no kit yet", 1, true))
 end)
 
 -- Raids ---------------------------------------------------------------------

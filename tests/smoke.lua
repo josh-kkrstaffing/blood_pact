@@ -187,7 +187,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
     "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
     "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown",
-    "CharacterFrame", "PVPFrame", "PVPUIFrame", "IsInInstance" }) do
+    "CharacterFrame", "PVPFrame", "PVPUIFrame", "IsInInstance", "UnitBuff", "issecretvalue" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -256,6 +256,15 @@ G.InCombatLockdown = function() return COMBAT[ctx.guid] == true end
 G.UnitInRange = function(unit) return NEARBY[unitGuid(unit) or ""] == true, true end
 G.UnitChannelInfo = function(unit) return CHANNELING[unitGuid(unit) or ""] end
 G.UnitClass = function() return ctx.class, ctx.class end
+-- Raid Kit: what each player holds (bags and bank together), their buffs and weapon buff.
+local STOCK, AURAS, WEAPON_BUFF = {}, {}, {}
+G.GetItemCount = function(name, bank) return bank and (STOCK[ctx.guid] or {})[name] or 0 end
+G.C_UnitAuras = { GetAuraDataByIndex = function(unit, i)
+    if COMBAT[ctx.guid] then return nil end
+    local n = (AURAS[ctx.guid] or {})[i]
+    return n and { name = n } or nil
+end }
+G.GetWeaponEnchantInfo = function() return WEAPON_BUFF[ctx.guid] == true end
 G.UnitLevel = function() return ctx.level end
 -- Skills, served through a different game API for each player so that all
 -- three ways of reading them are exercised.
@@ -1958,6 +1967,75 @@ run(gm, "roster invite", function()
         "in a group you don't lead, the leader is asked with one whisper")
     GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
 end)
+
+-- Raid Kit: the guild's rules, a raider's own count, the ready check and the charge.
+run(member, "member kit", function()
+    local K = member.ns.Kit
+    K.SetRole("caster")
+    STOCK[member.guid] = { ["Flask of Supreme Power"] = 2, ["Lobster Stew"] = 12, ["Elixir of the Owl"] = 5, ["Major Mana Potion"] = 4 }
+    local rows, have, need = K.Mine()
+    check(#rows == 9 and have == 2 and need == 6, "a caster's kit: 6 timed items for a 3-hour raid, 2 fully stocked from bags and bank")
+    check(rows[3].need == 6 and rows[3].have == 5 and rows[3].short == 1, "30-minute elixirs: 6 for 3 hours, 1 short")
+    check(rows[8].need == nil, "potions have no number until a Team Captain sets one")
+    check(select(2, K.SaveRules(4, 30)) == "Only Team Captains and above can change the kit rules.", "a Member can't change the rules")
+    check(select(2, K.SetItem("caster", "Major Mana Potion", true, nil, 5)) == "Only Team Captains and above can change the kit list.",
+        "a Member can't change the list")
+end)
+run(officer, "kit rules", function()
+    local K = officer.ns.Kit
+    check(select(2, K.SetItem("caster", "Major Mana Potion", true, 30, 5)) == "Give minutes or a count, not both.", "minutes or a count")
+    assert(K.SetItem("caster", "Major Mana Potion", true, nil, 5))
+    assert(K.SetItem("caster", "Lobster Stew", false))
+    assert(K.SaveRules(4, 30))
+end)
+advance(8)
+run(member, "kit follows the rules", function()
+    local K = member.ns.Kit
+    local rows, have, need, raid = K.Mine()
+    local potions = (raid and raid.prog) and 10 or 5         -- doubled when the member's next raid is a progression night
+    check(#rows == 8 and need == 6 and have == 1, "the list and the 4-hour raid reach the member: stew gone, potions now counted")
+    check(rows[2].need == 4 and rows[7].item == "Major Mana Potion" and rows[7].need == potions and rows[7].short == potions - 4, "Bring follows the new hours and count")
+    K.Publish(true)
+    GROUPS[member.guid] = { gm.guid }
+    AURAS[member.guid] = { "Arcane Intellect", "Flask of Supreme Power", "Greater Arcane Elixir" }
+    COMBAT[member.guid] = true
+    fire(member, "READY_CHECK")
+end)
+advance(8)
+run(gm, "leader sees nothing from a player in combat", function()
+    local st = gm.ns.Reducer.State()
+    local day = gm.ns.Time.RaidDay(gm.ns.Now())
+    check(st.kit[MEMBER] and st.kit[MEMBER].have == 1 and st.kit[MEMBER].need == 6 and gm.ns.Kit.ScoreText(st.kit[MEMBER]):find("kit 1/6", 1, true),
+        "the member's kit count reaches the leaders")
+    check(not (st.kitChecks[day] and st.kitChecks[day][MEMBER]), "in combat the game hides buffs, so nothing is reported")
+end)
+run(member, "ready check", function()
+    COMBAT[member.guid] = nil
+    fire(member, "READY_CHECK")
+    fire(member, "READY_CHECK")
+end)
+advance(8)
+run(officer, "the ready check and the charge", function()
+    local K, st = officer.ns.Kit, officer.ns.Reducer.State()
+    local day = officer.ns.Time.RaidDay(officer.ns.Now())
+    local c = st.kitChecks[day] and st.kitChecks[day][MEMBER]
+    check(c and c.f == true and c.fd == false and c.w == false and c.e == 1, "a ready check reports the player's own flask, food, weapon buff and elixirs")
+    local rows = K.CheckRows(st, day, { officer.guid, MEMBER }, officer.ns.NameForGUID)
+    check(rows[1].guid == MEMBER and rows[1].missing == "food" and rows[2].check == nil, "missing food sorts first; no report is shown as such")
+    local before = officer.ns.Reducer.Balance(MEMBER)
+    assert(K.Charge(MEMBER))
+    K.Charge(MEMBER)
+    officer.kitBefore = before
+end)
+advance(8)
+run(gm, "one charge a night", function()
+    check(gm.ns.Reducer.Balance(MEMBER) == officer.kitBefore - 30, "the 30 DKP kit charge lands once per player per night")
+    GROUPS[member.guid], AURAS[member.guid] = nil, nil
+end)
+run(member, "member can't charge", function()
+    check(select(2, member.ns.Kit.Charge(gm.guid)) == "Only Officers and above can award DKP.", "only Officers and above can charge DKP")
+end)
+check(clickText(gm, "Raid Kit"), "the Raid Kit tab opens")
 
 -- Statics: a team is edited by its captain or an Officer, and everyone sees it.
 run(member, "member can't build a team", function()

@@ -214,7 +214,7 @@ function R.Summary(st, r)
         elseif s.st == "yes" then
             c.waiting = c.waiting + 1
         end
-        rows[#rows + 1] = { guid = guid, st = s.st, role = s.role, picked = picked, gear = st.gear and st.gear[guid] or nil,
+        rows[#rows + 1] = { guid = guid, st = s.st, role = s.role, picked = picked, gear = st.gear and st.gear[guid] or nil, kit = st.kit and st.kit[guid] or nil,
             showed = present and present[guid] or nil, name = ns.NameForGUID and ns.NameForGUID(guid) or guid }
     end
     -- Selected first, then signed up; within each the best-prepared first, so
@@ -337,6 +337,7 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             if r and ns.Calendar then ns.Calendar.Respond(r, b[2]) end
             -- Signing up shares your current readiness score with the leaders.
             if ok and b[2] ~= "no" and ns.BiS then ns.BiS.Publish(true) end
+            if ok and b[2] ~= "no" and ns.Kit then ns.Kit.Publish(true) end
         end)
         btn:SetPoint("TOPLEFT", 330 + (i - 1) * 64, -88)
         p.signButtons[i] = btn
@@ -348,7 +349,10 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         local g = s.gear
         local color = not g and "808080" or (g.pre >= 75 and "40ff40" or (g.pre >= 40 and "ffd100" or "ff6040"))
         p.people.Col(row, 3, 206, 100):SetText("|cff" .. color .. (g and (g.pre .. "%  " .. U.Safe(g.spec, 24)) or "no score yet") .. "|r")
-        p.people.Col(row, 4, 308, 50):SetText(s.showed and "|cff40ff40was there|r" or "")
+        -- The kit count is for Team Captains and above (and always your own).
+        local showKit = ns.Kit and (RBAC.ICan("schedule") or s.guid == ns.MyGUID())
+        p.people.Col(row, 4, 308, 60):SetText(showKit and ns.Kit.ScoreText(s.kit) or "")
+        p.people.Col(row, 5, 372, 60):SetText(s.showed and "|cff40ff40was there|r" or "")
         row:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:AddLine(U.Safe(s.name or "?", 40))

@@ -104,6 +104,25 @@ L.KINDS = {
         return str(d.spec, 1, 24) and isInt(d.pre, 0, 100) and isInt(d.worn, 0, 100)
             and (d.raid == nil or isInt(d.raid, 0, 100))
     end },
+    -- Raid Kit. KIT: a player's own count of kit items they hold enough of.
+    -- KIT_CHECK: a player's own buffs at a ready check. KIT_RULE and KIT_ITEM:
+    -- the guild's kit rules, set by Team Captains and above.
+    KIT = { "signup", function(d)
+        return str(d.role, 1, 12) and isInt(d.have, 0, 99) and isInt(d.need, 0, 99) and d.have <= d.need
+    end },
+    KIT_CHECK = { "signup", function(d)
+        return type(d.day) == "string" and d.day:match("^%d%d%d%d%-%d%d%-%d%d$") ~= nil
+            and type(d.f) == "boolean" and type(d.fd) == "boolean" and type(d.w) == "boolean" and isInt(d.e, 0, 20)
+    end },
+    KIT_RULE = { "schedule", function(d)
+        if d.hours == nil and d.charge == nil then return false end
+        return (d.hours == nil or isInt(d.hours, 1, 12)) and (d.charge == nil or isInt(d.charge, 0, 10000))
+    end },
+    KIT_ITEM = { "schedule", function(d)
+        return str(d.list, 1, 30) and str(d.item, 1, 48) and type(d.on) == "boolean"
+            and (d.mins == nil or isInt(d.mins, 1, 600)) and (d.n == nil or isInt(d.n, 1, 200))
+            and not (d.mins and d.n)
+    end },
     -- A player's own profession levels, read from their character.
     PROF = { "signup", function(d)
         local function lv(n) return n == nil or isInt(n, 0, 1000) end

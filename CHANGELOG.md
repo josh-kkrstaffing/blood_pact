@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0
+
+- New tab, Raid Kit: the consumables each raider is expected to bring, by role, built from the guild leader's rules
+- My kit: counts your bags and bank against the list and shows what you are short. A flask, elixirs, food and a weapon buff are counted to last the raid (3 hours unless changed)
+- Short of something a guildmate can craft? The Order button puts it on the Wanted board with the cost to craft beside it
+- Sign-ups show each raider's kit count to Team Captains and above, next to the BiS score
+- At a ready check each addon tells its own player what is missing and reports their flask, food, weapon buff and elixirs. The raid leader sees the list; it is not posted in raid chat. Reports are shown for 90 days
+- Officers and above can press "Charge 30 DKP" on a player with no flask or food. It lands once per player per night
+- Team Captains and above can change the raid hours, the DKP charge, the list for each role, how many potions and runes to carry, and extra items for one raid (fire protection for Onyxia, for example)
+- Progression nights double the potions and runes to carry
+- The game hides buffs in combat and gives addons no combat log, so a ready check in combat reports nothing and no potion use is logged
+
 ## 1.4.3
 
 - Professions: new Vendor column on the recipe lists, showing what a vendor pays for the finished item. It sorts like the other columns
