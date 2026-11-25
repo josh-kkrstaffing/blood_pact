@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1
+
+- Raids: Onyxia's Lair (40) is now a preset next to Barrow Deeps (10) and Hyjal Summit (20)
+- Raids screen laid out in the order you use it: pick a raid, your answer, then the roster, each under its own heading
+- Both lists have column headings (When, Raid, Spots; Name, Answer, Pre-raid BiS, Kit, Attended)
+- Leader tools are split into "New raid" and "Selected raid", and the second names the raid it acts on
+
 ## 1.5.0
 
 - New tab, Raid Kit: the consumables each raider is expected to bring, by role, built from the guild leader's rules

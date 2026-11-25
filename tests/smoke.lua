@@ -1690,7 +1690,7 @@ run(gm, "window fits the tab", function()
     local leader = fold(gm, "Schedule a raid and leader tools")
     if leader.open then leader:GetScript("OnClick")(leader, "LeftButton") end
     local w, h = UI.FitWindow()
-    check(w == math.max(UI.MIN_W, UI.tabStripW) and h == 132 + 58 + 30 + UI.CHROME_H and h < 500,
+    check(w == math.max(UI.MIN_W, UI.tabStripW) and h == 160 + 58 + 30 + UI.CHROME_H and h < 500,
         "with the leader tools folded, the Raids tab lets the window go well under its old 500, and never narrower than its tabs")
     frame:SetSize(w, h)                                            -- the player drags it down to the smallest
     leader:GetScript("OnClick")(leader, "LeftButton")              -- then opens the section

@@ -14,6 +14,7 @@ local date, time = date or os.date, time or os.time   -- WoW globals; os.* for t
 R.PRESETS = {
     { label = "Barrow Deeps", raid = "Barrow Deeps", size = 10 },
     { label = "Hyjal Summit", raid = "Hyjal Summit", size = 20 },
+    { label = "Onyxia's Lair", raid = "Onyxia's Lair", size = 40 },
 }
 R.ROLE_LABEL = { tank = "Tank", healer = "Healer", dps = "DPS" }
 R.STATUS_LABEL = { yes = "Signed up", maybe = "Maybe", no = "Can't" }
@@ -289,8 +290,27 @@ end
 
 
 ns.UI.AddTab("raids", "Raids", "view", function(p)
-    local h = W.Text(p, "Raids (shown in your PC's time)", "GameFontNormal")
+    -- The screen reads in the order you use it: pick a raid on the left, then
+    -- on the right the raid, your answer, and the roster. Leader tools fold
+    -- away at the bottom.
+    local function section(text, x, y)
+        local fs = W.Text(p, text, "GameFontNormalSmall")
+        fs:SetPoint("TOPLEFT", x, y)
+        return fs
+    end
+    local function colHead(text, x, y, w)
+        local fs = W.Text(p, text, "GameFontDisableSmall")
+        fs:SetPoint("TOPLEFT", x, y)
+        fs:SetWidth(w)
+        fs:SetJustifyH("LEFT")
+        fs:SetWordWrap(false)
+        return fs
+    end
+    local h = W.Text(p, "Raids", "GameFontNormal")
     h:SetPoint("TOPLEFT", 0, 0)
+    colHead("When (your PC's time)", 4, -18, 130)
+    colHead("Raid", 136, -18, 110)
+    colHead("Spots", 248, -18, 50)
     p.list = W.List(p, 300, 180, 18, function(row, r)
         local past = r.at < ns.Now() - 6 * 3600
         local c = R.Summary(Red.State(), r)
@@ -298,7 +318,7 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         p.list.Col(row, 2, 136, 110):SetText(U.Safe(r.title, 30))
         p.list.Col(row, 3, 248, 50):SetText(c.picked .. "/" .. r.size)
     end, function(r) selected = r.id; ns.UI.Refresh() end)
-    p.list.scroll:SetPoint("TOPLEFT", 0, -18)
+    p.list.scroll:SetPoint("TOPLEFT", 0, -34)
     p.list.key = "id"
 
     -- Right side: selected raid
@@ -314,10 +334,13 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
     p.when:SetWidth(360)
     p.when:SetWordWrap(false)
     p.counts = W.Text(p, "", "GameFontHighlightSmall")
-    p.counts:SetPoint("TOPLEFT", 330, -50)
-    p.counts:SetWidth(360)
+    p.counts:SetPoint("TOPLEFT", 380, -116)
+    p.counts:SetPoint("RIGHT", -4, 0)
+    p.counts:SetJustifyH("LEFT")
     p.counts:SetWordWrap(false)        -- one line, so it can't run into the line below
-    p.mine = W.Text(p, "", "GameFontNormalSmall")
+    p.answerHead = section("Your answer", 330, -54)
+    p.rosterHead = section("Roster", 330, -116)
+    p.mine = W.Text(p, "", "GameFontHighlightSmall")
     p.mine:SetPoint("TOPLEFT", 330, -68)
     p.mine:SetWidth(360)
     p.mine:SetWordWrap(false)
@@ -339,7 +362,7 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             if ok and b[2] ~= "no" and ns.BiS then ns.BiS.Publish(true) end
             if ok and b[2] ~= "no" and ns.Kit then ns.Kit.Publish(true) end
         end)
-        btn:SetPoint("TOPLEFT", 330 + (i - 1) * 64, -88)
+        btn:SetPoint("TOPLEFT", 330 + (i - 1) * 64, -84)
         p.signButtons[i] = btn
     end
     p.people = W.List(p, 360, 92, 16, function(row, s)
@@ -384,10 +407,12 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
     end)
     p.people.key = "guid"
     p.peopleHead = W.Text(p, "Sign-ups (the % is how much of their pre-raid BiS list they own)", "GameFontDisableSmall")
-    p.peopleHead:SetPoint("TOPLEFT", 334, -116)
-    p.peopleHead:SetWidth(356)
+    p.peopleHead:SetPoint("TOPLEFT", 330, -130)
+    p.peopleHead:SetWidth(380)
     p.peopleHead:SetWordWrap(false)
-    p.people.scroll:SetPoint("TOPLEFT", 330, -132)
+    p.peopleCols = { colHead("Name", 334, -146, 100), colHead("Answer", 436, -146, 98), colHead("Pre-raid BiS", 536, -146, 100),
+        colHead("Kit", 638, -146, 60), colHead("Attended", 702, -146, 60) }
+    p.people.scroll:SetPoint("TOPLEFT", 330, -160)
     p.people.scroll:SetHeight(76)
 
     -- Scheduling and leader tools (Team Captain and above) are used now and
@@ -398,17 +423,21 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         p.fold:ClearAllPoints()
         p.fold:SetPoint("BOTTOMLEFT", 0, can and (p.fold:Height() - 22) or 0)
         local below = can and (p.fold:Height() + 8) or 0
-        p.list:Stretch(0, -18, nil, below)
-        p.people:Stretch(330, -132, nil, below)
+        p.list:Stretch(0, -34, nil, below)
+        p.people:Stretch(330, -160, nil, below)
     end
-    p.fold = W.Accordion(p, "Schedule a raid and leader tools", 700, 122, "raidsLeader", function() p.place() end)
+    p.fold = W.Accordion(p, "Schedule a raid and leader tools", 700, 158, "raidsLeader", function() p.place() end)
     local s = CreateFrame("Frame", nil, p.fold.body)
-    s:SetPoint("TOPLEFT", 0, 20)            -- its first row sits 20 down, where the old heading was
-    s:SetSize(660, 140)
+    s:SetPoint("TOPLEFT", 0, 0)
+    s:SetSize(700, 158)
+    -- Two groups: make a new raid, then the tools for the raid picked above.
+    W.Text(s, "New raid", "GameFontNormalSmall"):SetPoint("TOPLEFT", 0, 0)
+    s.toolsHead = W.Text(s, "Selected raid", "GameFontNormalSmall")
+    s.toolsHead:SetPoint("TOPLEFT", 0, -98)
     p.sched = s
-    W.Text(s, "Title", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -24)
+    W.Text(s, "Title", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -22)
     s.titleBox = W.Edit(s, 150, 40)
-    s.titleBox:SetPoint("TOPLEFT", 40, -20)
+    s.titleBox:SetPoint("TOPLEFT", 40, -18)
     s.raid, s.size = nil, nil
     s.presetButtons = {}
     for i, pr in ipairs(R.PRESETS) do
@@ -417,19 +446,19 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             s.sizeBox:SetText(tostring(pr.size))
             for j, other in ipairs(s.presetButtons) do other:SetEnabled(j ~= i) end
         end)
-        b:SetPoint("TOPLEFT", 200 + (i - 1) * 134, -20)
+        b:SetPoint("TOPLEFT", 200 + (i - 1) * 134, -18)
         s.presetButtons[i] = b
     end
-    W.Text(s, "Date", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -52)
+    W.Text(s, "Date", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -50)
     s.dayBox = W.Edit(s, 90, 10)
-    s.dayBox:SetPoint("TOPLEFT", 40, -48)
+    s.dayBox:SetPoint("TOPLEFT", 40, -46)
     s.dayBox:SetText(date("%m/%d"))
-    W.Text(s, "Time", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 140, -52)
+    W.Text(s, "Time", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 140, -50)
     s.timeBox = W.Edit(s, 50, 5)
-    s.timeBox:SetPoint("TOPLEFT", 172, -48)
-    W.Text(s, "Size", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 232, -52)
+    s.timeBox:SetPoint("TOPLEFT", 172, -46)
+    W.Text(s, "Size", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 232, -50)
     s.sizeBox = W.Edit(s, 30, 2)
-    s.sizeBox:SetPoint("TOPLEFT", 262, -48)
+    s.sizeBox:SetPoint("TOPLEFT", 262, -46)
     s.create = W.Button(s, "Create raid", 100, 22, function()
         local e = ns.UI.Try("Raid scheduled.", R.Create, s.titleBox:GetText(), s.raid,
             s.dayBox:GetText(), s.timeBox:GetText(), s.sizeBox:GetText(), nil,
@@ -442,7 +471,7 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             if ns.Calendar then ns.Calendar.Add(Red.State().raids[e.id] or { title = e.d.title, raid = e.d.raid, at = e.d.at, prog = e.d.prog }) end
         end
     end, "accent")
-    s.create:SetPoint("TOPLEFT", 310, -48)
+    s.create:SetPoint("TOPLEFT", 310, -46)
     local zones = { { key = "LOCAL", label = "My PC time" } }
     for _, z in ipairs(ns.Time.ZONES) do zones[#zones + 1] = z end
     local function zoneIndex()
@@ -455,31 +484,31 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
         charStore().tz = zones[i].key
         s.zone:SetText(zones[i].label)
     end)
-    s.zone:SetPoint("TOPLEFT", 416, -48)
+    s.zone:SetPoint("TOPLEFT", 416, -46)
     s.zone:SetScript("OnShow", function() s.zone:SetText(zones[zoneIndex()].label) end)
     s.zone:SetText(zones[zoneIndex()].label)
     s.prog = W.Check(s, "Progression (boss kills pay progression DKP)")
-    s.prog:SetPoint("TOPLEFT", 0, -72)
-    W.Text(s, "Date like 12/9. Time like 8pm or 20:00. Click the zone button to change it.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 300, -76)
+    s.prog:SetPoint("TOPLEFT", 0, -70)
+    W.Text(s, "Date like 12/9. Time like 8pm or 20:00. Click the zone button to change it.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 300, -74)
     s.attend = W.Button(s, "Take attendance now", 160, 22, function()
         local e, n = R.TakeAttendance("manual")
         if e then ns.UI.Say(("Attendance taken: %d guild members."):format(n)) else ns.UI.Say(n or "That didn't work.") end
     end)
-    s.attend:SetPoint("TOPLEFT", 0, -100)
+    s.attend:SetPoint("TOPLEFT", 0, -114)
     s.cancel = W.Button(s, "Cancel selected raid", 160, 22)
     s.cancel:SetScript("OnClick", ns.UI.Confirm(s.cancel, function()
         if not selected then return end
         if ns.UI.Try("Raid cancelled.", R.Cancel, selected) then selected = nil end
     end))
-    s.cancel:SetPoint("TOPLEFT", 166, -100)
+    s.cancel:SetPoint("TOPLEFT", 166, -114)
     s.whisper = W.Button(s, "Whisper sign-ups", 140, 22, function()
         local r = Red.State() and Red.State().raids[selected]
         if not r then return end
         local n, why = R.WhisperSignups(r)
         ns.UI.Say(n and ("Whispered %d raiders."):format(n) or why)
     end)
-    s.whisper:SetPoint("TOPLEFT", 332, -100)
-    W.Text(s, "Boss kills take attendance on their own while you lead.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 0, -126)
+    s.whisper:SetPoint("TOPLEFT", 332, -114)
+    W.Text(s, "Boss kills take attendance on their own while you lead.", "GameFontDisableSmall"):SetPoint("TOPLEFT", 0, -140)
 end, function(p)
     local st = Red.State()
     local list = R.List(st, ns.Now())
@@ -503,20 +532,28 @@ end, function(p)
         p.when:SetText("")
         p.counts:SetText("")
         p.mine:SetText("")
+        p.answerHead:SetShown(false)
+        p.rosterHead:SetShown(false)
+        for _, fs in ipairs(p.peopleCols) do fs:SetShown(false) end
+        p.sched.toolsHead:SetText("Selected raid: none")
         p.peopleHead:SetShown(false)
         p.people:SetItems({})
         return
     end
     local c, rows = R.Summary(st, found)
+    p.answerHead:SetShown(true)
+    p.rosterHead:SetShown(true)
+    for _, fs in ipairs(p.peopleCols) do fs:SetShown(#rows > 0) end
+    p.sched.toolsHead:SetText("Selected raid: " .. U.Safe(found.title, 40))
     p.title:SetText(U.Safe(found.title, 40))
     p.info:SetText(U.Safe(found.raid, 30) .. " (" .. found.size .. ")  -  " .. (found.prog and "|cffff8040Progression|r" or "Farm")
         .. (found.n and ("  -  " .. U.Safe(found.n, 60)) or ""))
     p.when:SetText(R.When(found))
-    p.counts:SetText(("Selected %d/%d  (Tanks %d  Healers %d  DPS %d)   Waiting %d   Maybe %d   Can't %d"):format(
+    p.counts:SetText(("%d/%d selected   Tanks %d  Healers %d  DPS %d   Waiting %d  Maybe %d  Can't %d"):format(
         c.picked, found.size, c.sel.tank, c.sel.healer, c.sel.dps, c.waiting, c.maybe, c.no))
     p.peopleHead:SetShown(#rows > 0)
-    p.peopleHead:SetText(RBAC.ICan("schedule") and "Click a name to select or unselect them. The % is pre-raid BiS owned."
-        or "Sign-ups (the % is how much of their pre-raid BiS list they own)")
+    p.peopleHead:SetText(RBAC.ICan("schedule") and "Click a name to give them a spot or take it back."
+        or "A Team Captain or above selects who gets a spot.")
     local mine = found.signups[ns.MyGUID()]
     if not open then
         p.mine:SetText("This raid is over.")
@@ -577,7 +614,7 @@ end)
 -- Room the tab needs: the raid's details, a few sign-ups, and the leader
 -- tools, open or folded (Team Captain and above).
 ns.UI.Need("raids", function(p)
-    return 132 + 58 + (RBAC.ICan("schedule") and (p.fold:Height() + 8) or 0)
+    return 160 + 58 + (RBAC.ICan("schedule") and (p.fold:Height() + 8) or 0)
 end)
 
 -- A chat line when you are given a raid spot or it is taken back.
