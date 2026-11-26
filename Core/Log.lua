@@ -123,6 +123,17 @@ L.KINDS = {
             and (d.mins == nil or isInt(d.mins, 1, 600)) and (d.n == nil or isInt(d.n, 1, 200))
             and not (d.mins and d.n)
     end },
+    -- Raid Caller: one call-out in a boss plan. when = time (seconds after the
+    -- pull), hp (boss health %), stack, phase or call (when the leader says).
+    -- what = a built-in call-out's key, or text = the guild's own words.
+    CALL_CUE = { "schedule", function(d)
+        if not (str(d.boss, 1, 30) and str(d.id, 1, 12) and type(d.on) == "boolean") then return false end
+        if not d.on then return true end
+        local okWhen = (d.when == "time" and isInt(d.v, 0, 1800)) or (d.when == "hp" and isInt(d.v, 1, 99))
+            or (d.when == "stack" and isInt(d.v, 1, 99)) or (d.when == "phase" and isInt(d.v, 1, 9)) or (d.when == "call" and d.v == nil)
+        return okWhen and (str(d.what, 1, 16) or str(d.text, 1, 60)) and not (d.what and d.text)
+            and str(d.who, 1, 8) and (d.mark == nil or str(d.mark, 1, 8))
+    end },
     -- A player's own profession levels, read from their character.
     PROF = { "signup", function(d)
         local function lv(n) return n == nil or isInt(n, 0, 1000) end

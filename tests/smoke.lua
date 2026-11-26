@@ -265,6 +265,16 @@ G.C_UnitAuras = { GetAuraDataByIndex = function(unit, i)
     return n and { name = n } or nil
 end }
 G.GetWeaponEnchantInfo = function() return WEAPON_BUFF[ctx.guid] == true end
+-- Text to speech: what each player's computer was asked to say.
+local SPOKEN = {}
+G.C_VoiceChat = {
+    GetTtsVoices = function() return { { voiceID = 0, name = "Default voice" } } end,
+    SpeakText = function(voice, text, rate, volume)
+        assert(voice == 0 and rate == 0 and volume == 100, "the voice call uses the order that worked in the game")
+        SPOKEN[ctx.guid] = SPOKEN[ctx.guid] or {}
+        table.insert(SPOKEN[ctx.guid], text)
+    end,
+}
 -- The auction house: materials are bought in bulk in two steps, and arrive by mail.
 local AH_PRICE, MONEY, AH_BOUGHT, AH_PENDING = { [10940] = 150, [10938] = 400 }, {}, {}, {}
 G.GetMoney = function() return MONEY[ctx.guid] or 0 end
@@ -1988,6 +1998,64 @@ run(gm, "roster invite", function()
         "in a group you don't lead, the leader is asked with one whisper")
     GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
 end)
+
+-- Raid Caller: a captain builds a boss plan, every raider's own addon speaks it.
+run(member, "member can't build", function()
+    check(select(2, member.ns.Caller.Add("Onyxia", { when = "time", v = "10", what = "spread", who = "all" }))
+        == "Only Team Captains and above can change call-outs.", "a Member can't change call-outs")
+end)
+run(officer, "build a plan", function()
+    local C = officer.ns.Caller
+    check(select(2, C.Add("Onyxia", { when = "hp", v = "150", what = "p2", who = "all" })) == "Boss health must be 1 to 99 percent.", "health must be a percent")
+    check(select(2, C.Add("", { when = "call", what = "burn", who = "all" })) ~= nil, "a call-out needs a boss")
+    assert(C.Add("Onyxia", { when = "time", v = "5", what = "spread", who = "all" }))
+    assert(C.Add("Onyxia", { when = "time", v = "12", what = "swap", who = "tanks" }))
+    assert(C.Add("Onyxia", { when = "hp", v = "65", what = "p2", who = "all" }))
+    assert(C.Add("Onyxia", { when = "hp", v = "40", what = "move", who = "all", mark = "green" }))
+    assert(C.Add("Onyxia", { when = "stack", v = "5", text = "Bob taunts", who = "tanks" }))
+end)
+advance(8)
+run(member, "the plan runs on my own addon", function()
+    local C = member.ns.Caller
+    local st = member.ns.Reducer.State()
+    local rows = C.Rows(st.calls.Onyxia)
+    check(#rows == 5 and C.When(rows[1]) == "0:05" and C.When(rows[3]) == "At 65%" and C.Speech(rows[4]) == "Move to green"
+        and C.Speech(rows[5]) == "Tanks. Bob taunts", "the plan reaches the member in fight order")
+    member.ns.Kit.SetRole("caster")
+    SPOKEN[member.guid] = {}
+    GROUPS[member.guid] = { gm.guid }
+    fire(member, "ENCOUNTER_START", 1084, "onyxia", 9, 40)
+    check(C.run.boss == "Onyxia" and C.run.fighting, "the fight's name arms and starts the matching plan")
+end)
+advance(6)
+run(member, "timed call-outs", function()
+    local C = member.ns.Caller
+    check(#SPOKEN[member.guid] == 1 and SPOKEN[member.guid][1] == "Spread out", "a timed call-out is spoken at its second")
+    advance(8)
+    check(#SPOKEN[member.guid] == 1, "a tanks-only call-out isn't spoken to a caster")
+    local cue = C.Next()
+    check(cue and cue.v == 65 and SPOKEN[member.guid][2] == "Phase two", "a click says the next checklist call-out: health marks can't fire by themselves")
+    C.Next()
+    check(SPOKEN[member.guid][3] == "Move to green" and C.run.at == 3, "and moves down the checklist")
+    member.ns.Char().callerVoice = false
+    C.Next()
+    check(#SPOKEN[member.guid] == 3, "the voice box off means silence")
+    member.ns.Char().callerVoice = true
+    fire(member, "ENCOUNTER_END", 1084, "onyxia", 9, 40, 1)
+    check(not C.run.fighting and C.run.at == 1, "the end of the fight resets the plan")
+    C.Arm(nil)
+    GROUPS[member.guid] = nil
+end)
+run(officer, "remove a call-out", function()
+    local C = officer.ns.Caller
+    local rows = C.Rows(officer.ns.Reducer.State().calls.Onyxia)
+    assert(C.Remove("Onyxia", rows[1].id))
+end)
+advance(8)
+run(gm, "removed for everyone", function()
+    check(#gm.ns.Caller.Rows(gm.ns.Reducer.State().calls.Onyxia) == 4, "a removed call-out is gone for the guild")
+end)
+check(clickText(gm, "Call-outs"), "the Call-outs tab opens")
 
 -- Buying a recipe's materials: one material per pair of clicks, never more.
 run(gm, "materials window", function()

@@ -14,7 +14,7 @@ local frame, roleText, statusText, activeKey
 -- to the raid, run it and hand out loot, then see where everyone stands.
 -- Problems between players (Tickets) and the guild's rules come last. A tab
 -- the player's rank can't use is skipped.
-local TAB_ORDER = { recruit = 1, roster = 2, profs = 3, bis = 4, kit = 5, raids = 6, summon = 7, raid = 8, standings = 9, tickets = 10, settings = 11 }
+local TAB_ORDER = { recruit = 1, roster = 2, profs = 3, bis = 4, kit = 5, raids = 6, caller = 7, summon = 8, raid = 9, standings = 10, tickets = 11, settings = 12 }
 UI.TAB_ORDER = TAB_ORDER
 
 function UI.AddTab(key, label, action, build, refresh)

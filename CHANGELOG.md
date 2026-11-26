@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0
+
+- New tab, Call-outs: a Raid Caller that speaks boss call-outs with your computer's own text-to-speech voice
+- Team Captains and above build a plan per boss: when (seconds after the pull, boss health %, stacks, phase, or on the leader's call), what (a list of common call-outs by type, or your own words), who it is for, and a marker colour
+- Timed call-outs are spoken by themselves on every raider's own addon, counted from the pull
+- Health, stack and phase call-outs go on an on-screen checklist, because the game hides those numbers from addons. Click the overlay to hear the next one
+- Call-outs for tanks or healers are only spoken to them
+- Two boxes turn the voice and the overlay on or off. "Test voice" and "Hear it" let you check the sound; "How does this work?" explains it
+- Plans sync with the guild records before you enter the raid. Inside a raid the game doesn't let addons talk to each other
+
 ## 1.6.0
 
 - Professions: new Mats button on each recipe opens a "Buy materials" window

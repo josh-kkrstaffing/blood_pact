@@ -36,6 +36,7 @@ load("Modules/Mail.lua")
 load("Modules/Professions.lua")
 load("Modules/Shop.lua")
 load("Modules/Kit.lua")
+load("Modules/Caller.lua")
 ns.Listen = function() end
 load("Modules/Advert.lua")
 load("Modules/Statics.lua")
@@ -319,6 +320,32 @@ test("orders: recipe sort by craft, cost, buy and net; blanks last either way", 
     eq(order("net", true), "1234")     -- best profit first; no number sinks, by name
     eq(order("net", false), "2134")
     eq(order("vendor", true), "2134"); eq(order("vendor", false), "1234")
+end)
+
+-- Raid Caller ---------------------------------------------------------------
+test("caller: what is said, when, in what order, and to whom", function()
+    local C = ns.Caller
+    eq(C.Speech({ what = "swap", who = "tanks" }), "Tanks. Tank swap")
+    eq(C.Speech({ what = "move", who = "all", mark = "green" }), "Move to green")
+    eq(C.Speech({ what = "move", who = "all" }), "Move to the marker")
+    eq(C.Speech({ what = "spread", who = "healers", mark = "red" }), "Healers. Spread out, red marker")
+    eq(C.Speech({ text = "Hug the north wall", who = "all" }), "Hug the north wall")
+    eq(C.When({ when = "time", v = 95 }), "1:35"); eq(C.When({ when = "hp", v = 65 }), "At 65%")
+    eq(C.When({ when = "stack", v = 1 }), "At 1 stack"); eq(C.When({ when = "phase", v = 2 }), "Phase 2"); eq(C.When({ when = "call" }), "On call")
+    local plan = { a = { when = "hp", v = 40 }, b = { when = "time", v = 30 }, c = { when = "hp", v = 65 }, d = { when = "call" },
+        e = { when = "time", v = 5 }, f = { when = "stack", v = 5 }, g = { when = "phase", v = 2 } }
+    local timed, list = C.Split(plan)
+    eq(timed[1].id, "e"); eq(timed[2].id, "b")
+    eq(list[1].id, "c"); eq(list[2].id, "a"); eq(list[3].id, "g"); eq(list[4].id, "f"); eq(list[5].id, "d")
+    eq(#C.Rows(plan), 7); eq(C.Rows(plan)[1].id, "e")
+    eq(C.ForMe({ who = "all" }, "caster"), true); eq(C.ForMe({ who = "tanks" }, "tank"), true); eq(C.ForMe({ who = "tanks" }, "healer"), false)
+    eq(C.ForMe({ who = "healers" }, "healer"), true); eq(C.ForMe({ who = "dps" }, "agi"), true); eq(C.ForMe({ who = "dps" }, "tank"), false)
+    local st = { calls = { ["Onyxia"] = plan, ["Azgalor"] = {} } }
+    eq(C.Match(st, "ONYXIA"), "Onyxia"); eq(C.Match(st, "Rage Winterchill"), nil); eq(C.Match(st, nil), nil)
+    eq(C.Bosses(st)[1], "Azgalor")
+    for _, g in ipairs(C.GROUPS) do
+        for _, i in ipairs(g.items) do assert(#i[1] <= 16 and C.PHRASE[i[1]] == i[2]) end
+    end
 end)
 
 -- Buy materials -------------------------------------------------------------

@@ -82,6 +82,7 @@ function Red.Build(g)
         kitChecks = {},           -- [day][guid] = { f, fd, w, e, t }: their own buffs at a ready check
         kitRules = { hours = 3, charge = 30 },      -- the guild leader's answers; Team Captains and above change them
         kitItems = {},            -- [list][item] = { on, mins, n }: changes to the built-in kit lists
+        calls = {},               -- [boss][id] = { when, v, what, text, who, mark, t }: Raid Caller plans
         statics = {},             -- [captain] = { members = { [guid] = role }, n, name, capRole }
     }
     local signups, picks, attIdem, rosterIdem = {}, {}, {}, {}
@@ -177,6 +178,15 @@ function Red.Build(g)
             local list = st.kitItems[d.list] or {}
             st.kitItems[d.list] = list
             list[d.item] = { on = d.on, mins = d.mins, n = d.n }
+        elseif k == "CALL_CUE" then
+            local plan = st.calls[d.boss] or {}
+            st.calls[d.boss] = plan
+            if d.on then
+                plan[d.id] = { when = d.when, v = d.v, what = d.what, text = d.text, who = d.who, mark = d.mark, t = e.t }
+            else
+                plan[d.id] = nil
+                if next(plan) == nil then st.calls[d.boss] = nil end
+            end
         elseif k == "PROF" then
             st.profs[e.a] = { p1 = d.p1, l1 = d.l1, x1 = d.x1, p2 = d.p2, l2 = d.l2, x2 = d.x2,
                 fa = d.fa, xfa = d.xfa, ck = d.ck, xck = d.xck, fi = d.fi, xfi = d.xfi, t = e.t }
