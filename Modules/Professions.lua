@@ -504,6 +504,14 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
             end)
             row.link:SetPoint("RIGHT", -4, 0)
         end
+        -- "Mats": what this recipe needs, and buying it at the auction house.
+        if not row.mats then
+            row.mats = W.Button(row, "Mats", 44, 16, function()
+                if row.item and ns.Shop then ns.Shop.Open(row.item.id) end
+            end)
+            row.mats:SetPoint("RIGHT", -62, 0)
+        end
+        row.mats:SetShown(ns.Recipes.Reagents(r.id) ~= nil)
         local own = viewing == ns.MyGUID()
         row.link:SetShown(own)
         if own then row.link:SetText(ns.Advert.IsLinked(chosen, r.id) and "|cff40ff40Linked|r" or "Link") end
@@ -1033,5 +1041,5 @@ end, function(p)
 end)
 
 -- Five price columns need room: the window won't go narrower than this here.
-P.MIN_W = 850
+P.MIN_W = 900
 ns.UI.Need("profs", function() return nil, P.MIN_W end)

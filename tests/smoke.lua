@@ -265,6 +265,27 @@ G.C_UnitAuras = { GetAuraDataByIndex = function(unit, i)
     return n and { name = n } or nil
 end }
 G.GetWeaponEnchantInfo = function() return WEAPON_BUFF[ctx.guid] == true end
+-- The auction house: materials are bought in bulk in two steps, and arrive by mail.
+local AH_PRICE, MONEY, AH_BOUGHT, AH_PENDING = { [10940] = 150, [10938] = 400 }, {}, {}, {}
+G.GetMoney = function() return MONEY[ctx.guid] or 0 end
+G.C_AuctionHouse = {
+    GetItemCommodityStatus = function(item) return item == 10938 and 1 or 2 end,
+    StartCommoditiesPurchase = function(item, qty)
+        local c = ctx
+        AH_PENDING[c.guid] = { item = item, qty = qty }
+        addTimer(0.2, function() fire(c, "COMMODITY_PRICE_UPDATED", AH_PRICE[item], AH_PRICE[item] * qty) end)
+    end,
+    ConfirmCommoditiesPurchase = function(item, qty)
+        local c = ctx
+        local q = AH_PENDING[c.guid]
+        assert(q and q.item == item and q.qty == qty, "a purchase is confirmed only after its own price check")
+        AH_PENDING[c.guid] = nil
+        MONEY[c.guid] = MONEY[c.guid] - AH_PRICE[item] * qty
+        AH_BOUGHT[#AH_BOUGHT + 1] = { who = c.guid, item = item, qty = qty }
+        addTimer(0.2, function() fire(c, "COMMODITY_PURCHASE_SUCCEEDED") end)
+    end,
+    CancelCommoditiesPurchase = function() AH_PENDING[ctx.guid] = nil end,
+}
 G.UnitLevel = function() return ctx.level end
 -- Skills, served through a different game API for each player so that all
 -- three ways of reading them are exercised.
@@ -1966,6 +1987,47 @@ run(gm, "roster invite", function()
         and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Pip to the group? (sent with Blood Pact)" and #guildChat == tells + 1,
         "in a group you don't lead, the leader is asked with one whisper")
     GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
+end)
+
+-- Buying a recipe's materials: one material per pair of clicks, never more.
+run(gm, "materials window", function()
+    local S = gm.ns.Shop
+    MONEY[gm.guid] = 10000
+    STOCK[gm.guid] = { [10940] = 1 }
+    S.Open(7418)
+    check(S.SetCrafts("21") == nil and S.SetCrafts("0") == nil and S.SetCrafts("2.5") == nil and S.SetCrafts("5") == 5, "crafts: whole numbers 1 to 20")
+    local rows = S.Rows()
+    check(#rows == 2 and rows[1].need == 5 and rows[1].have == 1 and rows[1].buy == 4 and rows[2].need == 10 and rows[2].buy == 10,
+        "need = per craft x crafts; to buy = need minus bags and bank")
+    check(select(2, S.Quote(rows[1])) == "Open the auction house first.", "nothing happens away from the auction house")
+    fire(gm, "AUCTION_HOUSE_SHOW")
+    check(select(2, S.Confirm(rows[1])) == "Press Get price first.", "paying needs a price check first")
+    assert(S.Quote(rows[1]))
+    check(select(2, S.Quote(rows[2])) == "Still waiting for the auction house. One material at a time.", "one material at a time")
+end)
+advance(1)
+run(gm, "pay the quoted price", function()
+    local S = gm.ns.Shop
+    local rows, st = S.Rows(), S.State()
+    check(st.quote and st.quote.item == 10940 and st.quote.qty == 4 and st.quote.total == 600 and #AH_BOUGHT == 0, "the first click only asks the price")
+    local kind, text = S.ButtonFor(rows[1], st.quote, st.busy, true, true, 10000)
+    check(kind == "pay" and text == "Buy 6s", "the button then shows the real total")
+    check(S.ButtonFor(rows[1], st.quote, st.busy, true, true, 100) == "poor", "and won't pay with too little gold")
+    assert(S.Confirm(rows[1]))
+end)
+advance(1)
+run(gm, "bought once", function()
+    local S = gm.ns.Shop
+    local rows = S.Rows()
+    check(#AH_BOUGHT == 1 and AH_BOUGHT[1].item == 10940 and AH_BOUGHT[1].qty == 4 and MONEY[gm.guid] == 9400, "the second click buys that one material, once")
+    check(rows[1].buy == 0 and rows[1].have == 5, "what is in the mail counts as held, so it isn't bought twice")
+    STOCK[gm.guid][10940] = 5                                   -- collected from the mailbox
+    check(S.Rows()[1].have == 5, "and it isn't counted double once collected")
+    check(S.ButtonFor(rows[2], nil, nil, true, false, 9400) == "none", "an item the auction house doesn't sell in bulk gets no button")
+    S.SetCrafts("6")
+    check(S.Rows()[1].buy == 1 and S.State().quote == nil, "changing the number re-plans and drops any price check")
+    fire(gm, "AUCTION_HOUSE_CLOSED")
+    S.frame:Hide()
 end)
 
 -- Raid Kit: the guild's rules, a raider's own count, the ready check and the charge.

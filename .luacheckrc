@@ -10,6 +10,6 @@ read_globals = {
   "ChatFrameUtil", "ChatFrame_SendTell", "CreateFrame", "GetGuildInfo", "GetGuildRosterInfo",
   "GetNormalizedRealmName", "GetNumGroupMembers", "GetNumGuildMembers", "GetServerTime", "GetTime",
   "GetZoneText", "IsInGuild", "IsInRaid", "UIParent", "UISpecialFrames", "UnitGUID", "UnitIsGroupLeader",
-  "UnitName", "GetItemCount", "C_Item", "C_UnitAuras", "UnitBuff", "GetWeaponEnchantInfo", "issecretvalue", "InCombatLockdown", "IsInGroup", "date", "geterrorhandler", "hooksecurefunc", "tinsert", "wipe",
+  "UnitName", "C_AuctionHouse", "GetMoney", "GetItemCount", "C_Item", "C_UnitAuras", "UnitBuff", "GetWeaponEnchantInfo", "issecretvalue", "InCombatLockdown", "IsInGroup", "date", "geterrorhandler", "hooksecurefunc", "tinsert", "wipe",
 }
 files["tests/"] = { std = "lua51" }

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.0
+
+- Professions: new Mats button on each recipe opens a "Buy materials" window
+- Type how many you want to craft, 1 to 20. The window lists each material: needed, in your bags and bank, and still to buy, with an estimated total from Auctionator's last scan
+- At the auction house each material is bought with two clicks: Get price asks what that quantity costs at the lowest prices right now, then the button shows that total and a second click pays it
+- One material at a time. The game needs your own click for every purchase, so nothing is bought for you
+- What you just bought counts as held while it is in your mailbox, so it is not bought twice
+- "How does this work?" in the window explains the steps
+- Away from the auction house the window is a shopping list
+
 ## 1.5.1
 
 - Raids: Onyxia's Lair (40) is now a preset next to Barrow Deeps (10) and Hyjal Summit (20)

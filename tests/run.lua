@@ -34,6 +34,7 @@ load("Modules/Recipes.lua")
 load("Modules/Orders.lua")
 load("Modules/Mail.lua")
 load("Modules/Professions.lua")
+load("Modules/Shop.lua")
 load("Modules/Kit.lua")
 ns.Listen = function() end
 load("Modules/Advert.lua")
@@ -318,6 +319,29 @@ test("orders: recipe sort by craft, cost, buy and net; blanks last either way", 
     eq(order("net", true), "1234")     -- best profit first; no number sinks, by name
     eq(order("net", false), "2134")
     eq(order("vendor", true), "2134"); eq(order("vendor", false), "1234")
+end)
+
+-- Buy materials -------------------------------------------------------------
+test("shop: plan for 1 to 20 crafts, and what each button does", function()
+    local S = ns.Shop
+    eq(S.Crafts("1"), 1); eq(S.Crafts("20"), 20); eq(S.Crafts("21"), nil); eq(S.Crafts("0"), nil); eq(S.Crafts("x"), nil); eq(S.Crafts("3.5"), nil)
+    local have, price = { [1] = 3, [2] = 50 }, { [1] = 10, [3] = 7 }
+    local rows, total, unpriced = S.Plan({ { item = 1, n = 2 }, { item = 2, n = 1 }, { item = 3, n = 4 }, { item = 4, n = 1 } }, 20,
+        function(i) return have[i] end, function(i) return price[i] end, function(i) return i == 1 and "Ore" or nil end)
+    eq(rows[1].name, "Ore"); eq(rows[1].need, 40); eq(rows[1].buy, 37); eq(rows[1].est, 370)
+    eq(rows[2].buy, 0); eq(rows[2].est, nil)                 -- 50 held, 20 needed
+    eq(rows[3].name, "item 3"); eq(rows[3].buy, 80); eq(rows[4].buy, 20); eq(rows[4].each, nil)
+    eq(total, 370 + 560); eq(unpriced, 1)
+    eq(S.Held(3, nil), 3); eq(S.Held(3, { base = 3, qty = 4 }), 7); eq(S.Held(7, { base = 3, qty = 4 }), 7); eq(S.Held(9, { base = 3, qty = 4 }), 9)
+    local r = rows[1]
+    eq(S.ButtonFor(r, nil, nil, true, true, 0), "price")
+    eq(S.ButtonFor(r, nil, nil, false, true, 0), "none"); eq(S.ButtonFor(r, nil, nil, true, false, 0), "none")
+    eq(S.ButtonFor(rows[2], nil, nil, true, true, 0), "none")
+    eq(S.ButtonFor(r, nil, 1, true, true, 0), "wait")
+    eq(S.ButtonFor(r, { item = 1, qty = 37, total = 400 }, nil, true, true, 400), "pay")
+    eq(S.ButtonFor(r, { item = 1, qty = 37, total = 400 }, nil, true, true, 399), "poor")
+    eq(S.ButtonFor(r, { item = 1, qty = 36, total = 400 }, nil, true, true, 999), "price")   -- a quote for another amount is not used
+    assert(#S.HOWTO >= 6)
 end)
 
 -- Raid Kit ------------------------------------------------------------------
