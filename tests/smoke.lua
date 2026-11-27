@@ -2225,7 +2225,7 @@ GROUPS[officer.guid] = { raid = true, gm.guid, officer.guid }
 GROUPS[member.guid] = nil
 LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] = gm.guid, gm.guid, nil
 SPOKEN[gm.guid], SPOKEN[officer.guid], SPOKEN[member.guid] = {}, {}, {}
-local chatBefore = #guildChat
+local partyChatBefore = #guildChat
 run(officer, "party needs a leader", function()
     check(select(2, officer.ns.Party.Play("Take a drink!")) == "Only the raid leader and assists can press Party, the same as /rw.", "a raider who isn't leader or assist can't press Party")
 end)
@@ -2236,7 +2236,7 @@ end)
 run(gm, "party pressed", function()
     local P = gm.ns.Party
     assert(P.Next())
-    check(guildChat[#guildChat] == "RAID_WARNING:nil:Take a drink!" and #guildChat == chatBefore + 1, "the leader's press sends one raid warning")
+    check(guildChat[#guildChat] == "RAID_WARNING:nil:Take a drink!" and #guildChat == partyChatBefore + 1, "the leader's press sends one raid warning")
     check(SPOKEN[gm.guid][1] == "Take a drink!", "and speaks the line")
     check(select(2, P.Next()):find("^Give it %d+ more seconds"), "a cooldown stops it being spammed")
     assert(P.SetLine("  For the   Horde! ", true))
