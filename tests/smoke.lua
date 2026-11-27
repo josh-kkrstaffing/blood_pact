@@ -2281,7 +2281,23 @@ run(gm, "usable with Pawn", function()
     for _, r in ipairs(M.Rows()) do by[r.name] = r end
     check(by["Ornate Helm"] and by["Ornate Helm"].up.text == "+12% Pawn" and not by["Shadoweave Shoulders"], "with Pawn installed, Pawn decides what is an upgrade")
     G.PawnGetItemData, G.PawnIsItemAnUpgrade = nil, nil
+    -- The two boxes: BiS list, Usable gear, or both.
+    M.SetIdeal(false)
     M.SetUsable(false)
+    check(select(2, M.Scan()) == "Tick BiS list, Usable gear, or both.", "a scan needs at least one box ticked")
+    M.SetUsable(true)
+    AH_SEARCHES = {}
+    assert(M.Scan())
+end)
+advance(60)
+run(gm, "usable only", function()
+    local M = gm.ns.Market
+    local st, rows = M.State(), M.Rows()
+    check(not st.scanning and st.done.checked == 0 and st.done.usable == 3 and #AH_SEARCHES == 0, "with only Usable gear ticked the list items are not looked up")
+    check(#rows == 2 and rows[1].up.kind ~= "list" and rows[2].up.kind ~= "list" and M.LookedText(0, 3) == "3 kinds of usable gear", "and only usable gear is shown")
+    M.SetIdeal(true)
+    M.SetUsable(false)
+    check(M.Ideal() and not M.Usable(), "the boxes are remembered")
     fire(gm, "AUCTION_HOUSE_CLOSED")
 end)
 check(clickText(gm, "BiS Check") and clickText(gm, "Find upgrades for sale"), "the BiS Check tab opens the upgrade window")

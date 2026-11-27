@@ -23,7 +23,8 @@ M.HOWTO = {
     "1. Open the auction house, then press \"Find upgrades for sale\" on the BiS Check tab.",
     "2. Type the least and the most gold you want to pay for one item. Leave a box empty for no limit.",
     "3. Press Scan. Blood Pact looks up every item on your spec's list that ranks above what you own. It takes a moment: the auction house answers one search at a time.",
-    "4. Tick \"Usable gear too\" for affordable upgrades: greens and other gear you can equip that isn't on the list. Blood Pact knows which endings each class and spec wants: \"of Shadow Wrath\" for an Affliction Warlock or Shadow Priest, \"of Healing\" for healers, \"of the Tiger\" for a Fury Warrior, and so on. The line at the bottom of the window names yours. A green with one of those endings is listed when it is a higher item level than what you wear, or when what you wear there is neither on the list nor has one of those endings. Greens with any other ending are left out.",
+    "4. Two boxes choose what is scanned: \"BiS list\" and \"Usable gear\". Tick one or both. Usable gear alone is the quicker scan.",
+    "\"Usable gear\" finds affordable upgrades: greens and other gear you can equip that isn't on the list. Blood Pact knows which endings each class and spec wants: \"of Shadow Wrath\" for an Affliction Warlock or Shadow Priest, \"of Healing\" for healers, \"of the Tiger\" for a Fury Warrior, and so on. The line at the bottom of the window names yours. A green with one of those endings is listed when it is a higher item level than what you wear, or when what you wear there is neither on the list nor has one of those endings. Greens with any other ending are left out.",
     "Gear with no such ending, or a spec whose list names none, is judged by the Pawn addon's stat weights if Pawn is installed, and otherwise by item level in your class's armor type. Item level doesn't know which stats your spec wants, so read the tooltip before you buy.",
     "5. The list shows what is for sale in your gold range with the cheapest buyout for each. Click a column heading to sort; click it again to reverse.",
     "6. Click a row to show that item in the auction window. Press Buy to buy that one item at the price on the button, then collect it from your mailbox.",
@@ -55,6 +56,14 @@ function M.Range(minText, maxText)
     lo = lo or 0
     if hi and hi < lo then return nil, "The most you'll pay is below the least." end
     return lo, hi
+end
+
+-- "61 list items and 12 kinds of usable gear"
+function M.LookedText(listed, usable)
+    local parts = {}
+    if listed > 0 then parts[#parts + 1] = listed .. " list items" end
+    if usable > 0 then parts[#parts + 1] = usable .. " kinds of usable gear" end
+    return #parts > 0 and table.concat(parts, " and ") or "nothing"
 end
 
 function M.RangeText(lo, hi)
@@ -357,6 +366,9 @@ end
 
 function M.Usable() return prefs().marketUsable and true or false end
 function M.SetUsable(on) prefs().marketUsable = on and true or nil end
+-- The BiS list pass is on until the player unticks it.
+function M.Ideal() return prefs().marketNoBis ~= true end
+function M.SetIdeal(on) prefs().marketNoBis = (not on) and true or nil end
 
 function M.SortBy(key)
     if sortKey == key then sortDesc = not sortDesc else sortKey, sortDesc = key, (key ~= "slot" and key ~= "name" and key ~= "cost") end
@@ -630,8 +642,9 @@ function M.Scan()
     if not lo then return nil, why end
     local key, list = BiS.CurrentSpec()
     if not list then return nil, "Blood Pact has no list for your class yet." end
+    if not M.Ideal() and not M.Usable() then return nil, "Tick BiS list, Usable gear, or both." end
     local owned = BiS.Owned()
-    wantedNow = M.Wanted(list, owned)
+    wantedNow = M.Ideal() and M.Wanted(list, owned) or {}
     found, queryOf, extra, extraByName, bought, done, lastNote = {}, {}, {}, {}, {}, nil, nil
     -- The usable pass leaves out everything the list already covers, and what you own.
     local onList, listNames = {}, {}
@@ -828,12 +841,18 @@ local function build()
         refresh()
     end)
     f.scan:SetPoint("TOPLEFT", 284, -42)
-    f.usable = W.Check(f, "Usable gear too", function(on)
-        M.SetUsable(on)
-        lastNote = on and "Press Scan to look through usable gear as well." or nil
+    f.ideal = W.Check(f, "BiS list", function(on)
+        M.SetIdeal(on)
+        lastNote = "Press Scan to search again."
         refresh()
     end)
-    f.usable:SetPoint("TOPLEFT", 378, -45)
+    f.ideal:SetPoint("TOPLEFT", 378, -45)
+    f.usable = W.Check(f, "Usable gear", function(on)
+        M.SetUsable(on)
+        lastNote = "Press Scan to search again."
+        refresh()
+    end)
+    f.usable:SetPoint("TOPLEFT", 458, -45)
     f.help = W.Button(f, "How does this work?", 150, 22, function()
         helping = not helping
         refresh()
@@ -913,6 +932,7 @@ function M.Refresh()
     f.rows.scroll:SetShown(not helping)
     f.helpText:SetShown(helping)
     f.usable:SetChecked(M.Usable())
+    f.ideal:SetChecked(M.Ideal())
     f.scan:SetText(scan and "Stop" or "Scan")
     f.scan:SetEnabled(scan ~= nil or (isOpen and M.Supported() and list ~= nil and not buying))
     local lo, hi = M.MyRange()
@@ -933,13 +953,12 @@ function M.Refresh()
     elseif not isOpen then
         f.status:SetText("|cffff6040Open the auction house to scan.|r")
     elseif not done then
-        f.status:SetText("Set your gold range, then press Scan.")
+        f.status:SetText("Set your gold range, tick BiS list, Usable gear or both, then press Scan.")
     elseif #rows == 0 then
-        f.status:SetText(("Looked up %d list items%s. Nothing is for sale %s right now."):format(done.checked,
-            done.usable > 0 and (" and " .. done.usable .. " kinds of usable gear") or "", M.RangeText(lo, hi)))
+        f.status:SetText(("Looked up %s. Nothing is for sale %s right now."):format(M.LookedText(done.checked, done.usable), M.RangeText(lo, hi)))
     else
-        f.status:SetText(("%d for sale %s, from %d list items%s. Click a row to see it in the auction window."):format(#rows,
-            M.RangeText(lo, hi), done.checked, done.usable > 0 and (" and " .. done.usable .. " kinds of usable gear") or ""))
+        f.status:SetText(("%d for sale %s, from %s. Click a row to see it in the auction window."):format(#rows,
+            M.RangeText(lo, hi), M.LookedText(done.checked, done.usable)))
     end
     local ends = list and M.Endings(list, select(2, UnitClass("player")), specKey)
     f.foot:SetText(M.Usable() and (ends and ("Affordable = greens ending in: " .. U.Safe(M.EndingsText(ends), 70) .. ". Other gear: "

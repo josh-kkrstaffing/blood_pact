@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.1
+
+- Upgrades for sale: two boxes now choose what is scanned, "BiS list" and "Usable gear". Tick one or both
+- Usable gear alone skips the list lookups, so it is the quicker scan
+
 ## 1.9.0
 
 - Upgrades for sale: new "Usable gear too" box. Ticked, the scan also looks through greens and other gear you can equip that isn't on your BiS list
