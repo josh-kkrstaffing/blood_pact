@@ -403,74 +403,27 @@ test("market: gold range, what to look up, the cheapest auction and the buy butt
     assert(#M.HOWTO >= 6)
 end)
 
-test("market: usable gear, what counts as an upgrade, and sorting", function()
+test("market: usable gear is Pawn's call, and the list sorts by any column", function()
     local M = ns.Market
-    eq(M.ArmorType("WARRIOR", 60), 4); eq(M.ArmorType("WARRIOR", 39), 3); eq(M.ArmorType("SHAMAN", 40), 3); eq(M.ArmorType("HUNTER", 20), 2)
-    eq(M.ArmorType("DRUID", 60), 2); eq(M.ArmorType("WARLOCK", 60), 1)
-    assert(M.Fits("WARLOCK", 60, 4, 1, "INVTYPE_ROBE") and not M.Fits("WARLOCK", 60, 4, 4, "INVTYPE_HEAD"))
-    assert(not M.Fits("WARRIOR", 60, 4, 1, "INVTYPE_CHEST") and M.Fits("WARRIOR", 60, 4, 1, "INVTYPE_CLOAK"))   -- cloaks are cloth for everyone
-    assert(M.Fits("WARRIOR", 60, 4, 0, "INVTYPE_FINGER") and M.Fits("WARRIOR", 60, 4, 6, "INVTYPE_SHIELD") and M.Fits("MAGE", 60, 2, 7, "INVTYPE_WEAPON"))
+    eq(M.Verdict(0.214, 100).text, "+21% Pawn"); eq(M.Verdict(0.214, 100).kind, "pawn"); eq(M.Verdict(0.004, 100).text, "+0% Pawn")
+    eq(M.Verdict(100, 100).text, "Pawn: big upgrade"); eq(M.Verdict(250, nil).text, "+25000% Pawn")
+    eq(M.Verdict(0, 100), nil); eq(M.Verdict(false, 100), nil); eq(M.Verdict(nil, 100), nil)     -- not an upgrade, or Pawn can't say: not listed
 
-    local info = {
-        a = { equipLoc = "INVTYPE_HEAD", ilvl = 60, fits = true },  b = { equipLoc = "INVTYPE_HEAD", ilvl = 50, fits = true },
-        c = { equipLoc = "INVTYPE_CHEST", ilvl = 70, fits = false }, d = { equipLoc = "INVTYPE_FINGER", ilvl = 45, fits = true },
-        e = { equipLoc = "INVTYPE_BAG", ilvl = 90, fits = true },    f = { equipLoc = "INVTYPE_LEGS", ilvl = 58, fits = true },
-        g = { equipLoc = "INVTYPE_LEGS", fits = true } }
-    local worn = { [1] = 55, [5] = 40, [7] = 58, [11] = 50, [12] = 0 }
-    local function haveOf(slots)
-        local low
-        for _, sl in ipairs(slots) do if not low or (worn[sl] or 0) < low then low = worn[sl] or 0 end end
-        return low
-    end
-    local results = {}
-    for _, k in ipairs({ "a", "b", "c", "d", "e", "f", "g", "zz" }) do results[#results + 1] = { itemKey = k, minPrice = k == "a" and 900 or 100 } end
-    local function look(k) return info[k] end
-    local got = M.UsablePick(results, look, haveOf, nil, 10, false)
-    eq(#got, 2); eq(got[1].key, "d"); eq(got[1].slot, "Ring"); eq(got[1].have, 0); eq(got[1].gain, 45)   -- an empty ring slot counts as 0
-    eq(got[2].key, "a"); eq(got[2].gain, 5)                      -- lower item level, wrong armor, bags and unknown items left out
-    eq(#M.UsablePick(results, look, haveOf, 500, 10, false), 1)   -- nothing listed under the most you'll pay
-    got = M.UsablePick(results, look, haveOf, nil, 10, true)
-    eq(#got, 4)                                                  -- with stat weights: other armor and an equal item level are let through
-    eq(#M.UsablePick(results, look, haveOf, nil, 1, true), 1)
+    local ranked = M.UsableRank({ { key = "a", share = 0.1, price = 5 }, { key = "b", share = 0.5, price = 9 }, { key = "c", share = 0.5, price = 2 },
+        { key = "d", share = 0.3, price = 1 } }, 3)
+    eq(ranked[1].key .. ranked[2].key .. ranked[3].key, "cbd"); eq(#ranked, 3)       -- biggest first, cheapest among equals, capped
 
-    eq(M.Verdict(nil, 60, 55).text, "ilvl 60 over 55"); eq(M.Verdict(nil, 45, 0).text, "ilvl 45, slot empty"); eq(M.Verdict(nil, 55, 55), nil)
-    eq(M.Verdict(nil, nil, 0), nil)
-    -- Affordable upgrades: the spec's own list says which endings it wants.
-    eq(M.Tail("Master's Hat of Shadow Wrath"), "Shadow Wrath"); eq(M.Tail("Supreme Crown of the Tiger"), "Tiger"); eq(M.Tail("Eye of Rend"), nil)
-    local ends = M.Endings(ns.BiSData.WARLOCK.Affliction, "WARLOCK", "Affliction")
-    eq(M.EndingsText(ends), "Shadow Wrath")                           -- and nothing else: not Power from "Hands of Power", not the Eagle
-    eq(M.EndingsText(M.Endings(ns.BiSData.PRIEST.Shadow, "PRIEST", "Shadow")), "Shadow Wrath")
-    eq(M.EndingsText(M.Endings(ns.BiSData.PRIEST.Holy, "PRIEST", "Holy")), "Healing")
-    eq(M.EndingsText(M.Endings(ns.BiSData.MAGE.Frost, "MAGE", "Frost")), "Frozen Wrath")
-    assert(M.Endings(ns.BiSData.WARLOCK.Demonology, "WARLOCK", "Demonology").Magic, "an ending the spec's guide names on a world drop is added")
-    assert(M.Endings(ns.BiSData.WARRIOR.Fury, "WARRIOR", "Fury").Tiger and not M.Endings(ns.BiSData.WARRIOR.Fury, "WARRIOR", "Fury")["Shadow Wrath"])
-    for class, lists in pairs(ns.BiSData) do
-        for key, l in pairs(lists) do
-            local e = M.Endings(l, class, key)
-            assert(e, class .. " " .. key .. " has wanted endings")
-            for tail in pairs(e) do assert(M.Tail("X of " .. tail) or M.Tail("X of the " .. tail), tail .. " is a real ending") end
-        end
-    end
-    eq(M.Endings({ slots = { { slot = "Head", items = { { name = "Lionheart Helm" } } } } }, "NOPE", "x"), nil)
-    eq(M.Verdict(nil, 50, 40, "Shadow Wrath", ends, false).text, "Shadow Wrath, ilvl 50"); eq(M.Verdict(nil, 50, 40, "Shadow Wrath", ends, false).kind, "match")
-    eq(M.Verdict(nil, 90, 10, "Whale", ends, true), nil)              -- the wrong ending is never an upgrade, however high its item level
-    eq(M.Verdict(0.5, 90, 10, "Whale", ends, true), nil)
-    eq(M.Verdict(nil, 40, 55, "Shadow Wrath", ends, false), nil)       -- lower item level than a piece that is already right for the spec
-    eq(M.Verdict(nil, 40, 55, "Shadow Wrath", ends, true).kind, "match")   -- but it beats a piece that is wrong for the spec
-    eq(M.Verdict(nil, 60, 55, nil, ends, false).kind, "ilvl")          -- no ending: the old rules
-    eq(M.Verdict(nil, 60, 55, "Whale", nil, false).kind, "ilvl")       -- a spec whose list names no endings: the old rules
-    got = M.UsablePick(results, look, haveOf, nil, 10, false, function(slots) return slots[1] == 7 end)
-    eq(#got, 3); eq(got[3].key, "f"); eq(got[3].open, true)            -- an open slot lets an equal item level through for a closer look
-    eq(M.Verdict(0.124, 40, 55).text, "+12% Pawn"); eq(M.Verdict(0.124, 40, 55).kind, "pawn"); eq(M.Verdict(0, 90, 10), nil)   -- Pawn's word beats item level
+    eq(M.MorePages(true, 10, 5, nil, 100), false)       -- the auction house has no more
+    eq(M.MorePages(false, 100, 5, nil, 100), false)     -- enough read
+    eq(M.MorePages(false, 50, 600, 500, 100), false)    -- cheapest first: prices have passed the most you'll pay
+    eq(M.MorePages(false, 50, 400, 500, 100), true); eq(M.MorePages(false, 50, 400, nil, 100), true); eq(M.MorePages(false, 0, nil, 500, 100), true)
+    assert(M.EQUIP.INVTYPE_HOLDABLE[1] == "Off hand" and M.EQUIP.INVTYPE_ROBE[1] == "Chest" and M.EQUIP.INVTYPE_BAG == nil)
 
     local rows = {
         { id = 1, name = "Cowl", slot = "Head", score = 1, have = 0.5, buyout = 500, up = { kind = "list", value = 0.5 } },
-        { id = 2, name = "Band", slot = "Ring", buyout = 100, up = { kind = "ilvl", value = 45 } },
+        { id = 2, name = "Band", slot = "Ring", buyout = 100, up = { kind = "pawn", value = 0.05 } },
         { id = 3, name = "Amice", slot = "Shoulder", score = 0.5, have = 0, buyout = 900, up = { kind = "list", value = 0.5 } },
         { id = 4, name = "Drape", slot = "Back", buyout = 300, up = { kind = "pawn", value = 0.12 } } }
-    local tiers = M.Sort({ { name = "A", up = { kind = "ilvl", value = 90 } }, { name = "B", up = { kind = "match", value = 30 } },
-        { name = "C", up = { kind = "list", value = 0.25 } }, { name = "D", up = { kind = "pawn", value = 2 } } }, "up", true)
-    eq(tiers[1].name .. tiers[2].name .. tiers[3].name .. tiers[4].name, "CBDA")   -- ideal, affordable, Pawn, item level
     local function order(key, desc)
         local out = {}
         for i, r in ipairs(M.Sort(rows, key, desc)) do out[i] = r.name end
@@ -480,7 +433,7 @@ test("market: usable gear, what counts as an upgrade, and sorting", function()
     eq(order("name", false), "Amice,Band,Cowl,Drape"); eq(order("slot", true), "Amice,Band,Cowl,Drape")
     eq(order("score", true), "Cowl,Amice,Band,Drape"); eq(order("score", false), "Amice,Cowl,Band,Drape")   -- rows without a list score stay last
     eq(order("have", true), "Cowl,Amice,Band,Drape")
-    eq(order("up", true), "Amice,Cowl,Drape,Band"); eq(order("up", false), "Band,Drape,Amice,Cowl")       -- list, then Pawn, then item level
+    eq(order("up", true), "Amice,Cowl,Drape,Band"); eq(order("up", false), "Band,Drape,Amice,Cowl")       -- list items, then Pawn's biggest
 end)
 
 -- Buy materials -------------------------------------------------------------

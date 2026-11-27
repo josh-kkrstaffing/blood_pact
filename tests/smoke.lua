@@ -188,7 +188,7 @@ for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerN
     "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
     "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown",
     "CharacterFrame", "PVPFrame", "PVPUIFrame", "IsInInstance", "UnitBuff", "issecretvalue",
-    "PawnGetItemData", "PawnIsItemAnUpgrade" }) do
+    "PawnGetItemData", "PawnIsItemAnUpgrade", "PawnIsReady", "PawnCanItemHaveStats", "PawnBigUpgradeThreshold" }) do
     OPTIONAL[n] = true
 end
 local unknownGlobals = {}
@@ -310,30 +310,46 @@ local AH_GEAR = {
         { id = 505, name = "Master's Mantle of Magic", buyout = 10000, mine = true } } },
     { key = { itemID = 2002 }, file = "Argent Shoulders", auctions = { { id = 510, name = "Argent Shoulders", buyout = 1200000 } } },
 }
--- Usable gear that is on no list. The auction house hands it over in two pages.
+-- Usable gear that is on no list, cheapest first. The auction house hands it over in two pages.
 local AH_USABLE = {
-    { key = { itemID = 3001 }, file = "Shadoweave Shoulders", loc = "INVTYPE_SHOULDER", sub = 1, ilvl = 50, auctions = { { id = 601, name = "Shadoweave Shoulders", buyout = 30000 } } },
-    { key = { itemID = 3002 }, file = "Ornate Helm", loc = "INVTYPE_HEAD", sub = 4, ilvl = 60, auctions = { { id = 602, name = "Ornate Helm", buyout = 20000 } } },
-    { key = { itemID = 3003 }, file = "Plain Robe", loc = "INVTYPE_ROBE", sub = 1, ilvl = 55, auctions = { { id = 603, name = "Plain Robe", buyout = 20000 } } },
-    { key = { itemID = 3004 }, file = "Gold Ring", loc = "INVTYPE_FINGER", sub = 0, ilvl = 40, price = 90000000, auctions = { { id = 604, name = "Gold Ring", buyout = 90000000 } } },
-    { key = { itemID = 3005, itemLevel = 45 }, file = "Wanderer's Cloak", loc = "INVTYPE_CLOAK", sub = 1, auctions = {
-        { id = 605, name = "Wanderer's Cloak of Magic", buyout = 20000 }, { id = 606, name = "Wanderer's Cloak of Magic", buyout = 15000 },
-        { id = 607, name = "Wanderer's Cloak of the Whale", buyout = 100 } } },
-    { key = { itemID = 2002 }, file = "Argent Shoulders", loc = "INVTYPE_SHOULDER", sub = 1, ilvl = 61 },
+    { key = { itemID = 3001 }, file = "Shadoweave Shoulders", loc = "INVTYPE_SHOULDER", price = 30000, auctions = { { id = 601, name = "Shadoweave Shoulders", buyout = 30000 } } },
+    { key = { itemID = 3002 }, file = "Raincaller Scepter", loc = "INVTYPE_HOLDABLE", price = 13700, auctions = { { id = 602, name = "Raincaller Scepter of the Elder", buyout = 13700 } } },
+    { key = { itemID = 3003 }, file = "Plain Robe", loc = "INVTYPE_ROBE", price = 20000, auctions = { { id = 603, name = "Plain Robe", buyout = 20000 } } },
+    { key = { itemID = 3006 }, file = "Slow Ring", loc = "INVTYPE_FINGER", price = 25000, auctions = { { id = 608, name = "Slow Ring", buyout = 25000 } } },
+    { key = { itemID = 3005 }, file = "Wanderer's Cloak", loc = "INVTYPE_CLOAK", price = 15000, auctions = {
+        { id = 605, name = "Wanderer's Cloak of Magic", buyout = 20000 }, { id = 606, name = "Wanderer's Cloak of Magic", buyout = 15000 } } },
+    { key = { itemID = 2002 }, file = "Argent Shoulders", loc = "INVTYPE_SHOULDER", price = 1200000 },
+    { key = { itemID = 3004 }, file = "Gold Ring", loc = "INVTYPE_FINGER", price = 90000000, auctions = { { id = 604, name = "Gold Ring", buyout = 90000000 } } },
+    { key = { itemID = 3007 }, file = "Never Read", loc = "INVTYPE_HEAD", price = 95000000, auctions = { { id = 609, name = "Never Read", buyout = 95000000 } } },
 }
 for _, g in ipairs(AH_GEAR) do if g.key.itemID == 2002 then AH_USABLE[6].key, AH_USABLE[6].auctions = g.key, g.auctions end end
-local AH_PAGES, AH_SHOWN = {}, {}
+local AH_PAGES, AH_SHOWN, AH_MORE = {}, {}, 0
 G.GetItemInfoInstant = function(id)
-    for _, g in ipairs(AH_USABLE) do if g.key.itemID == id then return id, "Armor", "", g.loc, 1, 4, g.sub end end
-end
-G.GetDetailedItemLevelInfo = function(item)
-    if type(item) == "string" then return item:find("Robe of the Void", 1, true) and 62 or nil end
-    for _, g in ipairs(AH_USABLE) do if g.key.itemID == item then return g.ilvl end end
+    for _, g in ipairs(AH_USABLE) do if g.key.itemID == id then return id, "Armor", "", g.loc, 1, 4, 1 end end
 end
 G.AuctionHouseFrameDisplayMode = { Buy = {} }
 G.AuctionHouseFrame = { SetDisplayMode = function() end, SearchBar = {
     SearchBox = { SetText = function(_, text) AH_SHOWN[#AH_SHOWN + 1] = text end },
     StartSearch = function() AH_SHOWN.started = (AH_SHOWN.started or 0) + 1 end } }
+-- Pawn, as its own code and another WoW Forever addon use it. It knows the stats; the fake knows the answers.
+-- "Slow Ring" isn't loaded the first time Pawn is asked.
+local PAWN_SAYS = { ["Shadoweave Shoulders"] = 0.214, ["Wanderer's Cloak of Magic"] = 100, ["Slow Ring"] = 0.05, ["Argent Shoulders"] = 0.9 }
+local PAWN_ASKED, PAWN_SLOW = {}, {}
+local function installPawn()
+    G.PawnBigUpgradeThreshold = 100
+    G.PawnIsReady = function() return true end
+    G.PawnCanItemHaveStats = function(link) return link ~= nil end
+    G.PawnGetItemData = function(link)
+        local name = link:match("%[(.-)%]")
+        PAWN_ASKED[name] = (PAWN_ASKED[name] or 0) + 1
+        if name == "Slow Ring" and not PAWN_SLOW[1] then PAWN_SLOW[1] = true; return nil end
+        return { Link = link, name = name }
+    end
+    G.PawnIsItemAnUpgrade = function(item)
+        local share = PAWN_SAYS[item.name]
+        return share and { { ScaleName = "Warlock: Affliction", PercentUpgrade = share } } or nil
+    end
+end
 local AH_BROWSE, AH_SEARCHES, AH_BIDS = {}, {}, {}
 local function gearByKey(key)
     for _, g in ipairs(AH_GEAR) do if g.key == key then return g end end
@@ -345,8 +361,9 @@ G.C_AuctionHouse.SendBrowseQuery = function(q)
     local c, out = ctx, {}
     if q.itemClassFilters then
         assert(q.searchString == "" and q.filters[1] == G.Enum.AuctionHouseFilter.UsableOnly and #q.itemClassFilters == 2, "the usable pass asks for usable weapons and armor")
-        for i = 1, 4 do out[i] = { itemKey = AH_USABLE[i].key, minPrice = AH_USABLE[i].price or 1 } end
-        AH_BROWSE[c.guid], AH_PAGES[c.guid] = out, 1
+        assert(q.sorts[1] and q.sorts[1].sortOrder == G.Enum.AuctionHouseSortOrder.Price, "cheapest first")
+        for i = 1, 4 do out[i] = { itemKey = AH_USABLE[i].key, minPrice = AH_USABLE[i].price } end
+        AH_BROWSE[c.guid], AH_PAGES[c.guid] = out, 4
         addTimer(0.2, function() fire(c, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED") end)
         return
     end
@@ -357,12 +374,20 @@ G.C_AuctionHouse.SendBrowseQuery = function(q)
     AH_SEARCHES[#AH_SEARCHES + 1] = q.searchString
     addTimer(0.2, function() fire(c, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED") end)
 end
-G.C_AuctionHouse.HasFullBrowseResults = function() return AH_PAGES[ctx.guid] ~= 1 end
+G.C_AuctionHouse.HasFullBrowseResults = function() return (AH_PAGES[ctx.guid] or #AH_USABLE) >= #AH_USABLE end
 G.C_AuctionHouse.RequestMoreBrowseResults = function()
     local c = ctx
-    for i = 5, #AH_USABLE do table.insert(AH_BROWSE[c.guid], { itemKey = AH_USABLE[i].key, minPrice = 1 }) end
-    AH_PAGES[c.guid] = 2
+    local from = AH_PAGES[c.guid] + 1
+    for i = from, math.min(from + 2, #AH_USABLE) do
+        table.insert(AH_BROWSE[c.guid], { itemKey = AH_USABLE[i].key, minPrice = AH_USABLE[i].price })
+        AH_PAGES[c.guid] = i
+    end
+    AH_MORE = AH_MORE + 1
     addTimer(0.2, function() fire(c, "AUCTION_HOUSE_BROWSE_RESULTS_ADDED", {}) end)
+end
+G.C_AuctionHouse.GetItemKeySampleLink = function(key)
+    local g = gearByKey(key)
+    return g and g.auctions and gearLink(g.auctions[1].name) or nil
 end
 G.C_AuctionHouse.GetBrowseResults = function() return AH_BROWSE[ctx.guid] or {} end
 G.C_AuctionHouse.GetItemKeyInfo = function(key) local g = gearByKey(key); return g and { itemName = g.file } or nil end
@@ -2237,13 +2262,25 @@ run(gm, "upgrade bought once", function()
     fire(gm, "AUCTION_HOUSE_CLOSED")
     M.frame:Hide()
 end)
--- The "Usable gear too" box: gear on no list, judged by item level, or by Pawn when it is installed.
-run(gm, "usable scan", function()
+-- The "Usable gear" box: gear on no list, judged by the Pawn addon and nothing else.
+run(gm, "usable needs Pawn", function()
     local M = gm.ns.Market
     MONEY[gm.guid] = 3000000
     fire(gm, "AUCTION_HOUSE_SHOW")
     M.SetRange("", "50")
     M.SetUsable(true)
+    M.SetIdeal(false)
+    check(not M.PawnInstalled() and select(2, M.Scan()) == "Usable gear needs the Pawn addon. Install Pawn, then type /reload.", "without Pawn the usable scan says so and guesses nothing")
+    M.SetIdeal(true)
+    assert(M.Scan())
+end)
+advance(120)
+run(gm, "list only without Pawn", function()
+    local M = gm.ns.Market
+    local st = M.State()
+    check(not st.scanning and st.done.usable == 0 and st.note == "BiS list scanned. Usable gear was skipped: it needs the Pawn addon." and #M.Rows() == 1,
+        "with both boxes ticked and no Pawn, the list is still scanned")
+    installPawn()
     assert(M.Scan())
 end)
 advance(180)
@@ -2251,36 +2288,24 @@ run(gm, "usable found", function()
     local M = gm.ns.Market
     local st, rows, by = M.State(), M.Rows(), {}
     for _, r in ipairs(rows) do by[r.name] = r end
-    check(not st.scanning and st.done.usable == 3, "the usable pass reads every page and looks closely only at real candidates")
-    check(by["Shadoweave Shoulders"] and by["Shadoweave Shoulders"].up.text == "ilvl 50, slot empty" and by["Shadoweave Shoulders"].slot == "Shoulder",
-        "gear for an empty slot is an upgrade")
-    check(by["Wanderer's Cloak of Magic"] and by["Wanderer's Cloak of Magic"].id == 606 and by["Wanderer's Cloak of Magic"].up.text == "Magic, ilvl 45"
-        and not by["Wanderer's Cloak of the Whale"], "a green with one of the spec's endings is an affordable upgrade; the same cloak with another ending is not")
-    check(not by["Ornate Helm"] and not by["Plain Robe"] and not by["Gold Ring"], "wrong armor type, lower item level and over-budget gear are left out")
-    check(#rows == 3 and rows[1].name == "Master's Mantle of Magic" and rows[1].up.kind == "list", "list items lead; gear already on the list isn't repeated")
+    check(not st.scanning and st.done.usable == 7 and AH_MORE == 1 and not PAWN_ASKED["Never Read"], "cheapest first: reading stops once prices pass the most you'll pay")
+    check(by["Shadoweave Shoulders"] and by["Shadoweave Shoulders"].up.text == "+21% Pawn" and by["Shadoweave Shoulders"].slot == "Shoulder", "what Pawn calls an upgrade is listed with Pawn's percentage")
+    check(by["Wanderer's Cloak of Magic"] and by["Wanderer's Cloak of Magic"].id == 606 and by["Wanderer's Cloak of Magic"].up.text == "Pawn: big upgrade",
+        "the cheapest buyout is offered; an upgrade too big for a number says so")
+    check(not by["Raincaller Scepter of the Elder"] and not by["Plain Robe"], "what Pawn doesn't call an upgrade is left out, whatever its item level or slot")
+    check(by["Slow Ring"] and PAWN_ASKED["Slow Ring"] == 2, "an item the game hadn't loaded is asked about again")
+    check(not by["Gold Ring"] and not PAWN_ASKED["Gold Ring"], "gear over the most you'll pay isn't even checked")
+    check(#rows == 4 and rows[1].name == "Master's Mantle of Magic" and rows[1].up.kind == "list" and rows[2].name == "Wanderer's Cloak of Magic",
+        "list items lead, then Pawn's biggest; gear already on the list isn't repeated")
     M.SortBy("cost")
     check(M.Rows()[1].buyout == 15000 and select(2, M.SortState()) == false, "a heading sorts by its column, cheapest first")
     M.SortBy("cost")
     check(M.Rows()[1].buyout == 250000, "a second click reverses it")
     assert(M.Show(by["Wanderer's Cloak of Magic"]))
-    check(AH_SHOWN[#AH_SHOWN] == "Wanderer's Cloak" and AH_SHOWN.started == 1, "clicking a row searches for that item in the auction window")
+    check(AH_SHOWN[#AH_SHOWN] == "Wanderer's Cloak of Magic" and AH_SHOWN.started == 1, "clicking a row searches for that item in the auction window")
     assert(M.Show(M.Rows()[1]))
     check(AH_SHOWN[#AH_SHOWN] == "Master's Mantle", "a list item is shown by the search text that found it")
     check(#AH_BIDS == 1, "showing an item buys nothing")
-    -- With Pawn installed its stat weights decide instead of item level.
-    G.PawnGetItemData = function(link) return { link = link } end
-    G.PawnIsItemAnUpgrade = function(item)
-        return item.link:find("Ornate Helm", 1, true) and { { ScaleName = "x", PercentUpgrade = 0.124 } } or nil
-    end
-    assert(M.Scan())
-end)
-advance(180)
-run(gm, "usable with Pawn", function()
-    local M = gm.ns.Market
-    local by = {}
-    for _, r in ipairs(M.Rows()) do by[r.name] = r end
-    check(by["Ornate Helm"] and by["Ornate Helm"].up.text == "+12% Pawn" and not by["Shadoweave Shoulders"], "with Pawn installed, Pawn decides what is an upgrade")
-    G.PawnGetItemData, G.PawnIsItemAnUpgrade = nil, nil
     -- The two boxes: BiS list, Usable gear, or both.
     M.SetIdeal(false)
     M.SetUsable(false)
@@ -2293,11 +2318,12 @@ advance(60)
 run(gm, "usable only", function()
     local M = gm.ns.Market
     local st, rows = M.State(), M.Rows()
-    check(not st.scanning and st.done.checked == 0 and st.done.usable == 3 and #AH_SEARCHES == 0, "with only Usable gear ticked the list items are not looked up")
-    check(#rows == 2 and rows[1].up.kind ~= "list" and rows[2].up.kind ~= "list" and M.LookedText(0, 3) == "3 kinds of usable gear", "and only usable gear is shown")
+    check(not st.scanning and st.done.checked == 0 and st.done.usable == 7 and #AH_SEARCHES == 0, "with only Usable gear ticked the list items are not looked up")
+    check(#rows == 3 and rows[1].up.kind == "pawn" and M.LookedText(0, 3) == "3 kinds of usable gear", "and only usable gear is shown")
     M.SetIdeal(true)
     M.SetUsable(false)
     check(M.Ideal() and not M.Usable(), "the boxes are remembered")
+    for _, n in ipairs({ "PawnIsReady", "PawnCanItemHaveStats", "PawnGetItemData", "PawnIsItemAnUpgrade", "PawnBigUpgradeThreshold" }) do G[n] = nil end
     fire(gm, "AUCTION_HOUSE_CLOSED")
 end)
 check(clickText(gm, "BiS Check") and clickText(gm, "Find upgrades for sale"), "the BiS Check tab opens the upgrade window")

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.0
+
+- Upgrades for sale: the "Usable gear" scan now runs on the Pawn addon. Pawn compares each item's real stats with what you are wearing, using its stat weights for your spec, and only what Pawn calls an upgrade is listed, with Pawn's percentage
+- This replaces the item-level rule from 1.9.0, which listed gear that was not an upgrade: off-hand items while holding a two-hander, and greens with the wrong stats
+- Without Pawn the usable scan says it needs Pawn and lists nothing. The BiS list scan works without it
+- Usable gear is read cheapest first, so a most-gold limit makes the scan much faster
+- Up to 40 upgrades are priced per scan, biggest first
+
 ## 1.9.1
 
 - Upgrades for sale: two boxes now choose what is scanned, "BiS list" and "Usable gear". Tick one or both
