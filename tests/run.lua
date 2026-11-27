@@ -365,7 +365,7 @@ test("party: the sound board, who may press, and the rotation", function()
     eq(P.After(lines, "For the Horde!"), "Take a drink!"); eq(P.After(lines, "not on the list"), "Take a drink!"); eq(P.After({}, "x"), nil)
     eq(P.CanPress(true, true, 99), true)
     eq(select(2, P.CanPress(false, true, 99)), "Join a raid or party first.")
-    eq(select(2, P.CanPress(true, false, 99)), "Only the raid leader and assists can press Party, the same as /rw.")
+    eq(select(2, P.CanPress(true, false, 99)), "Only the raid leader and assists can press Party, the same as /rw. In a party, the party leader.")
     eq(select(2, P.CanPress(true, true, 3.2)), "Give it 7 more seconds.")
     eq(P.WordLine("murloc"), "The word of the night is: murloc")
     for _, line in ipairs(P.DEFAULT) do assert(P.Clean(line) == line) end

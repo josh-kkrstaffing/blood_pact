@@ -17,6 +17,7 @@ P.MAX_LINE = 60
 P.DEFAULT = { "Take a drink!", "Take a shot!", "Take a puff!", "Bottoms up!", "Cheers, Blood Pact!" }
 P.HOWTO = {
     "Party is for raid nights. The raid leader and assists press it; the whole raid sees a raid warning with the line, the same as typing /rw.",
+    "It works in a five-player party too: the party leader presses it. The line goes to party chat, and party members with Blood Pact also get the big on-screen text.",
     "Raiders who have Blood Pact also hear the line spoken. Untick \"Play party sounds\" to keep it quiet on your end.",
     "Word of the night: type a word and press Announce. Whenever someone says it on voice, a leader presses Next or picks a line.",
     "Next plays the lines in order. Random picks one. Click any line to play that one.",
@@ -69,7 +70,7 @@ end
 -- since their last press.
 function P.CanPress(inGroup, leads, since)
     if not inGroup then return false, "Join a raid or party first." end
-    if not leads then return false, "Only the raid leader and assists can press Party, the same as /rw." end
+    if not leads then return false, "Only the raid leader and assists can press Party, the same as /rw. In a party, the party leader." end
     if since < P.COOLDOWN then return false, ("Give it %d more seconds."):format(math.ceil(P.COOLDOWN - since)) end
     return true
 end
@@ -102,6 +103,15 @@ local function leads(unit)
     return (UnitIsGroupLeader and UnitIsGroupLeader(unit)) or (UnitIsGroupAssistant and UnitIsGroupAssistant(unit)) or false
 end
 
+-- The big centre-screen text, for a party: the game only shows raid warnings to raids.
+local function banner(text)
+    if P.Muted() then return end
+    if RaidNotice_AddMessage and RaidWarningFrame then
+        RaidNotice_AddMessage(RaidWarningFrame, text, ChatTypeInfo and ChatTypeInfo.RAID_WARNING or { r = 1, g = 0.3, b = 0.1 })
+    end
+    if PlaySound and SOUNDKIT and SOUNDKIT.RAID_WARNING then PlaySound(SOUNDKIT.RAID_WARNING) end
+end
+
 local function speak(text)
     if P.Muted() then return end
     if ns.Caller and ns.Caller.Speak then ns.Caller.Speak(text) end
@@ -121,15 +131,19 @@ function P.Play(line)
     -- The voice line for raiders with the addon. It rides the guild's addon channel;
     -- only people grouped with the sender act on it.
     if not ns.mock then ns.Sync.SendLive({ t = "PT", l = line }) end
-    local sent, how = ns.Chat(line, "RAID_WARNING")
+    -- A raid gets a raid warning. A five-player party gets party chat, which always
+    -- delivers; party members with the addon get the banner and the voice from it.
+    local raid = IsInRaid and IsInRaid()
+    local sent, how = ns.Chat(line, raid and "RAID_WARNING" or "PARTY")
+    if not raid then banner(line) end
     if sent then
-        lastNote = "Sent to the raid: " .. line
+        lastNote = (raid and "Sent to the raid: " or "Sent to the party: ") .. line
     elseif how == "locked" and ChatFrame_OpenChat then
         -- Inside an instance the game refuses addon chat. Hand the player the line to send.
-        ChatFrame_OpenChat("/rw " .. line)
+        ChatFrame_OpenChat((raid and "/rw " or "/p ") .. line)
         lastNote = "The game blocks addon chat in here. The line is in your chat box: press Enter."
     else
-        lastNote = "The raid warning didn't go out. Type /rw " .. line
+        lastNote = "It didn't go out. Type " .. (raid and "/rw " or "/p ") .. line
     end
     return true
 end
@@ -169,6 +183,7 @@ ns.Sync.Handle("PT", function(msg, _, sguid)
     if not line then return end
     local unit = unitOf(sguid)
     if not unit or not leads(unit) then return end
+    if not (IsInRaid and IsInRaid()) then banner(line) end
     speak(line)
 end)
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.11.1
+
+- Party button: works in a five-player party too. The party leader presses it, the line goes to party chat, and party members with the addon get the big on-screen text and the voice
+
 ## 1.11.0
 
 - New Party button in the title bar, on every tab. The raid leader or an assist presses it and the raid gets a raid warning such as "Take a drink!", the same as /rw, so everyone sees it with or without the addon

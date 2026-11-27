@@ -2227,7 +2227,7 @@ LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] = gm.guid, gm.guid
 SPOKEN[gm.guid], SPOKEN[officer.guid], SPOKEN[member.guid] = {}, {}, {}
 local partyChatBefore = #guildChat
 run(officer, "party needs a leader", function()
-    check(select(2, officer.ns.Party.Play("Take a drink!")) == "Only the raid leader and assists can press Party, the same as /rw.", "a raider who isn't leader or assist can't press Party")
+    check(select(2, officer.ns.Party.Play("Take a drink!")) == "Only the raid leader and assists can press Party, the same as /rw. In a party, the party leader.", "a raider who isn't leader or assist can't press Party")
 end)
 run(member, "party needs a group", function()
     check(select(2, member.ns.Party.Next()) == "Join a raid or party first.", "nor can someone outside a group")
@@ -2273,6 +2273,17 @@ end)
 CHATLOCK[gm.guid] = nil
 G.ChatFrame_OpenChat = nil
 advance(130)
+-- A five-player party: party chat, since the game only shows raid warnings to raids.
+GROUPS[gm.guid], GROUPS[officer.guid] = { officer.guid }, { gm.guid }
+run(officer, "unmute", function() officer.ns.Party.SetMuted(false) end)
+run(gm, "party of five", function()
+    assert(gm.ns.Party.Play("Take a puff!"))
+    check(guildChat[#guildChat] == "PARTY:nil:Take a puff!", "in a party the leader's line goes to party chat")
+end)
+advance(11)
+run(officer, "party of five heard", function()
+    check(SPOKEN[officer.guid][#SPOKEN[officer.guid]] == "Take a puff!", "and a party member with the addon hears it")
+end)
 check(clickText(gm, "Party") and gm.ns.Party.frame:IsShown(), "the Party button sits in the title bar")
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
 GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] =

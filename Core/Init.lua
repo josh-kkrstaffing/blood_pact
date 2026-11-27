@@ -1,7 +1,7 @@
 -- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "1.11.0"
+ns.VERSION = "1.11.1"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
