@@ -3,10 +3,12 @@
 ## 1.9.0
 
 - Upgrades for sale: new "Usable gear too" box. Ticked, the scan also looks through greens and other gear you can equip that isn't on your BiS list
-- With the Pawn addon installed, Pawn's stat weights for your spec decide which of those are upgrades. Without Pawn it is item level only: higher than what you wear in that slot, in your class's armor type. Item level ignores stats, so check the tooltip first
+- Two tiers: Ideal is your BiS list. Affordable is any green with an ending your class and spec wants: "of Shadow Wrath" for an Affliction Warlock or Shadow Priest, "of Healing" for healers, "of the Tiger" for Fury, and so on for all 28 specs. Greens with another ending are left out
+- An affordable green is listed when it is a higher item level than what you wear, or when what you wear in that slot is neither on your list nor has one of those endings
+- Gear with no such ending is judged by the Pawn addon's stat weights if Pawn is installed, otherwise by item level in your class's armor type. Item level ignores stats, so check the tooltip first
 - Every column heading sorts the list: Slot, Item, List score, You have, Upgrade and Cost. Click again to reverse
 - Click a row to show that item in the game's auction window
-- New Upgrade column says why a row is listed: its step up on the list, Pawn's percentage, or the item levels
+- New Upgrade column says why a row is listed: Ideal with its step up on the list, the wanted ending, Pawn's percentage, or the item levels
 
 ## 1.8.0
 

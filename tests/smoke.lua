@@ -317,7 +317,8 @@ local AH_USABLE = {
     { key = { itemID = 3003 }, file = "Plain Robe", loc = "INVTYPE_ROBE", sub = 1, ilvl = 55, auctions = { { id = 603, name = "Plain Robe", buyout = 20000 } } },
     { key = { itemID = 3004 }, file = "Gold Ring", loc = "INVTYPE_FINGER", sub = 0, ilvl = 40, price = 90000000, auctions = { { id = 604, name = "Gold Ring", buyout = 90000000 } } },
     { key = { itemID = 3005, itemLevel = 45 }, file = "Wanderer's Cloak", loc = "INVTYPE_CLOAK", sub = 1, auctions = {
-        { id = 605, name = "Wanderer's Cloak of the Owl", buyout = 20000 }, { id = 606, name = "Wanderer's Cloak of the Owl", buyout = 15000 } } },
+        { id = 605, name = "Wanderer's Cloak of Magic", buyout = 20000 }, { id = 606, name = "Wanderer's Cloak of Magic", buyout = 15000 },
+        { id = 607, name = "Wanderer's Cloak of the Whale", buyout = 100 } } },
     { key = { itemID = 2002 }, file = "Argent Shoulders", loc = "INVTYPE_SHOULDER", sub = 1, ilvl = 61 },
 }
 for _, g in ipairs(AH_GEAR) do if g.key.itemID == 2002 then AH_USABLE[6].key, AH_USABLE[6].auctions = g.key, g.auctions end end
@@ -2253,14 +2254,15 @@ run(gm, "usable found", function()
     check(not st.scanning and st.done.usable == 3, "the usable pass reads every page and looks closely only at real candidates")
     check(by["Shadoweave Shoulders"] and by["Shadoweave Shoulders"].up.text == "ilvl 50, slot empty" and by["Shadoweave Shoulders"].slot == "Shoulder",
         "gear for an empty slot is an upgrade")
-    check(by["Wanderer's Cloak of the Owl"] and by["Wanderer's Cloak of the Owl"].id == 606, "the cheapest buyout of a usable item is offered")
+    check(by["Wanderer's Cloak of Magic"] and by["Wanderer's Cloak of Magic"].id == 606 and by["Wanderer's Cloak of Magic"].up.text == "Magic, ilvl 45"
+        and not by["Wanderer's Cloak of the Whale"], "a green with one of the spec's endings is an affordable upgrade; the same cloak with another ending is not")
     check(not by["Ornate Helm"] and not by["Plain Robe"] and not by["Gold Ring"], "wrong armor type, lower item level and over-budget gear are left out")
     check(#rows == 3 and rows[1].name == "Master's Mantle of Magic" and rows[1].up.kind == "list", "list items lead; gear already on the list isn't repeated")
     M.SortBy("cost")
     check(M.Rows()[1].buyout == 15000 and select(2, M.SortState()) == false, "a heading sorts by its column, cheapest first")
     M.SortBy("cost")
     check(M.Rows()[1].buyout == 250000, "a second click reverses it")
-    assert(M.Show(by["Wanderer's Cloak of the Owl"]))
+    assert(M.Show(by["Wanderer's Cloak of Magic"]))
     check(AH_SHOWN[#AH_SHOWN] == "Wanderer's Cloak" and AH_SHOWN.started == 1, "clicking a row searches for that item in the auction window")
     assert(M.Show(M.Rows()[1]))
     check(AH_SHOWN[#AH_SHOWN] == "Master's Mantle", "a list item is shown by the search text that found it")

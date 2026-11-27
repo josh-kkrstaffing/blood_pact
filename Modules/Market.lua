@@ -23,7 +23,8 @@ M.HOWTO = {
     "1. Open the auction house, then press \"Find upgrades for sale\" on the BiS Check tab.",
     "2. Type the least and the most gold you want to pay for one item. Leave a box empty for no limit.",
     "3. Press Scan. Blood Pact looks up every item on your spec's list that ranks above what you own. It takes a moment: the auction house answers one search at a time.",
-    "4. Tick \"Usable gear too\" to also look through greens and other gear you can equip that isn't on the list. With the Pawn addon installed, Pawn's stat weights for your spec decide what is an upgrade. Without Pawn it is item level only: higher than what you wear in that slot, in your class's armor type. Item level doesn't know which stats your spec wants, so read the tooltip before you buy.",
+    "4. Tick \"Usable gear too\" for affordable upgrades: greens and other gear you can equip that isn't on the list. Blood Pact knows which endings each class and spec wants: \"of Shadow Wrath\" for an Affliction Warlock or Shadow Priest, \"of Healing\" for healers, \"of the Tiger\" for a Fury Warrior, and so on. The line at the bottom of the window names yours. A green with one of those endings is listed when it is a higher item level than what you wear, or when what you wear there is neither on the list nor has one of those endings. Greens with any other ending are left out.",
+    "Gear with no such ending, or a spec whose list names none, is judged by the Pawn addon's stat weights if Pawn is installed, and otherwise by item level in your class's armor type. Item level doesn't know which stats your spec wants, so read the tooltip before you buy.",
     "5. The list shows what is for sale in your gold range with the cheapest buyout for each. Click a column heading to sort; click it again to reverse.",
     "6. Click a row to show that item in the auction window. Press Buy to buy that one item at the price on the button, then collect it from your mailbox.",
     "One item per click: the game needs your own click for every purchase, so nothing is bought for you. Only items with a buyout are listed; Blood Pact never bids.",
@@ -83,6 +84,58 @@ function M.BaseName(name)
     local base, tail = tostring(name or ""):match("^(.+) of (.+)$")
     if base and SUFFIX[tail] then return base end
     return nil
+end
+-- "Master's Hat of Shadow Wrath" -> "Shadow Wrath". nil when there is no such ending.
+function M.Tail(name)
+    local base, tail = tostring(name or ""):match("^(.+) of (.+)$")
+    if base and SUFFIX[tail] then return (tail:gsub("^the ", "")), tail end
+    return nil
+end
+
+-- The endings each class and spec wants on a green, by what the ending gives:
+-- Shadow Wrath is shadow spell damage, Healing is bonus healing, the Tiger is
+-- Strength and Agility, the Monkey Agility and Stamina, the Bear Strength and
+-- Stamina, Power is attack power. Damage casters get their spell school only:
+-- plain Intellect endings (the Eagle, the Owl) are left out on purpose.
+M.ENDINGS = {
+    WARRIOR = { Arms = { "Tiger", "Power", "Strength" }, Fury = { "Tiger", "Power", "Strength" }, Protection = { "Bear", "Defense", "Stamina" } },
+    PALADIN = { Holy = { "Healing" }, Protection = { "Bear", "Defense", "Stamina" }, Retribution = { "Tiger", "Power", "Strength" } },
+    HUNTER = { ["Beast Mastery"] = { "Monkey", "Agility", "Falcon", "Marksmanship" }, Marksmanship = { "Monkey", "Agility", "Falcon", "Marksmanship" },
+        Survival = { "Monkey", "Agility", "Falcon", "Marksmanship" } },
+    ROGUE = { Assassination = { "Tiger", "Monkey", "Agility", "Power" }, Combat = { "Tiger", "Monkey", "Agility", "Power" },
+        Subtlety = { "Tiger", "Monkey", "Agility", "Power" } },
+    PRIEST = { Discipline = { "Healing" }, Holy = { "Healing" }, Shadow = { "Shadow Wrath" } },
+    SHAMAN = { Elemental = { "Nature's Wrath" }, Enhancement = { "Tiger", "Power", "Strength" }, Restoration = { "Healing" } },
+    MAGE = { Arcane = { "Arcane Wrath" }, Fire = { "Fiery Wrath" }, Frost = { "Frozen Wrath" } },
+    WARLOCK = { Affliction = { "Shadow Wrath" }, Demonology = { "Shadow Wrath" }, Destruction = { "Shadow Wrath", "Fiery Wrath" } },
+    DRUID = { Balance = { "Nature's Wrath", "Arcane Wrath" }, ["Feral (Bear)"] = { "Bear", "Stamina", "Monkey" },
+        ["Feral (Cat)"] = { "Tiger", "Monkey", "Agility", "Power" }, Restoration = { "Healing" } },
+}
+
+-- The endings wanted for one spec: the table above, plus any ending the spec's
+-- own guide list names on a world-drop green ("Master's Hat of Magic").
+-- -> { ["Shadow Wrath"] = true }, or nil when there are none.
+function M.Endings(list, class, key)
+    local set, any = {}, false
+    for _, tail in ipairs(M.ENDINGS[class] and M.ENDINGS[class][key] or {}) do set[tail], any = true, true end
+    for _, s in ipairs(list and list.slots or {}) do
+        for _, it in ipairs(s.items) do
+            if tostring(it.how or ""):find("^World drop") then
+                for _, name in ipairs({ it.name, it.ally }) do
+                    local tail = M.Tail(name)
+                    if tail then set[tail], any = true, true end
+                end
+            end
+        end
+    end
+    return any and set or nil
+end
+
+function M.EndingsText(set)
+    local names = {}
+    for k in pairs(set or {}) do names[#names + 1] = k end
+    table.sort(names)
+    return table.concat(names, ", ")
 end
 
 -- What to look for: every item on the list that ranks above what you own in
@@ -190,16 +243,20 @@ end
 -- Which kinds of usable gear are worth a closer look.
 -- results = { { itemKey, minPrice } }; info(itemKey) -> { equipLoc, ilvl, fits } or nil;
 -- haveOf(slots) -> item level worn there (0 = empty). loose = stat weights
--- will judge later, so an equal item level is let through.
-function M.UsablePick(results, info, haveOf, hi, cap, loose)
+-- will judge later, so an equal item level is let through. open(slots) = what
+-- is worn there is neither on the list nor carries a wanted ending, so a green
+-- with a wanted ending may beat it at any item level.
+function M.UsablePick(results, info, haveOf, hi, cap, loose, open)
     local out = {}
     for _, r in ipairs(results or {}) do
         local i = r.itemKey and info(r.itemKey)
         local slot = i and M.EQUIP[i.equipLoc]
         if slot and (loose or i.fits) and (not hi or (r.minPrice or 0) <= hi) then
             local have = haveOf(slot[2]) or 0
-            if i.ilvl and (i.ilvl > have or (loose and i.ilvl >= have)) then
-                out[#out + 1] = { key = r.itemKey, slot = slot[1], ilvl = i.ilvl, have = have, gain = i.ilvl - have, price = r.minPrice or 0 }
+            local isOpen = open and open(slot[2]) or false
+            if i.ilvl and (isOpen or i.ilvl > have or (loose and i.ilvl >= have)) then
+                out[#out + 1] = { key = r.itemKey, slot = slot[1], ilvl = i.ilvl, have = have, gain = i.ilvl - have,
+                    price = r.minPrice or 0, open = isOpen }
             end
         end
     end
@@ -213,7 +270,17 @@ end
 
 -- Is one auction an upgrade? pawn = Pawn's best upgrade share for the item
 -- (0 = Pawn says no; nil = Pawn isn't there or doesn't know the item).
-function M.Verdict(pawn, ilvl, have)
+-- wanted = the spec's endings (nil = its list names none). An item with an
+-- ending is judged by that first: a wanted ending is an affordable upgrade
+-- when it is a higher item level or the slot is open; any other ending is out.
+function M.Verdict(pawn, ilvl, have, tail, wanted, open)
+    if wanted and tail then
+        if not wanted[tail] then return nil end
+        if open or (ilvl and ilvl > (have or 0)) then
+            return { kind = "match", value = ilvl or 0, text = tail .. (ilvl and (", ilvl " .. ilvl) or "") }
+        end
+        return nil
+    end
     if pawn then
         if pawn <= 0 then return nil end
         return { kind = "pawn", value = pawn, text = ("+%d%% Pawn"):format(math.floor(pawn * 100 + 0.5)) }
@@ -224,8 +291,9 @@ function M.Verdict(pawn, ilvl, have)
 end
 
 -- Sort the result rows by a column. Blanks go last either way; ties by name.
--- "up" ranks list items above Pawn upgrades above item-level ones.
-local KIND = { list = 3, pawn = 2, ilvl = 1 }
+-- "up" ranks ideal (list) items, then greens with a wanted ending, then Pawn
+-- upgrades, then item-level ones.
+local KIND = { list = 4, match = 3, pawn = 2, ilvl = 1 }
 function M.Sort(rows, key, desc)
     local function val(r)
         if key == "slot" then return r.slot end
@@ -304,7 +372,7 @@ function M.Rows()
         local a = M.Cheapest(found[w.name], w.name, lo, hi)
         if a then
             rows[#rows + 1] = { id = a.id, name = w.name, slot = w.slot, score = w.score, have = w.have, gain = w.gain,
-                up = { kind = "list", value = w.gain, text = ("+%d%% on list"):format(math.floor(w.gain * 100 + 0.5)) },
+                up = { kind = "list", value = w.gain, text = ("Ideal, +%d%% on list"):format(math.floor(w.gain * 100 + 0.5)) },
                 buyout = a.buyout, link = a.link, query = queryOf[w.name] or w.name, bought = bought[a.id] or false }
         end
     end
@@ -425,6 +493,18 @@ local function wornLevel(slots)
     return low or 0
 end
 
+-- Is everything worn in these slots already right for the spec: on its list,
+-- or carrying one of its endings? An empty slot is not.
+local function wornRight(slots)
+    for _, slot in ipairs(slots) do
+        local name = BiS.NameFromLink(GetInventoryItemLink("player", slot))
+        if not name then return false end
+        local tail = M.Tail(name)
+        if not (scan.listNames[name] or (tail and scan.endings[tail])) then return false end
+    end
+    return true
+end
+
 local function pawnReady() return type(PawnGetItemData) == "function" and type(PawnIsItemAnUpgrade) == "function" end
 
 -- Pawn's verdict on one item link: best upgrade share over the player's
@@ -467,7 +547,8 @@ local function usablePicked()
     local a = api()
     local ok, results = pcall(a.GetBrowseResults)
     local _, hi = M.MyRange()
-    scan.cands = M.UsablePick(ok and type(results) == "table" and results or {}, keyInfo, wornLevel, hi, M.MAX_USABLE, pawnReady())
+    scan.cands = M.UsablePick(ok and type(results) == "table" and results or {}, keyInfo, wornLevel, hi, M.MAX_USABLE, pawnReady(),
+        scan.endings and function(slots) return not wornRight(slots) end or nil)
     scan.ofUsable = #scan.cands
     usableNext()
 end
@@ -507,7 +588,7 @@ local function onUsableSearch(itemKey)
         if name and r.auctionID and not scan.onList[name] then
             local e = extraByName[name]
             if not e then
-                local up = M.Verdict(pawnSays(r.itemLink), c.ilvl, c.have)
+                local up = M.Verdict(pawnSays(r.itemLink), c.ilvl, c.have, M.Tail(name), scan.endings, c.open)
                 if up then
                     e = { name = name, slot = c.slot, up = up, auctions = {} }
                     extraByName[name] = e
@@ -553,15 +634,16 @@ function M.Scan()
     wantedNow = M.Wanted(list, owned)
     found, queryOf, extra, extraByName, bought, done, lastNote = {}, {}, {}, {}, {}, nil, nil
     -- The usable pass leaves out everything the list already covers, and what you own.
-    local onList = {}
+    local onList, listNames = {}, {}
     for name in pairs(owned) do onList[name] = true end
     for _, s in ipairs(list.slots) do
         for _, it in ipairs(s.items) do
-            onList[it.name] = true
-            if it.ally then onList[it.ally] = true end
+            onList[it.name], listNames[it.name] = true, true
+            if it.ally then onList[it.ally], listNames[it.ally] = true, true end
         end
     end
-    scan = { queue = wantedNow, i = 0, keys = {}, spec = key, usable = M.Usable(), onList = onList, looked = 0, stage = "list" }
+    scan = { queue = wantedNow, i = 0, keys = {}, spec = key, usable = M.Usable(), onList = onList, listNames = listNames,
+        endings = M.Endings(list, select(2, UnitClass("player")), key), looked = 0, stage = "list" }
     scan.skip = function()
         if not scan then return end
         if scan.phase == "ubrowse" then return usablePicked() end
@@ -700,11 +782,11 @@ local helping = false
 local function pct(x) return math.floor(x * 100 + 0.5) .. "%" end
 
 local HEADS = { { "slot", "Slot", 12, 74 }, { "name", "Item", 88, 214 }, { "score", "List score", 304, 74 },
-    { "have", "You have", 380, 70 }, { "up", "Upgrade", 452, 114 }, { "cost", "Cost", 568, 100 } }
+    { "have", "You have", 380, 70 }, { "up", "Upgrade", 452, 154 }, { "cost", "Cost", 608, 100 } }
 
 local function build()
     local f = CreateFrame("Frame", "BloodPactMarket", UIParent)
-    f:SetSize(680, 360)
+    f:SetSize(720, 360)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetToplevel(true)
     f:SetMovable(true)
@@ -717,7 +799,7 @@ local function build()
     W.Glass(f, true)
     f.title = W.Text(f, "", "GameFontNormal")
     f.title:SetPoint("TOPLEFT", 10, -9)
-    f.title:SetWidth(620)
+    f.title:SetWidth(660)
     f.title:SetJustifyH("LEFT")
     f.title:SetWordWrap(false)
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
@@ -759,7 +841,7 @@ local function build()
     f.help:SetPoint("TOPRIGHT", -12, -42)
     f.status = W.Text(f, "", "GameFontHighlightSmall")
     f.status:SetPoint("TOPLEFT", 12, -70)
-    f.status:SetWidth(656)
+    f.status:SetWidth(696)
     f.status:SetJustifyH("LEFT")
     f.status:SetWordWrap(false)
 
@@ -773,14 +855,14 @@ local function build()
         b:SetPoint("TOPLEFT", h[3], -90)
         f.heads[i] = b
     end
-    f.rows = W.List(f, 656, 196, 20, function(row, r)
+    f.rows = W.List(f, 696, 196, 20, function(row, r)
         f.rows.Col(row, 1, 4, 72):SetText(U.Safe(r.slot, 20))
         f.rows.Col(row, 2, 80, 212):SetText(U.Safe(r.name, 60))
         f.rows.Col(row, 3, 296, 72):SetText(r.score and pct(r.score) or "-")
         local have = f.rows.Col(row, 4, 372, 68)
         have:SetText(r.have and pct(r.have) or "-")
         have:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
-        f.rows.Col(row, 5, 444, 112):SetText(r.up and r.up.text or "")
+        f.rows.Col(row, 5, 444, 152):SetText(r.up and r.up.text or "")
         if not row.act then
             row.act = W.Button(row, "", 96, 18)
             row.act:SetPoint("RIGHT", -4, 0)
@@ -800,16 +882,16 @@ local function build()
         refresh()
     end)
     f.rows.scroll:SetPoint("TOPLEFT", 12, -112)
-    f.rows.scroll:SetSize(656, 196)
+    f.rows.scroll:SetSize(696, 196)
     f.helpText = W.Text(f, table.concat(M.HOWTO, "\n\n"), "GameFontHighlightSmall")
     f.helpText:SetPoint("TOPLEFT", 14, -92)
-    f.helpText:SetWidth(652)
+    f.helpText:SetWidth(692)
     f.helpText:SetJustifyH("LEFT")
     f.helpText:SetJustifyV("TOP")
     f.helpText:SetWordWrap(true)
     f.foot = W.Text(f, "", "GameFontDisableSmall")
     f.foot:SetPoint("BOTTOMLEFT", 12, 10)
-    f.foot:SetWidth(656)
+    f.foot:SetWidth(696)
     f.foot:SetJustifyH("LEFT")
     f.foot:SetWordWrap(false)
     f:SetScript("OnHide", function() M.Stop() end)
@@ -821,7 +903,7 @@ end
 function M.Refresh()
     local f = M.frame
     if not (f and f:IsShown()) then return end
-    local _, list = BiS.CurrentSpec()
+    local specKey, list = BiS.CurrentSpec()
     f.title:SetText("Upgrades for sale: " .. U.Safe(list and list.label or "no list for your class", 50))
     f.help:SetText(helping and "Back to the list" or "How does this work?")
     for _, b in ipairs(f.heads) do
@@ -859,8 +941,11 @@ function M.Refresh()
         f.status:SetText(("%d for sale %s, from %d list items%s. Click a row to see it in the auction window."):format(#rows,
             M.RangeText(lo, hi), done.checked, done.usable > 0 and (" and " .. done.usable .. " kinds of usable gear") or ""))
     end
-    f.foot:SetText(M.Usable() and (pawnReady() and "Usable gear is judged by Pawn's stat weights. The price on the Buy button is what you pay."
-        or "No Pawn addon found: usable gear is judged by item level only, which ignores stats. Check the tooltip first.")
+    local ends = list and M.Endings(list, select(2, UnitClass("player")), specKey)
+    f.foot:SetText(M.Usable() and (ends and ("Affordable = greens ending in: " .. U.Safe(M.EndingsText(ends), 70) .. ". Other gear: "
+            .. (pawnReady() and "Pawn's stat weights." or "item level only, check the tooltip."))
+        or (pawnReady() and "Usable gear is judged by Pawn's stat weights."
+            or "Usable gear is judged by item level only. Check the tooltip first."))
         or "Ranks are from the BiS Check list for your spec. The price on the Buy button is what you pay.")
     if not helping then f.rows:SetItems(rows) end
 end

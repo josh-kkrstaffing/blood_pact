@@ -435,6 +435,32 @@ test("market: usable gear, what counts as an upgrade, and sorting", function()
 
     eq(M.Verdict(nil, 60, 55).text, "ilvl 60 over 55"); eq(M.Verdict(nil, 45, 0).text, "ilvl 45, slot empty"); eq(M.Verdict(nil, 55, 55), nil)
     eq(M.Verdict(nil, nil, 0), nil)
+    -- Affordable upgrades: the spec's own list says which endings it wants.
+    eq(M.Tail("Master's Hat of Shadow Wrath"), "Shadow Wrath"); eq(M.Tail("Supreme Crown of the Tiger"), "Tiger"); eq(M.Tail("Eye of Rend"), nil)
+    local ends = M.Endings(ns.BiSData.WARLOCK.Affliction, "WARLOCK", "Affliction")
+    eq(M.EndingsText(ends), "Shadow Wrath")                           -- and nothing else: not Power from "Hands of Power", not the Eagle
+    eq(M.EndingsText(M.Endings(ns.BiSData.PRIEST.Shadow, "PRIEST", "Shadow")), "Shadow Wrath")
+    eq(M.EndingsText(M.Endings(ns.BiSData.PRIEST.Holy, "PRIEST", "Holy")), "Healing")
+    eq(M.EndingsText(M.Endings(ns.BiSData.MAGE.Frost, "MAGE", "Frost")), "Frozen Wrath")
+    assert(M.Endings(ns.BiSData.WARLOCK.Demonology, "WARLOCK", "Demonology").Magic, "an ending the spec's guide names on a world drop is added")
+    assert(M.Endings(ns.BiSData.WARRIOR.Fury, "WARRIOR", "Fury").Tiger and not M.Endings(ns.BiSData.WARRIOR.Fury, "WARRIOR", "Fury")["Shadow Wrath"])
+    for class, lists in pairs(ns.BiSData) do
+        for key, l in pairs(lists) do
+            local e = M.Endings(l, class, key)
+            assert(e, class .. " " .. key .. " has wanted endings")
+            for tail in pairs(e) do assert(M.Tail("X of " .. tail) or M.Tail("X of the " .. tail), tail .. " is a real ending") end
+        end
+    end
+    eq(M.Endings({ slots = { { slot = "Head", items = { { name = "Lionheart Helm" } } } } }, "NOPE", "x"), nil)
+    eq(M.Verdict(nil, 50, 40, "Shadow Wrath", ends, false).text, "Shadow Wrath, ilvl 50"); eq(M.Verdict(nil, 50, 40, "Shadow Wrath", ends, false).kind, "match")
+    eq(M.Verdict(nil, 90, 10, "Whale", ends, true), nil)              -- the wrong ending is never an upgrade, however high its item level
+    eq(M.Verdict(0.5, 90, 10, "Whale", ends, true), nil)
+    eq(M.Verdict(nil, 40, 55, "Shadow Wrath", ends, false), nil)       -- lower item level than a piece that is already right for the spec
+    eq(M.Verdict(nil, 40, 55, "Shadow Wrath", ends, true).kind, "match")   -- but it beats a piece that is wrong for the spec
+    eq(M.Verdict(nil, 60, 55, nil, ends, false).kind, "ilvl")          -- no ending: the old rules
+    eq(M.Verdict(nil, 60, 55, "Whale", nil, false).kind, "ilvl")       -- a spec whose list names no endings: the old rules
+    got = M.UsablePick(results, look, haveOf, nil, 10, false, function(slots) return slots[1] == 7 end)
+    eq(#got, 3); eq(got[3].key, "f"); eq(got[3].open, true)            -- an open slot lets an equal item level through for a closer look
     eq(M.Verdict(0.124, 40, 55).text, "+12% Pawn"); eq(M.Verdict(0.124, 40, 55).kind, "pawn"); eq(M.Verdict(0, 90, 10), nil)   -- Pawn's word beats item level
 
     local rows = {
@@ -442,6 +468,9 @@ test("market: usable gear, what counts as an upgrade, and sorting", function()
         { id = 2, name = "Band", slot = "Ring", buyout = 100, up = { kind = "ilvl", value = 45 } },
         { id = 3, name = "Amice", slot = "Shoulder", score = 0.5, have = 0, buyout = 900, up = { kind = "list", value = 0.5 } },
         { id = 4, name = "Drape", slot = "Back", buyout = 300, up = { kind = "pawn", value = 0.12 } } }
+    local tiers = M.Sort({ { name = "A", up = { kind = "ilvl", value = 90 } }, { name = "B", up = { kind = "match", value = 30 } },
+        { name = "C", up = { kind = "list", value = 0.25 } }, { name = "D", up = { kind = "pawn", value = 2 } } }, "up", true)
+    eq(tiers[1].name .. tiers[2].name .. tiers[3].name .. tiers[4].name, "CBDA")   -- ideal, affordable, Pawn, item level
     local function order(key, desc)
         local out = {}
         for i, r in ipairs(M.Sort(rows, key, desc)) do out[i] = r.name end
