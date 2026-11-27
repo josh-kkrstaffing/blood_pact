@@ -43,6 +43,7 @@ load("Modules/Advert.lua")
 load("Modules/Statics.lua")
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
+load("Modules/Drinks.lua")
 load("Modules/Party.lua")
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
@@ -360,7 +361,7 @@ test("party: the sound board, who may press, and the rotation", function()
     eq(#lines, #P.DEFAULT); eq(lines[1], "Take a drink!")
     lines = P.Lines({ partyLines = { ["Take a puff!"] = { on = false, t = 5 }, ["For the Horde!"] = { on = true, t = 9 },
         ["Wipe it up!"] = { on = true, t = 7 }, ["Gone"] = { on = false, t = 8 } } })
-    eq(table.concat(lines, "|"), "Take a drink!|Take a shot!|Bottoms up!|Cheers, Blood Pact!|Wipe it up!|For the Horde!")
+    eq(table.concat(lines, "|"), "Take a drink!|Take a shot!|Bottoms up!|Cheers, Blood Pact!|Holler and swaller!|Wipe it up!|For the Horde!")
     eq(P.After(lines, nil), "Take a drink!"); eq(P.After(lines, "Take a drink!"), "Take a shot!")
     eq(P.After(lines, "For the Horde!"), "Take a drink!"); eq(P.After(lines, "not on the list"), "Take a drink!"); eq(P.After({}, "x"), nil)
     eq(P.CanPress(true, true, 99), true)
@@ -371,6 +372,34 @@ test("party: the sound board, who may press, and the rotation", function()
     for _, line in ipairs(P.DEFAULT) do assert(P.Clean(line) == line) end
     local ok = ns.Log.KINDS and ns.Log.KINDS.PARTY_LINE
     if ok then assert(ok[2]({ text = "Hi", on = true }) and not ok[2]({ text = "", on = true }) and not ok[2]({ text = "Hi" })) end
+end)
+
+-- Drink of the Night ----------------------------------------------------------
+test("drinks: the menu, a guild's own drink, and tonight's drink", function()
+    local D = ns.Drinks
+    assert(#D.LIST >= 9)
+    local seen = {}
+    for _, d in ipairs(D.LIST) do
+        local n, r = D.Clean(d.name, d.recipe)
+        assert(n == d.name and r == d.recipe, d.name .. " fits a log entry as written")
+        assert(not seen[d.name] and d.from, d.name); seen[d.name] = true
+    end
+    assert(D.Find("Bushwacker") and D.Find("Shirley Temple").zero and not D.Find("Mystery"))
+    eq(select(2, D.Clean("", "x")), "Give the drink a name."); eq(select(2, D.Clean("Grog", " ")), "Type the recipe, so raiders know what to buy.")
+    eq(D.Clean(string.rep("n", 41), "x"), nil); eq(D.Clean("Grog", string.rep("r", 241)), nil)
+    local n, r = D.Clean("  Rum   Punch ", "Rum.|cff00ff00 Lime.")
+    eq(n, "Rum Punch"); eq(r, "Rum.cff00ff00 Lime.")
+    local mule = D.Find("Tennessee Mule")
+    local st = { raidDrinks = { a = { name = mule.name, recipe = mule.recipe }, b = { name = "Grog", recipe = "Rum and water." } } }
+    eq(D.For(st, "a").from, mule.from); eq(D.For(st, "b").from, "The guild's own"); eq(D.For(st, "c"), nil); eq(D.For(nil, "a"), nil)
+    local raids = { { id = "old", at = 1000 }, { id = "c", at = 50000 }, { id = "a", at = 90000 } }
+    eq(D.Tonight(st, raids, 60000), nil)                  -- the raid on now has no drink; a later raid's drink isn't tonight's
+    eq(D.Tonight(st, { raids[1], raids[3] }, 60000).name, "Tennessee Mule")
+    eq(D.Tonight(st, raids, 200000), nil); eq(D.Tonight(st, {}, 0), nil)
+    eq(D.Line(mule), "Drink of the night: Tennessee Mule!")
+    local kind = ns.Log.KINDS.RAID_DRINK[2]
+    assert(kind({ ev = "x", on = true, name = "Grog", recipe = "Rum." }) and kind({ ev = "x", on = false }))
+    assert(not kind({ ev = "x", on = true, name = "Grog" }) and not kind({ ev = "x", on = false, name = "Grog" }) and not kind({ on = true, name = "a", recipe = "b" }))
 end)
 
 -- Upgrades for sale ---------------------------------------------------------

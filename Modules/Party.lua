@@ -14,13 +14,14 @@ local U, RBAC, Red = ns.U, ns.RBAC, ns.Reducer
 
 P.COOLDOWN = 10        -- seconds between presses
 P.MAX_LINE = 60
-P.DEFAULT = { "Take a drink!", "Take a shot!", "Take a puff!", "Bottoms up!", "Cheers, Blood Pact!" }
+P.DEFAULT = { "Take a drink!", "Take a shot!", "Take a puff!", "Bottoms up!", "Cheers, Blood Pact!", "Holler and swaller!" }
 P.HOWTO = {
     "Party is for raid nights. The raid leader and assists press it; the whole raid sees a raid warning with the line, the same as typing /rw.",
     "It works in a five-player party too: the party leader presses it. The line goes to party chat, and party members with Blood Pact also get the big on-screen text.",
     "Raiders who have Blood Pact also hear the line spoken. Untick \"Play party sounds\" to keep it quiet on your end.",
     "Word of the night: type a word and press Announce. Whenever someone says it on voice, a leader presses Next or picks a line.",
     "Next plays the lines in order. Random picks one. Click any line to play that one.",
+    "Announce the drink sends the raid tonight's Drink of the Night, set on the Raids tab.",
     "Team Captains and above can add lines or switch them off, and the list syncs to the guild.",
     "Inside a raid instance the game stops addons sending chat. There the button puts the /rw line in your chat box and you press Enter. The voice line can't reach others in there.",
 }
@@ -169,6 +170,14 @@ function P.Word(word)
     return P.Play(P.WordLine(clean))
 end
 
+-- Announce tonight's drink of the night, when the raid has one.
+function P.Drink()
+    local st = Red.State()
+    local drink = ns.Drinks.Tonight(st, ns.Raids.List(st, ns.Now()), ns.Now())
+    if not drink then return nil, "The next raid has no drink of the night yet. Set one on the Raids tab." end
+    return P.Play(ns.Drinks.Line(drink))
+end
+
 -- Team Captains and above: add a line, or switch one on or off.
 function P.SetLine(text, on)
     if not RBAC.ICan("schedule") then return nil, "Only Team Captains and above can change the sound board." end
@@ -254,6 +263,8 @@ local function build()
 
     f.mute = W.Check(f, "Play party sounds", function(on) P.SetMuted(not on); P.Refresh() end)
     f.mute:SetPoint("TOPLEFT", 12, -288)
+    f.drink = W.Button(f, "Announce the drink", 150, 22, function() done(P.Drink()) end)
+    f.drink:SetPoint("TOPLEFT", 178, -285)
     f.status = W.Text(f, "", "GameFontHighlightSmall")
     f.status:SetPoint("TOPLEFT", 12, -312)
     f.status:SetWidth(316)
@@ -275,7 +286,7 @@ function P.Refresh()
     if not (f and f:IsShown()) then return end
     f.help:SetText(helping and "Back" or "How does this work?")
     local captain = RBAC.ICan("schedule")
-    for _, w in ipairs({ f.next, f.random, f.wordLabel, f.word, f.announce, f.mute, f.status }) do w:SetShown(not helping) end
+    for _, w in ipairs({ f.next, f.random, f.wordLabel, f.word, f.announce, f.mute, f.status, f.drink }) do w:SetShown(not helping) end
     f.rows.scroll:SetShown(not helping)
     f.add:SetShown(not helping and captain)
     f.addBtn:SetShown(not helping and captain)

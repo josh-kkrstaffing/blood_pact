@@ -123,6 +123,12 @@ L.KINDS = {
             and (d.mins == nil or isInt(d.mins, 1, 600)) and (d.n == nil or isInt(d.n, 1, 200))
             and not (d.mins and d.n)
     end },
+    -- Drink of the Night: a raid's drink and its recipe, set or cleared.
+    RAID_DRINK = { "schedule", function(d)
+        if not (str(d.ev, 1, 80) and type(d.on) == "boolean") then return false end
+        if not d.on then return d.name == nil and d.recipe == nil end
+        return str(d.name, 1, 40) and str(d.recipe, 1, 240)
+    end },
     -- Party button: one line on the guild's sound board, added or switched off.
     PARTY_LINE = { "schedule", function(d) return str(d.text, 1, 60) and type(d.on) == "boolean" end },
     -- Raid Caller: one call-out in a boss plan. when = time (seconds after the

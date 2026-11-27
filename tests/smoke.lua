@@ -2284,6 +2284,42 @@ advance(11)
 run(officer, "party of five heard", function()
     check(SPOKEN[officer.guid][#SPOKEN[officer.guid]] == "Take a puff!", "and a party member with the addon hears it")
 end)
+-- Drink of the Night: set on a raid by a Team Captain or above, shown on its sign-up screen.
+local drinkRaid
+run(gm, "drink of the night", function()
+    local D, R = gm.ns.Drinks, gm.ns.Raids
+    local st = gm.ns.Reducer.State()
+    for _, r in ipairs(R.List(st, gm.ns.Now())) do
+        if r.at >= gm.ns.Now() - 6 * 3600 then drinkRaid = drinkRaid or r.id end
+    end
+    assert(drinkRaid, "a raid is coming up")
+    check(select(2, gm.ns.Party.Drink()):find("no drink of the night yet", 1, true), "nothing to announce before a drink is set")
+    local mule = D.Find("Tennessee Mule")
+    assert(D.Set(drinkRaid, mule.name, mule.recipe))
+    check(D.For(gm.ns.Reducer.State(), drinkRaid).name == "Tennessee Mule", "a leader sets the raid's drink")
+    D.Open(drinkRaid)
+    check(D.frame:IsShown(), "the recipe window opens on the raid's drink")
+    D.frame:Hide()
+    assert(gm.ns.Party.Drink())
+    check(guildChat[#guildChat] == "PARTY:nil:Drink of the night: Tennessee Mule!", "the Party window announces tonight's drink")
+end)
+advance(11)
+run(member, "drink seen by a raider", function()
+    local D = member.ns.Drinks
+    local d = D.For(member.ns.Reducer.State(), drinkRaid)
+    check(d and d.name == "Tennessee Mule" and d.recipe:find("ginger beer", 1, true) and d.from == "A Nashville favorite", "raiders see the drink and its recipe on the sign-up")
+    check(select(2, D.Set(drinkRaid, "Water", "Tap.")) == "Only Team Captains and above can set the drink of the night.", "members can't change it")
+end)
+run(gm, "own drink, then none", function()
+    local D = gm.ns.Drinks
+    assert(D.Set(drinkRaid, " Guild   Grog ", "Rum, lime and regret."))
+    local d = D.For(gm.ns.Reducer.State(), drinkRaid)
+    check(d.name == "Guild Grog" and d.from == "The guild's own", "a guild can set a drink of its own")
+    assert(D.Clear(drinkRaid))
+    check(D.For(gm.ns.Reducer.State(), drinkRaid) == nil, "and clear it")
+end)
+check(clickText(gm, "Raids") and clickText(gm, "Pick a drink") and gm.ns.Drinks.frame:IsShown(), "the Raids tab's header opens the drink menu")
+run(gm, "close drink", function() gm.ns.Drinks.frame:Hide() end)
 check(clickText(gm, "Party") and gm.ns.Party.frame:IsShown(), "the Party button sits in the title bar")
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
 GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] =

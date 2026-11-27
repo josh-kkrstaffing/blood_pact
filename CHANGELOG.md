@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0
+
+- New: Drink of the Night. A Team Captain or above gives a raid a drink, and it shows on the raid's header in the Raids tab with a Recipe button, so raiders see it when they sign up
+- The menu leans on Nashville, Tennessee: the Bushwacker, a Smoked Maple Old Fashioned, Cade's Cove, Just to Satisfy You, Summer's End, the Tennessee Mule and Lynchburg Lemonade, plus two zero-proof drinks
+- Leaders can type a drink of the guild's own, with its recipe
+- Party window: "Announce the drink" sends tonight's drink to the raid
+- Party sound board: added "Holler and swaller!", Nashville's toast
+
 ## 1.11.1
 
 - Party button: works in a five-player party too. The party leader presses it, the line goes to party chat, and party members with the addon get the big on-screen text and the voice

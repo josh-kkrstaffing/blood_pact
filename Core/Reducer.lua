@@ -82,6 +82,7 @@ function Red.Build(g)
         kitChecks = {},           -- [day][guid] = { f, fd, w, e, t }: their own buffs at a ready check
         kitRules = { hours = 3, charge = 30 },      -- the guild leader's answers; Team Captains and above change them
         kitItems = {},            -- [list][item] = { on, mins, n }: changes to the built-in kit lists
+        raidDrinks = {},          -- [raid id] = { name, recipe }: Drink of the Night
         partyLines = {},          -- [text] = { on, t }: the Party button's sound board, changes to the starter list
         calls = {},               -- [boss][id] = { when, v, what, text, who, mark, t }: Raid Caller plans
         statics = {},             -- [captain] = { members = { [guid] = role }, n, name, capRole }
@@ -179,6 +180,8 @@ function Red.Build(g)
             local list = st.kitItems[d.list] or {}
             st.kitItems[d.list] = list
             list[d.item] = { on = d.on, mins = d.mins, n = d.n }
+        elseif k == "RAID_DRINK" then
+            st.raidDrinks[d.ev] = d.on and { name = d.name, recipe = d.recipe } or nil
         elseif k == "PARTY_LINE" then
             st.partyLines[d.text] = { on = d.on, t = e.t }
         elseif k == "CALL_CUE" then
