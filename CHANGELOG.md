@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.0
+
+- BiS Check: new "Find upgrades for sale" button opens an auction house scan for your spec. It works for every class and spec, from the same pre-raid lists as the BiS Check tab
+- It looks up every item on your list that ranks above what you own, and shows the ones for sale with the cheapest buyout for each, biggest upgrade first
+- Set the least and the most gold you will pay for one item. Changing the range re-filters the results without a new scan
+- One Buy click buys one item at the price on the button. The game needs your own click for every purchase, so nothing is bought for you, and Blood Pact never bids
+- Random-enchantment items ("of Shadow Wrath", "of Magic") are matched by their full name, so another enchantment of the same item is not offered
+- Quest rewards and Tier 0.5 pieces are skipped because they can't be sold
+- "How does this work?" in the window explains the steps
+
 ## 1.7.0
 
 - New tab, Call-outs: a Raid Caller that speaks boss call-outs with your computer's own text-to-speech voice

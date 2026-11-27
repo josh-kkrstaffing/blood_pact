@@ -229,7 +229,8 @@ G.UISpecialFrames = {}
 G.GameTooltip = widget("GameTooltip")
 G.GameTooltip_Hide = function() end
 G.SlashCmdList = {}
-G.Enum = { CalendarEventType = { Raid = 1 } }
+G.Enum = { CalendarEventType = { Raid = 1 }, AuctionHouseSortOrder = { Price = 0 },
+    AuctionHouseFilter = { UncommonQuality = 5, RareQuality = 6, EpicQuality = 7 } }
 G.C_Timer = {
     After = function(d, fn) addTimer(d, fn) end,
     NewTicker = function(d, fn) addTimer(d, fn, d) end,
@@ -296,6 +297,58 @@ G.C_AuctionHouse = {
     end,
     CancelCommoditiesPurchase = function() AH_PENDING[ctx.guid] = nil end,
 }
+-- Gear at the auction house: a search by name lists item kinds, then each kind lists its auctions.
+-- This auction house files a random-enchantment item under its plain name.
+local function gearLink(name) return "|cff1eff00|Hitem:1::::::::60:::::|h[" .. name .. "]|h|r" end
+local AH_GEAR = {
+    { key = { itemID = 2001 }, file = "Master's Mantle", auctions = {
+        { id = 501, name = "Master's Mantle of Magic", buyout = 250000 },
+        { id = 502, name = "Master's Mantle of the Owl", buyout = 50000 },
+        { id = 503, name = "Master's Mantle of Magic", buyout = 0 },
+        { id = 504, name = "Master's Mantle of Magic", buyout = 400000 },
+        { id = 505, name = "Master's Mantle of Magic", buyout = 10000, mine = true } } },
+    { key = { itemID = 2002 }, file = "Argent Shoulders", auctions = { { id = 510, name = "Argent Shoulders", buyout = 1200000 } } },
+}
+local AH_BROWSE, AH_SEARCHES, AH_BIDS = {}, {}, {}
+local function gearByKey(key) for _, g in ipairs(AH_GEAR) do if g.key == key then return g end end end
+G.C_AuctionHouse.IsThrottledMessageSystemReady = function() return true end
+G.C_AuctionHouse.SendBrowseQuery = function(q)
+    assert(type(q.searchString) == "string" and type(q.sorts) == "table" and #q.filters > 0, "a browse query names its text, sorts and filters")
+    local c, out = ctx, {}
+    for _, g in ipairs(AH_GEAR) do
+        if g.file:lower():find(q.searchString:lower(), 1, true) then out[#out + 1] = { itemKey = g.key, minPrice = 1, totalQuantity = #g.auctions } end
+    end
+    AH_BROWSE[c.guid] = out
+    AH_SEARCHES[#AH_SEARCHES + 1] = q.searchString
+    addTimer(0.2, function() fire(c, "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED") end)
+end
+G.C_AuctionHouse.GetBrowseResults = function() return AH_BROWSE[ctx.guid] or {} end
+G.C_AuctionHouse.GetItemKeyInfo = function(key) local g = gearByKey(key); return g and { itemName = g.file } or nil end
+G.C_AuctionHouse.SendSearchQuery = function(key, sorts, separate)
+    assert(gearByKey(key) and type(sorts) == "table" and separate == false, "an item search uses a key the auction house listed")
+    local c = ctx
+    addTimer(0.2, function() fire(c, "ITEM_SEARCH_RESULTS_UPDATED", key) end)
+end
+G.C_AuctionHouse.GetNumItemSearchResults = function(key) return #gearByKey(key).auctions end
+G.C_AuctionHouse.GetItemSearchResultInfo = function(key, i)
+    local a = gearByKey(key).auctions[i]
+    return { auctionID = a.id, buyoutAmount = a.buyout, itemLink = gearLink(a.name), containsOwnerItem = a.mine or false }
+end
+G.C_AuctionHouse.PlaceBid = function(id, amount)
+    local c = ctx
+    for _, g in ipairs(AH_GEAR) do
+        for _, a in ipairs(g.auctions) do
+            if a.id == id then
+                assert(amount == a.buyout and a.buyout > 0, "an item is bought at its buyout price, never bid on")
+                MONEY[c.guid] = MONEY[c.guid] - amount
+                AH_BIDS[#AH_BIDS + 1] = { who = c.guid, id = id, amount = amount }
+                addTimer(0.2, function() fire(c, "AUCTION_HOUSE_PURCHASE_COMPLETED", id) end)
+                return
+            end
+        end
+    end
+    error("bid on an auction that doesn't exist")
+end
 G.UnitLevel = function() return ctx.level end
 -- Skills, served through a different game API for each player so that all
 -- three ways of reading them are exercised.
@@ -2097,6 +2150,53 @@ run(gm, "bought once", function()
     fire(gm, "AUCTION_HOUSE_CLOSED")
     S.frame:Hide()
 end)
+
+-- Upgrades for sale: the spec's list is looked up at the auction house; one click buys one item.
+run(gm, "upgrade scan", function()
+    local M = gm.ns.Market
+    MONEY[gm.guid] = 3000000
+    M.Open()
+    check(select(2, M.Scan()) == "Open the auction house first.", "no scan away from the auction house")
+    fire(gm, "AUCTION_HOUSE_SHOW")
+    check(M.SetRange("50", "5") == nil and M.SetRange("", "50") == 0, "the gold range is checked as it is typed")
+    assert(M.Scan())
+    check(M.State().scanning and select(2, M.Scan()) == "Already scanning.", "one scan at a time")
+end)
+advance(120)
+run(gm, "upgrades found", function()
+    local M = gm.ns.Market
+    local st, rows = M.State(), M.Rows()
+    check(not st.scanning and st.done and st.done.spec == "Demonology" and st.done.checked > 10, "the scan covers the spec's whole list and finishes")
+    local asked = {}
+    for _, text in ipairs(AH_SEARCHES) do asked[text] = (asked[text] or 0) + 1 end
+    check(asked["Master's Mantle of Magic"] == 1 and (asked["Master's Mantle"] or 0) >= 1, "an enchanted item not found by its full name is looked up by its plain name")
+    check(not asked["Robe of the Void"], "what you already wear is not looked up")
+    check(#rows == 1 and rows[1].name == "Master's Mantle of Magic" and rows[1].id == 501 and rows[1].buyout == 250000,
+        "the cheapest buyout in range wins: not another enchantment, a bid-only auction, or your own")
+    M.SetRange("", "")
+    rows = M.Rows()
+    check(#rows == 2, "widening the range shows more without a new scan")
+    M.SetRange("", "50")
+    check(#AH_BIDS == 0, "scanning buys nothing")
+    assert(M.Buy(M.Rows()[1]))
+    check(select(2, M.Buy(M.Rows()[1])) == "Still buying the last one. One item at a time.", "one purchase at a time")
+end)
+advance(1)
+run(gm, "upgrade bought once", function()
+    local M = gm.ns.Market
+    check(#AH_BIDS == 1 and AH_BIDS[1].id == 501 and AH_BIDS[1].amount == 250000 and MONEY[gm.guid] == 2750000, "one click buys that one item at the price shown")
+    local row = M.Rows()[1]
+    check(row.bought and select(2, M.Buy(row)) == "You already bought that one.", "a bought item can't be bought twice")
+    MONEY[gm.guid] = 100
+    M.SetRange("", "")
+    local other
+    for _, r in ipairs(M.Rows()) do if r.id == 510 then other = r end end
+    check(other and select(2, M.Buy(other)) == "You don't have 120g." and #AH_BIDS == 1, "no purchase without the gold")
+    fire(gm, "AUCTION_HOUSE_CLOSED")
+    M.frame:Hide()
+end)
+check(clickText(gm, "BiS Check") and clickText(gm, "Find upgrades for sale"), "the BiS Check tab opens the upgrade window")
+run(gm, "close upgrade window", function() gm.ns.Market.frame:Hide() end)
 
 -- Raid Kit: the guild's rules, a raider's own count, the ready check and the charge.
 run(member, "member kit", function()

@@ -35,6 +35,7 @@ load("Modules/Orders.lua")
 load("Modules/Mail.lua")
 load("Modules/Professions.lua")
 load("Modules/Shop.lua")
+load("Modules/Market.lua")
 load("Modules/Kit.lua")
 load("Modules/Caller.lua")
 ns.Listen = function() end
@@ -346,6 +347,60 @@ test("caller: what is said, when, in what order, and to whom", function()
     for _, g in ipairs(C.GROUPS) do
         for _, i in ipairs(g.items) do assert(#i[1] <= 16 and C.PHRASE[i[1]] == i[2]) end
     end
+end)
+
+-- Upgrades for sale ---------------------------------------------------------
+test("market: gold range, what to look up, the cheapest auction and the buy button", function()
+    local M = ns.Market
+    eq(M.Gold("25"), 250000); eq(M.Gold(""), nil); eq(M.Gold(" 0 "), 0); eq(M.Gold("1.5"), nil); eq(M.Gold("-3"), nil); eq(M.Gold("abc"), nil)
+    local lo, hi = M.Range("", "")
+    eq(lo, 0); eq(hi, nil)
+    lo, hi = M.Range("5", "50")
+    eq(lo, 50000); eq(hi, 500000)
+    eq(M.Range("50", "5"), nil); eq(M.Range("x", "5"), nil)
+    eq(M.RangeText(0, nil), "at any price"); eq(M.RangeText(0, 500000), "up to 50g"); eq(M.RangeText(50000, 500000), "between 5g and 50g")
+    assert(M.Sellable("World drop") and M.Sellable("Tailoring 290") and M.Sellable("Stratholme, Baron Rivendare"))
+    assert(not M.Sellable("Quest: In Dreams") and not M.Sellable("Tier 0.5 questline"))
+    eq(M.BaseName("Master's Hat of Shadow Wrath"), "Master's Hat"); eq(M.BaseName("Supreme Crown of the Tiger"), "Supreme Crown")
+    eq(M.BaseName("Eye of Rend"), nil); eq(M.BaseName("Helm of Latent Power"), nil); eq(M.BaseName("Felcloth Hood"), nil)
+
+    local list = { slots = {
+        { slot = "Head", items = {
+            { name = "Crown", how = "World drop", score = 1 },
+            { name = "Quest Hat", how = "Quest: A hat", score = 0.75 },
+            { name = "Hat of Magic", how = "World drop", score = 0.5, ally = "Hat of Shadow Wrath" },
+            { name = "Cap", how = "Tailoring", score = 0.25 } } },
+        { slot = "Ring 1", items = { { name = "Band", how = "World drop", score = 1 }, { name = "Loop", how = "Crafted", score = 0.5 } } },
+        { slot = "Ring 2", items = { { name = "Band", how = "World drop", score = 1 }, { name = "Loop", how = "Crafted", score = 0.5 } } },
+    } }
+    local w = M.Wanted(list, { Cap = "equipped", Loop = "bags" })
+    local names = {}
+    for i, x in ipairs(w) do names[i] = x.name end
+    eq(table.concat(names, ","), "Band,Crown,Hat of Magic,Hat of Shadow Wrath")   -- owned and quest items left out; both names of one item looked up
+    eq(w[1].slot, "Ring 2"); eq(w[1].gain, 1)                     -- the empty ring slot is the bigger step
+    eq(w[2].have, 0.25); eq(w[2].gain, 0.75)
+    eq(#M.Wanted(list, { Crown = "equipped", Band = "equipped", Loop = "equipped" }), 0)
+    eq(#M.Wanted(list, { ["Hat of Shadow Wrath"] = "equipped", Band = "bags", Loop = "bags" }), 1)   -- owned under its second name; only Crown is better
+
+    local keys = M.Candidates({ { key = "a", name = "Hat" }, { key = "b", name = "Hat of Magic" }, { key = "c", name = "Hatchet" }, { key = "d" } }, "Hat of Magic", "Hat")
+    eq(table.concat(keys, ""), "bad")
+    eq(#M.Candidates({ { key = 1 }, { key = 2 }, { key = 3 }, { key = 4 }, { key = 5 }, { key = 6 } }, "X", nil), M.MAX_KEYS)
+
+    local auctions = { { id = 1, name = "Hat of Magic", buyout = 300000 }, { id = 2, name = "Hat of the Owl", buyout = 100 },
+        { id = 3, name = "Hat of Magic", buyout = 0 }, { id = 4, name = "Hat of Magic", buyout = 200000, mine = true },
+        { id = 5, name = "Hat of Magic", buyout = 250000 }, { id = 6, name = "Hat of Magic", buyout = 40000 } }
+    eq(M.Cheapest(auctions, "Hat of Magic", 0, nil).id, 6)
+    eq(M.Cheapest(auctions, "Hat of Magic", 50000, nil).id, 5)       -- below the range, bid-only and your own auctions are skipped
+    eq(M.Cheapest(auctions, "Hat of Magic", 50000, 200000), nil)
+    eq(M.Cheapest(nil, "Hat of Magic", 0, nil), nil)
+
+    local row = { id = 5, buyout = 250000 }
+    local kind, text = M.ButtonFor(row, true, 250000, nil)
+    eq(kind, "buy"); eq(text, "Buy 25g")
+    eq(M.ButtonFor(row, true, 249999, nil), "poor"); eq(M.ButtonFor(row, false, 999999, nil), "none")
+    eq(M.ButtonFor(row, true, 999999, 9), "wait"); eq(select(2, M.ButtonFor(row, true, 999999, 5)), "Buying...")
+    eq(select(2, M.ButtonFor({ id = 5, buyout = 1, bought = true }, true, 9, nil)), "Bought")
+    assert(#M.HOWTO >= 6)
 end)
 
 -- Buy materials -------------------------------------------------------------
