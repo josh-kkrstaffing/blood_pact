@@ -2218,6 +2218,66 @@ run(gm, "bought once", function()
     S.frame:Hide()
 end)
 
+-- The Party button: a raid warning from the leader, spoken for raiders with the addon.
+local partyGroups = { GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] }
+GROUPS[gm.guid] = { raid = true, gm.guid, officer.guid }
+GROUPS[officer.guid] = { raid = true, gm.guid, officer.guid }
+GROUPS[member.guid] = nil
+LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] = gm.guid, gm.guid, nil
+SPOKEN[gm.guid], SPOKEN[officer.guid], SPOKEN[member.guid] = {}, {}, {}
+local chatBefore = #guildChat
+run(officer, "party needs a leader", function()
+    check(select(2, officer.ns.Party.Play("Take a drink!")) == "Only the raid leader and assists can press Party, the same as /rw.", "a raider who isn't leader or assist can't press Party")
+end)
+run(member, "party needs a group", function()
+    check(select(2, member.ns.Party.Next()) == "Join a raid or party first.", "nor can someone outside a group")
+    check(select(2, member.ns.Party.SetLine("Hello", true)) == "Only Team Captains and above can change the sound board.", "members can't change the sound board")
+end)
+run(gm, "party pressed", function()
+    local P = gm.ns.Party
+    assert(P.Next())
+    check(guildChat[#guildChat] == "RAID_WARNING:nil:Take a drink!" and #guildChat == chatBefore + 1, "the leader's press sends one raid warning")
+    check(SPOKEN[gm.guid][1] == "Take a drink!", "and speaks the line")
+    check(select(2, P.Next()):find("^Give it %d+ more seconds"), "a cooldown stops it being spammed")
+    assert(P.SetLine("  For the   Horde! ", true))
+end)
+advance(11)
+run(officer, "party heard", function()
+    check(#SPOKEN[officer.guid] == 1 and SPOKEN[officer.guid][1] == "Take a drink!", "a raider in the leader's group hears the line")
+    check(#SPOKEN[member.guid] == 0, "a guildmate outside the raid hears nothing")
+    local lines = officer.ns.Party.Lines(officer.ns.Reducer.State())
+    check(lines[#lines] == "For the Horde!" and #lines == #officer.ns.Party.DEFAULT + 1, "a Team Captain's new line reaches the guild's sound board")
+    officer.ns.Party.SetMuted(true)
+end)
+run(gm, "party rotates", function()
+    local P = gm.ns.Party
+    assert(P.Next())
+    check(guildChat[#guildChat] == "RAID_WARNING:nil:Take a shot!", "Next plays the lines in order")
+end)
+advance(11)
+run(gm, "party word and lockdown", function()
+    local P = gm.ns.Party
+    check(#SPOKEN[officer.guid] == 1, "a muted raider hears nothing more")
+    assert(P.Word("murloc"))
+    check(guildChat[#guildChat] == "RAID_WARNING:nil:The word of the night is: murloc", "the word of the night is announced")
+end)
+advance(11)
+local boxed
+G.ChatFrame_OpenChat = function(text) boxed = text end
+CHATLOCK[gm.guid] = true
+run(gm, "party in an instance", function()
+    local before = #guildChat
+    assert(gm.ns.Party.Play("Bottoms up!"))
+    check(#guildChat == before and boxed == "/rw Bottoms up!", "where the game blocks addon chat, the line is put in the chat box for the player to send")
+end)
+CHATLOCK[gm.guid] = nil
+G.ChatFrame_OpenChat = nil
+advance(130)
+check(clickText(gm, "Party") and gm.ns.Party.frame:IsShown(), "the Party button sits in the title bar")
+run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
+GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] =
+    partyGroups[1], partyGroups[2], partyGroups[3], partyGroups[4], partyGroups[5], partyGroups[6]
+
 -- Upgrades for sale: the spec's list is looked up at the auction house; one click buys one item.
 run(gm, "upgrade scan", function()
     local M = gm.ns.Market

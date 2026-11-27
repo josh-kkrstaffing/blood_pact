@@ -123,6 +123,8 @@ L.KINDS = {
             and (d.mins == nil or isInt(d.mins, 1, 600)) and (d.n == nil or isInt(d.n, 1, 200))
             and not (d.mins and d.n)
     end },
+    -- Party button: one line on the guild's sound board, added or switched off.
+    PARTY_LINE = { "schedule", function(d) return str(d.text, 1, 60) and type(d.on) == "boolean" end },
     -- Raid Caller: one call-out in a boss plan. when = time (seconds after the
     -- pull), hp (boss health %), stack, phase or call (when the leader says).
     -- what = a built-in call-out's key, or text = the guild's own words.

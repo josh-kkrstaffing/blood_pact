@@ -203,8 +203,12 @@ local function build()
     end)
     glassBtn:SetPoint("RIGHT", aboutBtn, "LEFT", -6, 0)
     frame.glassBtn = glassBtn
+    -- Party: the raid's fun button. In the title bar so it shows on every tab.
+    local partyBtn = W.Button(bar, "Party", 54, 22, function() ns.Party.Toggle() end, "accent")
+    partyBtn:SetPoint("RIGHT", glassBtn, "LEFT", -6, 0)
+    frame.partyBtn = partyBtn
     statusText = W.Text(bar, "", "GameFontDisableSmall")
-    statusText:SetPoint("RIGHT", glassBtn, "LEFT", -12, 0)
+    statusText:SetPoint("RIGHT", partyBtn, "LEFT", -12, 0)
 
     -- About: who makes Blood Pact and where to join. Covers the tabs while open.
     local about = CreateFrame("Frame", nil, frame)

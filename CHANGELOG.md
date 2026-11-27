@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.0
+
+- New Party button in the title bar, on every tab. The raid leader or an assist presses it and the raid gets a raid warning such as "Take a drink!", the same as /rw, so everyone sees it with or without the addon
+- Raiders with Blood Pact also hear the line spoken. "Play party sounds" turns that off for you
+- A sound board of lines: Next plays them in order, Random picks one, or click a line. Team Captains and above can add lines and switch them off, and the list syncs to the guild
+- Word of the night: type the word and announce it to the raid
+- A ten-second cooldown, and only the raid leader and assists can press it
+- Inside a raid instance the game blocks addon chat, so the button puts the /rw line in your chat box for you to send
+
 ## 1.10.0
 
 - Upgrades for sale: the "Usable gear" scan now runs on the Pawn addon. Pawn compares each item's real stats with what you are wearing, using its stat weights for your spec, and only what Pawn calls an upgrade is listed, with Pawn's percentage

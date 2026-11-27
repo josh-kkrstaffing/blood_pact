@@ -43,6 +43,7 @@ load("Modules/Advert.lua")
 load("Modules/Statics.lua")
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
+load("Modules/Party.lua")
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
 load("Modules/SummonQueue.lua")
@@ -347,6 +348,29 @@ test("caller: what is said, when, in what order, and to whom", function()
     for _, g in ipairs(C.GROUPS) do
         for _, i in ipairs(g.items) do assert(#i[1] <= 16 and C.PHRASE[i[1]] == i[2]) end
     end
+end)
+
+-- Party button ---------------------------------------------------------------
+test("party: the sound board, who may press, and the rotation", function()
+    local P = ns.Party
+    eq(P.Clean("  Take   a drink!  "), "Take a drink!"); eq(P.Clean(""), nil); eq(P.Clean("   "), nil)
+    eq(P.Clean("a|cffff0000b|r"), "acffff0000br")                    -- no colour codes or links in a raid warning
+    eq(P.Clean(string.rep("x", 61)), nil); eq(#P.Clean(string.rep("x", 60)), 60)
+    local lines = P.Lines(nil)
+    eq(#lines, #P.DEFAULT); eq(lines[1], "Take a drink!")
+    lines = P.Lines({ partyLines = { ["Take a puff!"] = { on = false, t = 5 }, ["For the Horde!"] = { on = true, t = 9 },
+        ["Wipe it up!"] = { on = true, t = 7 }, ["Gone"] = { on = false, t = 8 } } })
+    eq(table.concat(lines, "|"), "Take a drink!|Take a shot!|Bottoms up!|Cheers, Blood Pact!|Wipe it up!|For the Horde!")
+    eq(P.After(lines, nil), "Take a drink!"); eq(P.After(lines, "Take a drink!"), "Take a shot!")
+    eq(P.After(lines, "For the Horde!"), "Take a drink!"); eq(P.After(lines, "not on the list"), "Take a drink!"); eq(P.After({}, "x"), nil)
+    eq(P.CanPress(true, true, 99), true)
+    eq(select(2, P.CanPress(false, true, 99)), "Join a raid or party first.")
+    eq(select(2, P.CanPress(true, false, 99)), "Only the raid leader and assists can press Party, the same as /rw.")
+    eq(select(2, P.CanPress(true, true, 3.2)), "Give it 7 more seconds.")
+    eq(P.WordLine("murloc"), "The word of the night is: murloc")
+    for _, line in ipairs(P.DEFAULT) do assert(P.Clean(line) == line) end
+    local ok = ns.Log.KINDS and ns.Log.KINDS.PARTY_LINE
+    if ok then assert(ok[2]({ text = "Hi", on = true }) and not ok[2]({ text = "", on = true }) and not ok[2]({ text = "Hi" })) end
 end)
 
 -- Upgrades for sale ---------------------------------------------------------
