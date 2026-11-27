@@ -2,6 +2,7 @@
 
 ## 1.12.1
 
+- Party: fixed the leader hearing each line spoken twice
 - Party: the word of the night now works on its own. After a leader announces the word, anyone typing it in raid or party chat sets off the next line as a raid warning, with who said it ("Whyley said Wind. Take a shot!")
 - It matches the whole word in any capitals, so "wind" does not trigger on "window"
 - The ten-second cooldown still applies. Clear the word box and press Announce to stop listening

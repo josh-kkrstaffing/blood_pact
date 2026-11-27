@@ -243,6 +243,7 @@ end
 
 -- A guildmate pressed Party. Speak it only if they are in my group and lead it.
 ns.Sync.Handle("PT", function(msg, _, sguid)
+    if sguid == ns.MyGUID() then return end      -- my own press comes back on the guild channel; I already heard it
     local line = type(msg.l) == "string" and P.Clean(msg.l)
     if not line then return end
     local unit = unitOf(sguid)
