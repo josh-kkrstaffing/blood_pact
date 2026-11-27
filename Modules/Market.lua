@@ -17,15 +17,17 @@ local U, BiS, Orders = ns.U, ns.BiS, ns.Orders
 M.MAX_GOLD = 999999
 M.WAIT = 8          -- seconds to wait for one answer from the auction house
 M.MAX_KEYS = 4      -- variants of one item looked at per search
+M.MAX_BROWSE = 1000 -- kinds of usable gear read from the auction house
+M.MAX_USABLE = 40   -- kinds of usable gear looked at closely, biggest item-level step first
 M.HOWTO = {
     "1. Open the auction house, then press \"Find upgrades for sale\" on the BiS Check tab.",
     "2. Type the least and the most gold you want to pay for one item. Leave a box empty for no limit.",
     "3. Press Scan. Blood Pact looks up every item on your spec's list that ranks above what you own. It takes a moment: the auction house answers one search at a time.",
-    "4. The list shows what is for sale in your gold range, biggest upgrade first, with the cheapest buyout for each.",
-    "5. Press Buy on a row to buy that one item at the price on the button. Collect it from your mailbox.",
-    "One item per click: the game needs your own click for every purchase, so nothing is bought for you.",
-    "Only items with a buyout price are listed. Blood Pact never bids.",
-    "Quest rewards and Tier 0.5 pieces are skipped, because they can't be sold. Dungeon drops are looked up too, but most of those can't be sold either, so expect them to come back empty.",
+    "4. Tick \"Usable gear too\" to also look through greens and other gear you can equip that isn't on the list. With the Pawn addon installed, Pawn's stat weights for your spec decide what is an upgrade. Without Pawn it is item level only: higher than what you wear in that slot, in your class's armor type. Item level doesn't know which stats your spec wants, so read the tooltip before you buy.",
+    "5. The list shows what is for sale in your gold range with the cheapest buyout for each. Click a column heading to sort; click it again to reverse.",
+    "6. Click a row to show that item in the auction window. Press Buy to buy that one item at the price on the button, then collect it from your mailbox.",
+    "One item per click: the game needs your own click for every purchase, so nothing is bought for you. Only items with a buyout are listed; Blood Pact never bids.",
+    "Quest rewards and Tier 0.5 pieces are skipped, because they can't be sold. The usable pass looks closely at up to 40 kinds of gear, biggest item-level step first.",
     "The list follows the spec picked on the BiS Check tab. Pick another spec there and scan again.",
 }
 
@@ -154,17 +156,113 @@ function M.ButtonFor(row, open, money, buying)
     return "buy", "Buy " .. Orders.Money(row.buyout)
 end
 
+-- Where a piece of gear goes: the game's equip location -> slot label and
+-- the character-sheet slots it is compared with.
+M.EQUIP = {
+    INVTYPE_HEAD = { "Head", { 1 } }, INVTYPE_NECK = { "Neck", { 2 } }, INVTYPE_SHOULDER = { "Shoulder", { 3 } },
+    INVTYPE_CHEST = { "Chest", { 5 } }, INVTYPE_ROBE = { "Chest", { 5 } }, INVTYPE_WAIST = { "Waist", { 6 } },
+    INVTYPE_LEGS = { "Legs", { 7 } }, INVTYPE_FEET = { "Feet", { 8 } }, INVTYPE_WRIST = { "Wrist", { 9 } },
+    INVTYPE_HAND = { "Hands", { 10 } }, INVTYPE_FINGER = { "Ring", { 11, 12 } }, INVTYPE_TRINKET = { "Trinket", { 13, 14 } },
+    INVTYPE_CLOAK = { "Back", { 15 } }, INVTYPE_WEAPON = { "Main hand", { 16 } }, INVTYPE_2HWEAPON = { "Main hand", { 16 } },
+    INVTYPE_WEAPONMAINHAND = { "Main hand", { 16 } }, INVTYPE_WEAPONOFFHAND = { "Off hand", { 17 } },
+    INVTYPE_HOLDABLE = { "Off hand", { 17 } }, INVTYPE_SHIELD = { "Off hand", { 17 } }, INVTYPE_RANGED = { "Ranged", { 18 } },
+    INVTYPE_RANGEDRIGHT = { "Ranged", { 18 } }, INVTYPE_THROWN = { "Ranged", { 18 } }, INVTYPE_RELIC = { "Ranged", { 18 } },
+}
+
+-- The heaviest armor a class wears: 1 cloth, 2 leather, 3 mail, 4 plate.
+-- Mail and plate open up at level 40.
+function M.ArmorType(class, level)
+    local late = (level or 60) >= 40
+    if class == "WARRIOR" or class == "PALADIN" then return late and 4 or 3 end
+    if class == "HUNTER" or class == "SHAMAN" then return late and 3 or 2 end
+    if class == "ROGUE" or class == "DRUID" then return 2 end
+    return 1
+end
+
+-- Without stat weights, only armor of the class's own type counts. Cloaks,
+-- jewelry, shields, off-hands and weapons are left to the game's "usable" rule.
+function M.Fits(class, level, classID, subClassID, equipLoc)
+    if classID ~= 4 or equipLoc == "INVTYPE_CLOAK" then return true end
+    if type(subClassID) == "number" and subClassID >= 1 and subClassID <= 4 then return subClassID == M.ArmorType(class, level) end
+    return true
+end
+
+-- Which kinds of usable gear are worth a closer look.
+-- results = { { itemKey, minPrice } }; info(itemKey) -> { equipLoc, ilvl, fits } or nil;
+-- haveOf(slots) -> item level worn there (0 = empty). loose = stat weights
+-- will judge later, so an equal item level is let through.
+function M.UsablePick(results, info, haveOf, hi, cap, loose)
+    local out = {}
+    for _, r in ipairs(results or {}) do
+        local i = r.itemKey and info(r.itemKey)
+        local slot = i and M.EQUIP[i.equipLoc]
+        if slot and (loose or i.fits) and (not hi or (r.minPrice or 0) <= hi) then
+            local have = haveOf(slot[2]) or 0
+            if i.ilvl and (i.ilvl > have or (loose and i.ilvl >= have)) then
+                out[#out + 1] = { key = r.itemKey, slot = slot[1], ilvl = i.ilvl, have = have, gain = i.ilvl - have, price = r.minPrice or 0 }
+            end
+        end
+    end
+    table.sort(out, function(a, b)
+        if a.gain ~= b.gain then return a.gain > b.gain end
+        return a.price < b.price
+    end)
+    while #out > (cap or M.MAX_USABLE) do out[#out] = nil end
+    return out
+end
+
+-- Is one auction an upgrade? pawn = Pawn's best upgrade share for the item
+-- (0 = Pawn says no; nil = Pawn isn't there or doesn't know the item).
+function M.Verdict(pawn, ilvl, have)
+    if pawn then
+        if pawn <= 0 then return nil end
+        return { kind = "pawn", value = pawn, text = ("+%d%% Pawn"):format(math.floor(pawn * 100 + 0.5)) }
+    end
+    if not ilvl or ilvl <= (have or 0) then return nil end
+    return { kind = "ilvl", value = ilvl - (have or 0),
+        text = (have or 0) > 0 and ("ilvl %d over %d"):format(ilvl, have) or ("ilvl %d, slot empty"):format(ilvl) }
+end
+
+-- Sort the result rows by a column. Blanks go last either way; ties by name.
+-- "up" ranks list items above Pawn upgrades above item-level ones.
+local KIND = { list = 3, pawn = 2, ilvl = 1 }
+function M.Sort(rows, key, desc)
+    local function val(r)
+        if key == "slot" then return r.slot end
+        if key == "name" then return r.name end
+        if key == "score" then return r.score end
+        if key == "have" then return r.have end
+        if key == "cost" then return r.buyout end
+        return r.up and (KIND[r.up.kind] or 0) * 1000000 + r.up.value or nil
+    end
+    table.sort(rows, function(a, b)
+        local x, y = val(a), val(b)
+        if x == nil or y == nil then
+            if x ~= nil or y ~= nil then return x ~= nil end
+        elseif x ~= y then
+            if desc then return x > y end
+            return x < y
+        end
+        if a.name ~= b.name then return a.name < b.name end
+        return (a.id or 0) < (b.id or 0)
+    end)
+    return rows
+end
+
 ---------------------------------------------------------------------------
 -- Game side
 ---------------------------------------------------------------------------
 local isOpen = false
-local found = {}                 -- [name] = { auctions seen for that exact item }
+local found = {}                 -- [name] = { auctions seen for that exact list item }
+local queryOf = {}               -- [name] = the search text that found it
 local wantedNow = {}             -- the last scan's list
+local extra, extraByName = {}, {}   -- usable gear that isn't on the list: { name, slot, up, auctions }
 local scan                       -- running scan, or nil
-local done                       -- { checked, spec } after a scan
+local done                       -- { checked, spec, usable } after a scan
 local buying, bought = nil, {}   -- auction id being bought; ids bought
 local lastNote
 local token = 0
+local sortKey, sortDesc = "up", true
 
 local function api() return C_AuctionHouse end
 local function refresh() if M.Refresh then M.Refresh() end end
@@ -189,7 +287,15 @@ function M.SetRange(minText, maxText)
     return lo, hi
 end
 
--- Rows to show: one per wanted item that has an auction inside the range.
+function M.Usable() return prefs().marketUsable and true or false end
+function M.SetUsable(on) prefs().marketUsable = on and true or nil end
+
+function M.SortBy(key)
+    if sortKey == key then sortDesc = not sortDesc else sortKey, sortDesc = key, (key ~= "slot" and key ~= "name" and key ~= "cost") end
+end
+function M.SortState() return sortKey, sortDesc end
+
+-- Rows to show: one per item that has an auction inside the range.
 function M.Rows()
     local lo, hi = M.MyRange()
     local rows = {}
@@ -198,10 +304,18 @@ function M.Rows()
         local a = M.Cheapest(found[w.name], w.name, lo, hi)
         if a then
             rows[#rows + 1] = { id = a.id, name = w.name, slot = w.slot, score = w.score, have = w.have, gain = w.gain,
-                buyout = a.buyout, link = a.link, bought = bought[a.id] or false }
+                up = { kind = "list", value = w.gain, text = ("+%d%% on list"):format(math.floor(w.gain * 100 + 0.5)) },
+                buyout = a.buyout, link = a.link, query = queryOf[w.name] or w.name, bought = bought[a.id] or false }
         end
     end
-    return rows
+    for _, e in ipairs(extra) do
+        local a = M.Cheapest(e.auctions, e.name, lo, hi)
+        if a then
+            rows[#rows + 1] = { id = a.id, name = e.name, slot = e.slot, up = e.up, buyout = a.buyout, link = a.link,
+                query = M.BaseName(e.name) or e.name, bought = bought[a.id] or false }
+        end
+    end
+    return M.Sort(rows, sortKey, sortDesc)
 end
 
 function M.State()
@@ -223,7 +337,7 @@ end
 
 local function finish(note)
     if not scan then return end
-    done = { checked = #scan.queue, spec = scan.spec }
+    done = { checked = #scan.queue, spec = scan.spec, usable = scan.looked }
     scan, waitingToSend = nil, nil
     token = token + 1
     lastNote = note
@@ -236,9 +350,10 @@ local function sorts()
     return {}
 end
 
-local function filters()
+local function filters(usable)
     local f, out = Enum and Enum.AuctionHouseFilter, {}
     if not f then return out end
+    if usable and f.UsableOnly then out[#out + 1] = f.UsableOnly end
     for _, k in ipairs({ "UncommonQuality", "RareQuality", "EpicQuality" }) do
         if f[k] then out[#out + 1] = f[k] end
     end
@@ -259,10 +374,10 @@ local function arm()
 end
 
 local function browse(text)
-    scan.phase = "browse"
+    scan.phase, scan.text = "browse", text
     arm()
     send(function()
-        api().SendBrowseQuery({ searchString = text, sorts = sorts(), filters = filters() })
+        api().SendBrowseQuery({ searchString = text, sorts = sorts(), filters = filters(false) })
     end)
 end
 
@@ -270,7 +385,7 @@ local function searchNext()
     local key = table.remove(scan.keys, 1)
     if not key then
         local w = scan.queue[scan.i]
-        local base = M.BaseName(w.name)
+        local base = w and M.BaseName(w.name)
         if base and not scan.retried and #(found[w.name] or {}) == 0 then
             scan.retried = true
             return browse(base)
@@ -282,12 +397,144 @@ local function searchNext()
     send(function() api().SendSearchQuery(key, sorts(), false) end)
 end
 
+---------------------------------------------------------------------------
+-- The usable pass: gear you can equip that isn't on the list
+---------------------------------------------------------------------------
+local function itemLevelOf(item)
+    local get = (C_Item and C_Item.GetDetailedItemLevelInfo) or GetDetailedItemLevelInfo
+    if type(get) == "function" then
+        local ok, n = pcall(get, item)
+        if ok and type(n) == "number" and n > 0 then return n end
+    end
+    local info = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    if type(info) == "function" then
+        local ok, _, _, _, n = pcall(info, item)
+        if ok and type(n) == "number" and n > 0 then return n end
+    end
+    return nil
+end
+
+-- Item level worn in a set of character-sheet slots: the lowest, 0 if one is empty.
+local function wornLevel(slots)
+    local low
+    for _, slot in ipairs(slots) do
+        local link = GetInventoryItemLink("player", slot)
+        local n = link and itemLevelOf(link) or 0
+        if not low or n < low then low = n end
+    end
+    return low or 0
+end
+
+local function pawnReady() return type(PawnGetItemData) == "function" and type(PawnIsItemAnUpgrade) == "function" end
+
+-- Pawn's verdict on one item link: best upgrade share over the player's
+-- scales, 0 for "not an upgrade", nil when Pawn isn't there or can't say.
+local function pawnSays(link)
+    if not (pawnReady() and link) then return nil end
+    local ok, item = pcall(PawnGetItemData, link)
+    if not ok or type(item) ~= "table" then return nil end
+    local ok2, ups = pcall(PawnIsItemAnUpgrade, item)
+    if not ok2 then return nil end
+    local best = 0
+    for _, u in ipairs(type(ups) == "table" and ups or {}) do
+        if type(u) == "table" and type(u.PercentUpgrade) == "number" and u.PercentUpgrade > best then best = u.PercentUpgrade end
+    end
+    return best
+end
+
+local function keyInfo(key)
+    local instant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+    if type(instant) ~= "function" or not key.itemID then return nil end
+    local ok, _, _, _, equipLoc, _, classID, subClassID = pcall(instant, key.itemID)
+    if not ok or type(equipLoc) ~= "string" then return nil end
+    local _, class = UnitClass("player")
+    local ilvl = type(key.itemLevel) == "number" and key.itemLevel > 0 and key.itemLevel or itemLevelOf(key.itemID)
+    return { equipLoc = equipLoc, ilvl = ilvl, fits = M.Fits(class, UnitLevel and UnitLevel("player") or 60, classID, subClassID, equipLoc) }
+end
+
+local function usableNext()
+    local c = table.remove(scan.cands, 1)
+    if not c then return finish(nil) end
+    scan.cand = c
+    scan.looked = scan.looked + 1
+    scan.phase = "usearch"
+    refresh()
+    arm()
+    send(function() api().SendSearchQuery(c.key, sorts(), false) end)
+end
+
+local function usablePicked()
+    local a = api()
+    local ok, results = pcall(a.GetBrowseResults)
+    local _, hi = M.MyRange()
+    scan.cands = M.UsablePick(ok and type(results) == "table" and results or {}, keyInfo, wornLevel, hi, M.MAX_USABLE, pawnReady())
+    scan.ofUsable = #scan.cands
+    usableNext()
+end
+
+local function usableBrowse()
+    scan.stage, scan.phase, scan.looked, scan.cands = "usable", "ubrowse", 0, {}
+    refresh()
+    arm()
+    send(function()
+        api().SendBrowseQuery({ searchString = "", sorts = sorts(), filters = filters(true),
+            itemClassFilters = { { classID = 2 }, { classID = 4 } } })
+    end)
+end
+
+local function onUsableBrowse()
+    local a = api()
+    local ok, results = pcall(a.GetBrowseResults)
+    local n = ok and type(results) == "table" and #results or 0
+    local full = true
+    if a.HasFullBrowseResults then
+        local ok2, v = pcall(a.HasFullBrowseResults)
+        full = not ok2 or v ~= false
+    end
+    if not full and n < M.MAX_BROWSE and a.RequestMoreBrowseResults then
+        arm()
+        return send(function() a.RequestMoreBrowseResults() end)
+    end
+    usablePicked()
+end
+
+local function onUsableSearch(itemKey)
+    local a, c = api(), scan.cand
+    local ok, n = pcall(a.GetNumItemSearchResults, itemKey)
+    for i = 1, (ok and type(n) == "number" and n or 0) do
+        local ok2, r = pcall(a.GetItemSearchResultInfo, itemKey, i)
+        local name = ok2 and type(r) == "table" and BiS.NameFromLink(r.itemLink)
+        if name and r.auctionID and not scan.onList[name] then
+            local e = extraByName[name]
+            if not e then
+                local up = M.Verdict(pawnSays(r.itemLink), c.ilvl, c.have)
+                if up then
+                    e = { name = name, slot = c.slot, up = up, auctions = {} }
+                    extraByName[name] = e
+                    extra[#extra + 1] = e
+                else
+                    extraByName[name] = false
+                end
+            end
+            if e then
+                e.auctions[#e.auctions + 1] = { id = r.auctionID, name = name, buyout = r.buyoutAmount,
+                    mine = r.containsOwnerItem or r.containsAccountItem or false, link = r.itemLink }
+            end
+        end
+    end
+    scan.phase = nil
+    usableNext()
+end
+
 step = function()
     if not scan then return end
     scan.i = scan.i + 1
     scan.retried, scan.keys = false, {}
     local w = scan.queue[scan.i]
-    if not w then return finish(nil) end
+    if not w then
+        if scan.usable then return usableBrowse() end
+        return finish(nil)
+    end
     refresh()
     browse(w.name)
 end
@@ -302,15 +549,25 @@ function M.Scan()
     if not lo then return nil, why end
     local key, list = BiS.CurrentSpec()
     if not list then return nil, "Blood Pact has no list for your class yet." end
-    wantedNow = M.Wanted(list, BiS.Owned())
-    found, bought, done, lastNote = {}, {}, nil, nil
-    if #wantedNow == 0 then
-        done = { checked = 0, spec = key }
-        refresh()
-        return true
+    local owned = BiS.Owned()
+    wantedNow = M.Wanted(list, owned)
+    found, queryOf, extra, extraByName, bought, done, lastNote = {}, {}, {}, {}, {}, nil, nil
+    -- The usable pass leaves out everything the list already covers, and what you own.
+    local onList = {}
+    for name in pairs(owned) do onList[name] = true end
+    for _, s in ipairs(list.slots) do
+        for _, it in ipairs(s.items) do
+            onList[it.name] = true
+            if it.ally then onList[it.ally] = true end
+        end
     end
-    scan = { queue = wantedNow, i = 0, keys = {}, spec = key }
-    scan.skip = function() if scan then searchNext() end end
+    scan = { queue = wantedNow, i = 0, keys = {}, spec = key, usable = M.Usable(), onList = onList, looked = 0, stage = "list" }
+    scan.skip = function()
+        if not scan then return end
+        if scan.phase == "ubrowse" then return usablePicked() end
+        if scan.stage == "usable" then return usableNext() end
+        searchNext()
+    end
     step()
     return true
 end
@@ -320,7 +577,9 @@ function M.Stop()
 end
 
 local function onBrowse()
-    if not (scan and scan.phase == "browse") then return end
+    if not scan then return end
+    if scan.phase == "ubrowse" then return onUsableBrowse() end
+    if scan.phase ~= "browse" then return end
     local a, w = api(), scan.queue[scan.i]
     local ok, results = pcall(a.GetBrowseResults)
     local keys = {}
@@ -338,20 +597,45 @@ local function onBrowse()
 end
 
 local function onSearch(itemKey)
-    if not (scan and scan.phase == "search") or type(itemKey) ~= "table" then return end
+    if not scan or type(itemKey) ~= "table" then return end
+    if scan.phase == "usearch" then return onUsableSearch(itemKey) end
+    if scan.phase ~= "search" then return end
     local a, w = api(), scan.queue[scan.i]
     local ok, n = pcall(a.GetNumItemSearchResults, itemKey)
     local list = found[w.name] or {}
     for i = 1, (ok and type(n) == "number" and n or 0) do
         local ok2, r = pcall(a.GetItemSearchResultInfo, itemKey, i)
         if ok2 and type(r) == "table" and r.auctionID then
-            list[#list + 1] = { id = r.auctionID, name = BiS.NameFromLink(r.itemLink), buyout = r.buyoutAmount,
+            local name = BiS.NameFromLink(r.itemLink)
+            if name == w.name then queryOf[w.name] = scan.text end
+            list[#list + 1] = { id = r.auctionID, name = name, buyout = r.buyoutAmount,
                 mine = r.containsOwnerItem or r.containsAccountItem or false, link = r.itemLink }
         end
     end
     found[w.name] = list
     scan.phase = nil
     searchNext()
+end
+
+-- Click a row: show that item in the game's own auction window.
+function M.Show(row)
+    if not isOpen then return nil, "Open the auction house first." end
+    if scan then return nil, "Wait for the scan to finish." end
+    local f = AuctionHouseFrame
+    local bar = f and f.SearchBar
+    local box = bar and bar.SearchBox
+    if not (box and box.SetText and bar.StartSearch) then
+        return nil, "Blood Pact can't drive this auction window. Search there for: " .. row.query
+    end
+    local ok = pcall(function()
+        if f.SetDisplayMode and AuctionHouseFrameDisplayMode and AuctionHouseFrameDisplayMode.Buy then
+            f:SetDisplayMode(AuctionHouseFrameDisplayMode.Buy)
+        end
+        box:SetText(row.query)
+        bar:StartSearch()
+    end)
+    if not ok then return nil, "The auction window didn't take that. Search there for: " .. row.query end
+    return true
 end
 
 -- One click, one item, at the buyout shown on the button.
@@ -386,7 +670,8 @@ ns.On("AUCTION_HOUSE_CLOSED", function()
     if scan then finish("The auction house closed, so the scan stopped.") else refresh() end
 end)
 ns.On("AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", onBrowse)
-ns.On("AUCTION_HOUSE_BROWSE_FAILURE", function() if scan and scan.phase == "browse" then scan.skip() end end)
+ns.On("AUCTION_HOUSE_BROWSE_RESULTS_ADDED", function() if scan and scan.phase == "ubrowse" then onUsableBrowse() end end)
+ns.On("AUCTION_HOUSE_BROWSE_FAILURE", function() if scan and (scan.phase == "browse" or scan.phase == "ubrowse") then scan.skip() end end)
 ns.On("ITEM_SEARCH_RESULTS_UPDATED", onSearch)
 ns.On("AUCTION_HOUSE_THROTTLED_SYSTEM_READY", function()
     local fn = waitingToSend
@@ -414,9 +699,12 @@ local helping = false
 
 local function pct(x) return math.floor(x * 100 + 0.5) .. "%" end
 
+local HEADS = { { "slot", "Slot", 12, 74 }, { "name", "Item", 88, 214 }, { "score", "List score", 304, 74 },
+    { "have", "You have", 380, 70 }, { "up", "Upgrade", 452, 114 }, { "cost", "Cost", 568, 100 } }
+
 local function build()
     local f = CreateFrame("Frame", "BloodPactMarket", UIParent)
-    f:SetSize(600, 350)
+    f:SetSize(680, 360)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetToplevel(true)
     f:SetMovable(true)
@@ -429,7 +717,7 @@ local function build()
     W.Glass(f, true)
     f.title = W.Text(f, "", "GameFontNormal")
     f.title:SetPoint("TOPLEFT", 10, -9)
-    f.title:SetWidth(540)
+    f.title:SetWidth(620)
     f.title:SetJustifyH("LEFT")
     f.title:SetWordWrap(false)
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
@@ -448,7 +736,7 @@ local function build()
     end
     f.lo:HookScript("OnTextChanged", typed)
     f.hi:HookScript("OnTextChanged", typed)
-    f.scan = W.Button(f, "Scan", 90, 22, function()
+    f.scan = W.Button(f, "Scan", 80, 22, function()
         if scan then
             M.Stop()
         else
@@ -458,6 +746,12 @@ local function build()
         refresh()
     end)
     f.scan:SetPoint("TOPLEFT", 284, -42)
+    f.usable = W.Check(f, "Usable gear too", function(on)
+        M.SetUsable(on)
+        lastNote = on and "Press Scan to look through usable gear as well." or nil
+        refresh()
+    end)
+    f.usable:SetPoint("TOPLEFT", 378, -45)
     f.help = W.Button(f, "How does this work?", 150, 22, function()
         helping = not helping
         refresh()
@@ -465,28 +759,30 @@ local function build()
     f.help:SetPoint("TOPRIGHT", -12, -42)
     f.status = W.Text(f, "", "GameFontHighlightSmall")
     f.status:SetPoint("TOPLEFT", 12, -70)
-    f.status:SetWidth(576)
+    f.status:SetWidth(656)
     f.status:SetJustifyH("LEFT")
     f.status:SetWordWrap(false)
 
     f.heads = {}
-    for i, h in ipairs({ { "Slot", 16, 80, "LEFT" }, { "Item", 100, 230, "LEFT" }, { "List score", 334, 70, "RIGHT" },
-        { "You have", 408, 60, "RIGHT" } }) do
-        local fs = W.Text(f, h[1], "GameFontDisableSmall")
-        fs:SetPoint("TOPLEFT", h[2], -92)
-        fs:SetWidth(h[3])
-        fs:SetJustifyH(h[4])
-        f.heads[i] = fs
+    for i, h in ipairs(HEADS) do
+        local b = W.SortButton(f, h[2], h[4], function()
+            M.SortBy(h[1])
+            refresh()
+        end)
+        b.key = h[1]
+        b:SetPoint("TOPLEFT", h[3], -90)
+        f.heads[i] = b
     end
-    f.rows = W.List(f, 576, 190, 20, function(row, r)
-        f.rows.Col(row, 1, 4, 80):SetText(U.Safe(r.slot, 20))
-        f.rows.Col(row, 2, 88, 230):SetText(U.Safe(r.name, 60))
-        f.rows.Col(row, 3, 322, 70, "RIGHT"):SetText(pct(r.score))
-        local have = f.rows.Col(row, 4, 396, 60, "RIGHT")
-        have:SetText(pct(r.have))
+    f.rows = W.List(f, 656, 196, 20, function(row, r)
+        f.rows.Col(row, 1, 4, 72):SetText(U.Safe(r.slot, 20))
+        f.rows.Col(row, 2, 80, 212):SetText(U.Safe(r.name, 60))
+        f.rows.Col(row, 3, 296, 72):SetText(r.score and pct(r.score) or "-")
+        local have = f.rows.Col(row, 4, 372, 68)
+        have:SetText(r.have and pct(r.have) or "-")
         have:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
+        f.rows.Col(row, 5, 444, 112):SetText(r.up and r.up.text or "")
         if not row.act then
-            row.act = W.Button(row, "", 104, 18)
+            row.act = W.Button(row, "", 96, 18)
             row.act:SetPoint("RIGHT", -4, 0)
         end
         local kind, text = M.ButtonFor(r, isOpen and M.Supported() and not scan, GetMoney and GetMoney() or 0, buying)
@@ -498,18 +794,22 @@ local function build()
             if not ok then lastNote = why end
             refresh()
         end)
+    end, function(r)
+        local ok, why = M.Show(r)
+        lastNote = ok and ("Showing " .. r.query .. " in the auction window. Drag this window aside if it is in the way.") or why
+        refresh()
     end)
-    f.rows.scroll:SetPoint("TOPLEFT", 12, -108)
-    f.rows.scroll:SetSize(576, 190)
+    f.rows.scroll:SetPoint("TOPLEFT", 12, -112)
+    f.rows.scroll:SetSize(656, 196)
     f.helpText = W.Text(f, table.concat(M.HOWTO, "\n\n"), "GameFontHighlightSmall")
     f.helpText:SetPoint("TOPLEFT", 14, -92)
-    f.helpText:SetWidth(572)
+    f.helpText:SetWidth(652)
     f.helpText:SetJustifyH("LEFT")
     f.helpText:SetJustifyV("TOP")
     f.helpText:SetWordWrap(true)
     f.foot = W.Text(f, "", "GameFontDisableSmall")
     f.foot:SetPoint("BOTTOMLEFT", 12, 10)
-    f.foot:SetWidth(576)
+    f.foot:SetWidth(656)
     f.foot:SetJustifyH("LEFT")
     f.foot:SetWordWrap(false)
     f:SetScript("OnHide", function() M.Stop() end)
@@ -524,9 +824,13 @@ function M.Refresh()
     local _, list = BiS.CurrentSpec()
     f.title:SetText("Upgrades for sale: " .. U.Safe(list and list.label or "no list for your class", 50))
     f.help:SetText(helping and "Back to the list" or "How does this work?")
-    for _, fs in ipairs(f.heads) do fs:SetShown(not helping) end
+    for _, b in ipairs(f.heads) do
+        b:SetShown(not helping)
+        b:SetSort(b.key == sortKey and (sortDesc and "down" or "up") or nil)
+    end
     f.rows.scroll:SetShown(not helping)
     f.helpText:SetShown(helping)
+    f.usable:SetChecked(M.Usable())
     f.scan:SetText(scan and "Stop" or "Scan")
     f.scan:SetEnabled(scan ~= nil or (isOpen and M.Supported() and list ~= nil and not buying))
     local lo, hi = M.MyRange()
@@ -537,6 +841,10 @@ function M.Refresh()
         f.status:SetText("Blood Pact doesn't have a list for your class yet.")
     elseif not M.Supported() then
         f.status:SetText("This auction house can't be searched by addons.")
+    elseif scan and scan.phase == "ubrowse" then
+        f.status:SetText("Reading the usable gear on the auction house...")
+    elseif scan and scan.stage == "usable" then
+        f.status:SetText(("Checking usable gear, %d of %d kinds"):format(scan.looked, scan.ofUsable or scan.looked))
     elseif scan then
         local w = scan.queue[scan.i]
         f.status:SetText(("Looking up %d of %d: %s"):format(scan.i, #scan.queue, U.Safe(w and w.name or "", 50)))
@@ -544,14 +852,16 @@ function M.Refresh()
         f.status:SetText("|cffff6040Open the auction house to scan.|r")
     elseif not done then
         f.status:SetText("Set your gold range, then press Scan.")
-    elseif done.checked == 0 then
-        f.status:SetText("|cff40ff40Nothing to look for: you own the best of every item that can be sold.|r")
     elseif #rows == 0 then
-        f.status:SetText(("Looked up %d items. None are for sale %s right now."):format(done.checked, M.RangeText(lo, hi)))
+        f.status:SetText(("Looked up %d list items%s. Nothing is for sale %s right now."):format(done.checked,
+            done.usable > 0 and (" and " .. done.usable .. " kinds of usable gear") or "", M.RangeText(lo, hi)))
     else
-        f.status:SetText(("%d of %d items are for sale %s. One Buy click buys one item."):format(#rows, done.checked, M.RangeText(lo, hi)))
+        f.status:SetText(("%d for sale %s, from %d list items%s. Click a row to see it in the auction window."):format(#rows,
+            M.RangeText(lo, hi), done.checked, done.usable > 0 and (" and " .. done.usable .. " kinds of usable gear") or ""))
     end
-    f.foot:SetText("Ranks are from the BiS Check list for your spec. The price on the Buy button is what you pay.")
+    f.foot:SetText(M.Usable() and (pawnReady() and "Usable gear is judged by Pawn's stat weights. The price on the Buy button is what you pay."
+        or "No Pawn addon found: usable gear is judged by item level only, which ignores stats. Check the tooltip first.")
+        or "Ranks are from the BiS Check list for your spec. The price on the Buy button is what you pay.")
     if not helping then f.rows:SetItems(rows) end
 end
 

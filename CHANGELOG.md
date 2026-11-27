@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.0
+
+- Upgrades for sale: new "Usable gear too" box. Ticked, the scan also looks through greens and other gear you can equip that isn't on your BiS list
+- With the Pawn addon installed, Pawn's stat weights for your spec decide which of those are upgrades. Without Pawn it is item level only: higher than what you wear in that slot, in your class's armor type. Item level ignores stats, so check the tooltip first
+- Every column heading sorts the list: Slot, Item, List score, You have, Upgrade and Cost. Click again to reverse
+- Click a row to show that item in the game's auction window
+- New Upgrade column says why a row is listed: its step up on the list, Pawn's percentage, or the item levels
+
 ## 1.8.0
 
 - BiS Check: new "Find upgrades for sale" button opens an auction house scan for your spec. It works for every class and spec, from the same pre-raid lists as the BiS Check tab

@@ -3,7 +3,7 @@
 ## Notes: Guild DKP, loot, roster, professions and crafting orders, raid sign-ups, warlock summons, BiS check, recruiting and tickets for WoW Forever. Made by Kitch, of the Blood Pact guild, US East PvP Horde. Fan-made; not affiliated with Blizzard Entertainment.
 ## Author: Kitch (Blood Pact guild, US East PvP Horde)
 ## X-Website: https://discord.gg/hfCKk6kED
-## Version: 1.8.0
+## Version: 1.9.0
 ## SavedVariables: BloodPactDB
 ## OptionalDeps: Questie, Auctionator
 ## AddonCompartmentFunc: BloodPact_OnCompartmentClick

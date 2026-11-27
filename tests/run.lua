@@ -403,6 +403,57 @@ test("market: gold range, what to look up, the cheapest auction and the buy butt
     assert(#M.HOWTO >= 6)
 end)
 
+test("market: usable gear, what counts as an upgrade, and sorting", function()
+    local M = ns.Market
+    eq(M.ArmorType("WARRIOR", 60), 4); eq(M.ArmorType("WARRIOR", 39), 3); eq(M.ArmorType("SHAMAN", 40), 3); eq(M.ArmorType("HUNTER", 20), 2)
+    eq(M.ArmorType("DRUID", 60), 2); eq(M.ArmorType("WARLOCK", 60), 1)
+    assert(M.Fits("WARLOCK", 60, 4, 1, "INVTYPE_ROBE") and not M.Fits("WARLOCK", 60, 4, 4, "INVTYPE_HEAD"))
+    assert(not M.Fits("WARRIOR", 60, 4, 1, "INVTYPE_CHEST") and M.Fits("WARRIOR", 60, 4, 1, "INVTYPE_CLOAK"))   -- cloaks are cloth for everyone
+    assert(M.Fits("WARRIOR", 60, 4, 0, "INVTYPE_FINGER") and M.Fits("WARRIOR", 60, 4, 6, "INVTYPE_SHIELD") and M.Fits("MAGE", 60, 2, 7, "INVTYPE_WEAPON"))
+
+    local info = {
+        a = { equipLoc = "INVTYPE_HEAD", ilvl = 60, fits = true },  b = { equipLoc = "INVTYPE_HEAD", ilvl = 50, fits = true },
+        c = { equipLoc = "INVTYPE_CHEST", ilvl = 70, fits = false }, d = { equipLoc = "INVTYPE_FINGER", ilvl = 45, fits = true },
+        e = { equipLoc = "INVTYPE_BAG", ilvl = 90, fits = true },    f = { equipLoc = "INVTYPE_LEGS", ilvl = 58, fits = true },
+        g = { equipLoc = "INVTYPE_LEGS", fits = true } }
+    local worn = { [1] = 55, [5] = 40, [7] = 58, [11] = 50, [12] = 0 }
+    local function haveOf(slots)
+        local low
+        for _, sl in ipairs(slots) do if not low or (worn[sl] or 0) < low then low = worn[sl] or 0 end end
+        return low
+    end
+    local results = {}
+    for _, k in ipairs({ "a", "b", "c", "d", "e", "f", "g", "zz" }) do results[#results + 1] = { itemKey = k, minPrice = k == "a" and 900 or 100 } end
+    local function look(k) return info[k] end
+    local got = M.UsablePick(results, look, haveOf, nil, 10, false)
+    eq(#got, 2); eq(got[1].key, "d"); eq(got[1].slot, "Ring"); eq(got[1].have, 0); eq(got[1].gain, 45)   -- an empty ring slot counts as 0
+    eq(got[2].key, "a"); eq(got[2].gain, 5)                      -- lower item level, wrong armor, bags and unknown items left out
+    eq(#M.UsablePick(results, look, haveOf, 500, 10, false), 1)   -- nothing listed under the most you'll pay
+    got = M.UsablePick(results, look, haveOf, nil, 10, true)
+    eq(#got, 4)                                                  -- with stat weights: other armor and an equal item level are let through
+    eq(#M.UsablePick(results, look, haveOf, nil, 1, true), 1)
+
+    eq(M.Verdict(nil, 60, 55).text, "ilvl 60 over 55"); eq(M.Verdict(nil, 45, 0).text, "ilvl 45, slot empty"); eq(M.Verdict(nil, 55, 55), nil)
+    eq(M.Verdict(nil, nil, 0), nil)
+    eq(M.Verdict(0.124, 40, 55).text, "+12% Pawn"); eq(M.Verdict(0.124, 40, 55).kind, "pawn"); eq(M.Verdict(0, 90, 10), nil)   -- Pawn's word beats item level
+
+    local rows = {
+        { id = 1, name = "Cowl", slot = "Head", score = 1, have = 0.5, buyout = 500, up = { kind = "list", value = 0.5 } },
+        { id = 2, name = "Band", slot = "Ring", buyout = 100, up = { kind = "ilvl", value = 45 } },
+        { id = 3, name = "Amice", slot = "Shoulder", score = 0.5, have = 0, buyout = 900, up = { kind = "list", value = 0.5 } },
+        { id = 4, name = "Drape", slot = "Back", buyout = 300, up = { kind = "pawn", value = 0.12 } } }
+    local function order(key, desc)
+        local out = {}
+        for i, r in ipairs(M.Sort(rows, key, desc)) do out[i] = r.name end
+        return table.concat(out, ",")
+    end
+    eq(order("cost", false), "Band,Drape,Cowl,Amice"); eq(order("cost", true), "Amice,Cowl,Drape,Band")
+    eq(order("name", false), "Amice,Band,Cowl,Drape"); eq(order("slot", true), "Amice,Band,Cowl,Drape")
+    eq(order("score", true), "Cowl,Amice,Band,Drape"); eq(order("score", false), "Amice,Cowl,Band,Drape")   -- rows without a list score stay last
+    eq(order("have", true), "Cowl,Amice,Band,Drape")
+    eq(order("up", true), "Amice,Cowl,Drape,Band"); eq(order("up", false), "Band,Drape,Amice,Cowl")       -- list, then Pawn, then item level
+end)
+
 -- Buy materials -------------------------------------------------------------
 test("shop: plan for 1 to 20 crafts, and what each button does", function()
     local S = ns.Shop
