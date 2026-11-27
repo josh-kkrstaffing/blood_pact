@@ -2262,6 +2262,31 @@ run(gm, "party word and lockdown", function()
     check(guildChat[#guildChat] == "RAID_WARNING:nil:The word of the night is: murloc", "the word of the night is announced")
 end)
 advance(11)
+-- From here the leader's client listens: the word typed in raid chat sets off the next line.
+run(gm, "the word is said", function()
+    local before = #guildChat
+    fire(gm, "CHAT_MSG_RAID_WARNING", "The word of the night is: murloc", gm.name .. REALM, "", "", gm.name, "", 0, 0, "", 0, 1, gm.guid)
+    fire(gm, "CHAT_MSG_RAID", "murlocs everywhere", officer.name .. REALM, "", "", officer.name, "", 0, 0, "", 0, 1, officer.guid)
+    check(#guildChat == before, "the announcement and near-misses set nothing off")
+    fire(gm, "CHAT_MSG_RAID", "ugh, a MURLOC!", officer.name .. REALM, "", "", officer.name, "", 0, 0, "", 0, 1, officer.guid)
+    check(#guildChat == before + 1 and guildChat[#guildChat] == "RAID_WARNING:nil:" .. officer.name .. " said murloc. Take a puff!",
+        "typing the word in raid chat sends the next line, with who said it")
+    fire(gm, "CHAT_MSG_RAID", "murloc murloc", officer.name .. REALM, "", "", officer.name, "", 0, 0, "", 0, 1, officer.guid)
+    check(#guildChat == before + 1, "the cooldown stops a pile-up")
+end)
+run(officer, "only the announcer listens", function()
+    local before = #guildChat
+    fire(officer, "CHAT_MSG_RAID", "murloc", gm.name .. REALM, "", "", gm.name, "", 0, 0, "", 0, 1, gm.guid)
+    check(#guildChat == before and officer.ns.Party.Listening() == nil, "a raider who didn't announce the word sends nothing")
+end)
+advance(11)
+run(gm, "stop listening", function()
+    local before = #guildChat
+    assert(gm.ns.Party.Word("  "))
+    fire(gm, "CHAT_MSG_RAID", "murloc", officer.name .. REALM, "", "", officer.name, "", 0, 0, "", 0, 1, officer.guid)
+    check(#guildChat == before and gm.ns.Party.Listening() == nil, "an empty word stops the listening")
+end)
+advance(11)
 local boxed
 G.ChatFrame_OpenChat = function(text) boxed = text end
 CHATLOCK[gm.guid] = true

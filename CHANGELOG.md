@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.12.1
+
+- Party: the word of the night now works on its own. After a leader announces the word, anyone typing it in raid or party chat sets off the next line as a raid warning, with who said it ("Whyley said Wind. Take a shot!")
+- It matches the whole word in any capitals, so "wind" does not trigger on "window"
+- The ten-second cooldown still applies. Clear the word box and press Announce to stop listening
+- It listens on the screen of the leader who announced the word, and cannot hear voice chat or read chat inside a raid instance
+
 ## 1.12.0
 
 - New: Drink of the Night. A Team Captain or above gives a raid a drink, and it shows on the raid's header in the Raids tab with a Recipe button, so raiders see it when they sign up

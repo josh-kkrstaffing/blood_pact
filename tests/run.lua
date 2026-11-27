@@ -369,6 +369,12 @@ test("party: the sound board, who may press, and the rotation", function()
     eq(select(2, P.CanPress(true, false, 99)), "Only the raid leader and assists can press Party, the same as /rw. In a party, the party leader.")
     eq(select(2, P.CanPress(true, true, 3.2)), "Give it 7 more seconds.")
     eq(P.WordLine("murloc"), "The word of the night is: murloc")
+    assert(P.Said("Wind", "Wind") and P.Said("oh no, WIND!", "wind") and P.Said("the wind is up", "Wind") and P.Said("wind", "wind"))
+    assert(not P.Said("window", "wind") and not P.Said("rewind it", "wind") and not P.Said("", "wind") and not P.Said("wind", ""))
+    assert(P.Said("that was my bad, sorry", "My Bad") and not P.Said("my badge", "my bad") and not P.Said(nil, "wind"))
+    eq(P.Caught("Whyley", "Wind", "Take a shot!"), "Whyley said Wind. Take a shot!")
+    eq(P.Caught(nil, "Wind", "Take a shot!"), "Take a shot!")
+    eq(P.Caught(string.rep("n", 40), "Wind", "Cheers, Blood Pact!"), "Cheers, Blood Pact!")     -- too long for a raid warning: the line alone
     for _, line in ipairs(P.DEFAULT) do assert(P.Clean(line) == line) end
     local ok = ns.Log.KINDS and ns.Log.KINDS.PARTY_LINE
     if ok then assert(ok[2]({ text = "Hi", on = true }) and not ok[2]({ text = "", on = true }) and not ok[2]({ text = "Hi" })) end

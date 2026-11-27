@@ -19,7 +19,8 @@ P.HOWTO = {
     "Party is for raid nights. The raid leader and assists press it; the whole raid sees a raid warning with the line, the same as typing /rw.",
     "It works in a five-player party too: the party leader presses it. The line goes to party chat, and party members with Blood Pact also get the big on-screen text.",
     "Raiders who have Blood Pact also hear the line spoken. Untick \"Play party sounds\" to keep it quiet on your end.",
-    "Word of the night: type a word and press Announce. Whenever someone says it on voice, a leader presses Next or picks a line.",
+    "Word of the night: type a word and press Announce. From then on, whenever anyone types that word in raid or party chat, the next line goes out on its own, with who said it. It listens on the screen of the leader who announced it.",
+    "Said on voice and not typed? The addon can't hear voice chat, so press Next line. Clear the box and press Announce to stop listening.",
     "Next plays the lines in order. Random picks one. Click any line to play that one.",
     "Announce the drink sends the raid tonight's Drink of the Night, set on the Raids tab.",
     "Team Captains and above can add lines or switch them off, and the list syncs to the guild.",
@@ -78,6 +79,22 @@ end
 
 function P.WordLine(word) return "The word of the night is: " .. word end
 
+-- Did someone say the word? Whole word, any capitals: "wind" matches "Wind!"
+-- and "the wind", not "window" or "rewind".
+function P.Said(text, word)
+    if type(text) ~= "string" or type(word) ~= "string" or word == "" then return false end
+    local hay = " " .. text:lower():gsub("[^%w']", " ") .. " "
+    local needle = word:lower():gsub("[^%w']", " "):gsub("%s+", " "):match("^%s*(.-)%s*$")
+    if needle == "" then return false end
+    return hay:gsub("%s+", " "):find(" " .. needle .. " ", 1, true) ~= nil
+end
+
+-- The raid warning when someone says it: who said it, then the next line.
+function P.Caught(name, word, line)
+    local full = name and (name .. " said " .. word .. ". " .. line) or line
+    return #full <= P.MAX_LINE and full or line
+end
+
 ---------------------------------------------------------------------------
 -- Game side
 ---------------------------------------------------------------------------
@@ -127,7 +144,6 @@ function P.Play(line)
     ok, why = P.CanPress(IsInGroup and IsInGroup() or false, leads("player"), GetTime() - lastPress)
     if not ok then return nil, why end
     lastPress = GetTime()
-    prefs().partyLast = line
     speak(line)
     -- The voice line for raiders with the addon. It rides the guild's addon channel;
     -- only people grouped with the sender act on it.
@@ -153,7 +169,9 @@ function P.Next()
     local lines = P.Lines(Red.State())
     local line = P.After(lines, prefs().partyLast)
     if not line then return nil, "The sound board is empty. Add a line first." end
-    return P.Play(line)
+    local ok, why = P.Play(line)
+    if ok then prefs().partyLast = line end      -- only the rotation moves the rotation along
+    return ok, why
 end
 
 function P.Random()
@@ -162,13 +180,50 @@ function P.Random()
     return P.Play(lines[math.random(#lines)])
 end
 
+-- Announce the word of the night, and start listening for it in raid and
+-- party chat. An empty box stops the listening.
+local listening           -- the word this client is listening for, or nil
+function P.Listening() return listening end
+
 function P.Word(word)
+    if tostring(word or ""):match("^%s*$") then
+        listening, prefs().partyWord = nil, nil
+        lastNote = "Stopped listening for the word."
+        return true
+    end
     local clean, why = P.Clean(word)
     if not clean then return nil, why end
     if #clean > 24 then return nil, "Keep the word short." end
+    local ok, why2 = P.Play(P.WordLine(clean))
+    if not ok then return nil, why2 end
     prefs().partyWord = clean
-    return P.Play(P.WordLine(clean))
+    listening = clean
+    lastNote = "Listening for \"" .. clean .. "\" in raid and party chat. Whoever types it sets off the next line."
+    return true
 end
+
+-- Someone typed in raid or party chat. If it's the word, the leader who
+-- announced it sends the next line. The cooldown keeps it from piling up.
+local function heard(text, sender, _, _, _, _, _, _, _, _, _, guid)
+    if not listening then return end
+    if issecretvalue and (issecretvalue(text) or issecretvalue(sender)) then return end
+    if type(text) ~= "string" or not P.Said(text, listening) then return end
+    if text:find("^The word of the night is") then return end                  -- the announcement itself
+    if not (IsInGroup and IsInGroup()) or not leads("player") then return end
+    if GetTime() - lastPress < P.COOLDOWN then return end
+    local lines = P.Lines(Red.State())
+    local line = P.After(lines, prefs().partyLast)
+    if not line then return end
+    local name = (type(guid) == "string" and guid ~= "" and ns.NameForGUID(guid)) or (type(sender) == "string" and U.ShortName(sender)) or nil
+    local said = P.Caught(name, listening, line)
+    if P.Play(said) then prefs().partyLast = line end
+    P.Refresh()
+end
+for _, event in ipairs({ "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER",
+    "CHAT_MSG_INSTANCE_CHAT", "CHAT_MSG_INSTANCE_CHAT_LEADER" }) do
+    ns.On(event, heard)
+end
+ns.On("GROUP_LEFT", function() listening = nil end)
 
 -- Announce tonight's drink of the night, when the raid has one.
 function P.Drink()
@@ -295,7 +350,9 @@ function P.Refresh()
     f.mute:SetChecked(not P.Muted())
     f.rows:SetItems(P.Lines(Red.State()))
     local can, why = P.CanPress(IsInGroup and IsInGroup() or false, leads("player"), P.COOLDOWN)
-    f.status:SetText(lastNote and ("|cffffd100" .. lastNote .. "|r") or (can and "Click a line to send it to the raid." or why))
+    f.status:SetText(lastNote and ("|cffffd100" .. lastNote .. "|r")
+        or (not can and why)
+        or (listening and ("Listening for \"" .. U.Safe(listening, 24) .. "\". Click a line to send it now.") or "Click a line to send it to the raid."))
 end
 
 function P.Toggle()
