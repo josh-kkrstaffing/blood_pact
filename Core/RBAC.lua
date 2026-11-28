@@ -1,4 +1,4 @@
--- Blood Pact: role-based access control.
+-- Speakeasy: role-based access control.
 -- ADMIN is the developer's permanent root role, pinned to character GUIDs in
 -- this file. No in-game event can add, remove or restrict it; only a new
 -- release can. Every other role comes from the guild rank index.

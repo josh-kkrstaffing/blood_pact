@@ -1,4 +1,4 @@
--- Blood Pact: main window. Built the first time it opens; nothing is created
+-- Speakeasy: main window. Built the first time it opens; nothing is created
 -- at login except event handlers. Tabs show only to roles allowed to use them.
 local _, ns = ...
 local UI = {}
@@ -184,7 +184,7 @@ local function build()
     bar:SetScript("OnDragStop", function() frame:StopMovingOrSizing(); saveLayout() end)
     tinsert(UISpecialFrames, "BloodPactMainFrame")
 
-    local title = W.Text(bar, "BLOOD PACT", "GameFontNormalLarge")
+    local title = W.Text(bar, "SPEAKEASY", "GameFontNormalLarge")
     title:SetPoint("LEFT", 14, 0)
     roleText = W.Text(bar, "", "GameFontDisableSmall")
     roleText:SetPoint("LEFT", title, "RIGHT", 14, -1)
@@ -210,7 +210,7 @@ local function build()
     statusText = W.Text(bar, "", "GameFontDisableSmall")
     statusText:SetPoint("RIGHT", partyBtn, "LEFT", -12, 0)
 
-    -- About: who makes Blood Pact and where to join. Covers the tabs while open.
+    -- About: who makes Speakeasy and where to join. Covers the tabs while open.
     local about = CreateFrame("Frame", nil, frame)
     about:SetPoint("TOPLEFT", 1, -36)
     about:SetPoint("BOTTOMRIGHT", -1, 33)
@@ -226,7 +226,7 @@ local function build()
         y = y - (gap or 22)
         return fs
     end
-    line("BLOOD PACT", "GameFontNormalLarge", 28)
+    line("SPEAKEASY", "GameFontNormalLarge", 28)
     about.version = line("", "GameFontHighlight")
     line("Made by " .. info.author, "GameFontNormal", 22)
     line(("For the %s guild, %s, and any guild that wants it."):format(info.guild, info.home), "GameFontHighlight", 34)
@@ -243,7 +243,7 @@ local function build()
     about.link = link
     y = y - 30
     line("Click the link, press Ctrl+C, then paste it into your browser.", "GameFontDisableSmall", 40)
-    line("Blood Pact is fan-made. It is not affiliated with or endorsed by Blizzard Entertainment.", "GameFontDisableSmall", 30)
+    line("Speakeasy is fan-made. It is not affiliated with or endorsed by Blizzard Entertainment.", "GameFontDisableSmall", 30)
     local back = W.Button(about, "Back", 80, 22, function() about:Hide() end)
     back:SetPoint("TOPLEFT", 28, y)
     about:SetScript("OnShow", function() about.version:SetText("Version " .. ns.VERSION .. ". A free guild management addon for WoW Forever.") end)
@@ -314,7 +314,7 @@ end
 
 function UI.Toggle()
     if not ns.db then
-        ns.Print("Blood Pact is still loading. Try again in a moment.")
+        ns.Print("Speakeasy is still loading. Try again in a moment.")
         return
     end
     if not frame then

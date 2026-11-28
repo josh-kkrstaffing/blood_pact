@@ -1,4 +1,4 @@
--- Blood Pact: widgets in Blood Pact's own style: dark glass panes the game
+-- Speakeasy: widgets in Speakeasy's own style: dark glass panes the game
 -- world shows through, hairline edges, a blood-red accent and the game's
 -- built-in fonts. No images, fonts or art are bundled with the addon:
 -- textures are flat colors and gradients, and the few icons shown
@@ -17,7 +17,7 @@ ns.W = W
 W.GLASS_ORDER = { "frosted", "clear", "solid" }
 W.GLASS_ALPHA = { solid = 0.97, frosted = 0.76, clear = 0.58 }
 W.GLASS_LABEL = { solid = "Solid", frosted = "Frosted", clear = "Clear" }
-W.DENSE_ALPHA = 0.94           -- dialogs that sit on top of another Blood Pact window
+W.DENSE_ALPHA = 0.94           -- dialogs that sit on top of another Speakeasy window
 W.glass = "frosted"
 
 -- Everything inside a window is a tint over the pane, so it stays glass at
@@ -123,7 +123,7 @@ end
 
 -- A window's glass pane: the translucent base, a pale haze, a hairline edge
 -- and a brighter line along the top where light would catch it.
--- dense = a dialog that sits over another Blood Pact window and must not let
+-- dense = a dialog that sits over another Speakeasy window and must not let
 -- that window's text show through.
 local panes = {}
 function W.Glass(frame, dense)
@@ -145,7 +145,7 @@ function W.Glass(frame, dense)
     return base
 end
 
--- Change how see-through every Blood Pact window is, right away.
+-- Change how see-through every Speakeasy window is, right away.
 function W.SetGlass(level)
     if not W.GLASS_ALPHA[level] then level = "frosted" end
     W.glass = level
@@ -397,7 +397,7 @@ function W.List(parent, width, height, rowHeight, render, onClick)
     scroll:SetScrollChild(content)
     local rows, list = {}, { scroll = scroll, items = {}, selected = nil, key = nil }
 
-    -- A thin flat scrollbar in Blood Pact's own style: wheel, drag or click.
+    -- A thin flat scrollbar in Speakeasy's own style: wheel, drag or click.
     local bar = CreateFrame("Slider", nil, scroll)
     bar:SetOrientation("VERTICAL")
     bar:SetWidth(6)

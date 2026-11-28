@@ -1,7 +1,7 @@
--- Blood Pact: addon bootstrap, event dispatch, saved data, guild roster cache.
+-- Speakeasy: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "1.13.0"
+ns.VERSION = "1.14.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -39,7 +39,7 @@ function ns.Fire(name, ...)
 end
 
 function ns.Print(msg)
-    print("|cffb22222Blood Pact:|r " .. msg)
+    print("|cffb22222Speakeasy:|r " .. msg)
 end
 
 function ns.Now() return GetServerTime() end
@@ -164,14 +164,14 @@ ns.ABOUT = {
 function ns.AboutLines()
     local a = ns.ABOUT
     return {
-        "Blood Pact v" .. ns.VERSION .. ", a free guild management addon for WoW Forever.",
+        "Speakeasy v" .. ns.VERSION .. ", a free guild management addon for WoW Forever.",
         ("Made by %s, of the %s guild, %s."):format(a.author, a.guild, a.home),
         "Join us on Discord: " .. a.discord,
     }
 end
 
 ns.On("PLAYER_LOGIN", function()
-    ns.Print("v" .. ns.VERSION .. " loaded. Type /bp or /bloodpact to open.")
+    ns.Print("v" .. ns.VERSION .. " loaded. Type /bp or /speakeasy to open.")
     if ns.db and ns.db.ui and not ns.db.ui.aboutSeen then
         ns.db.ui.aboutSeen = true
         ns.Print(("Made by %s, of the %s guild, %s. Type /bp about to find us."):format(ns.ABOUT.author, ns.ABOUT.guild, ns.ABOUT.home))

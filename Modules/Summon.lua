@@ -1,4 +1,4 @@
--- Blood Pact: guild summon board.
+-- Speakeasy: guild summon board.
 -- WoW Forever has no summoning stones, so a warlock's Ritual of Summoning
 -- (level 20, needs the warlock and 2 more group members) is the only summon.
 -- Anyone asks for a summon; every warlock in the guild sees it, along with
@@ -209,10 +209,10 @@ function S.Request(note, toGUID)
         return nil, "Not connected to the guild yet. Try again in a moment."
     end
     -- Asking one warlock: also whisper them, from this click, so they see it
-    -- even without Blood Pact. Guild members only; never in test mode.
+    -- even without Speakeasy. Guild members only; never in test mode.
     local m = toGUID and ns.roster.byGUID[toGUID]
     if m and m.online and toGUID ~= ns.MyGUID() and not ns.mock then
-        local msg = "Could I get a warlock summon" .. (note ~= "" and (" to " .. note:sub(1, 60)) or "") .. "? I'm in " .. myZone() .. ". (sent with Blood Pact)"
+        local msg = "Could I get a warlock summon" .. (note ~= "" and (" to " .. note:sub(1, 60)) or "") .. "? I'm in " .. myZone() .. ". (sent with Speakeasy)"
         if ns.Chat(msg, "WHISPER", ns.U.ShortName(m.name)) then return "whispered" end
     end
     return true
@@ -222,7 +222,7 @@ function S.Cancel(who)
     return post({ t = "SX", who = who or ns.MyGUID() }) or nil
 end
 
--- One line in guild chat, for guildmates who don't have Blood Pact.
+-- One line in guild chat, for guildmates who don't have Speakeasy.
 function S.PostToGuildChat(note)
     note = tostring(note or ""):match("^%s*(.-)%s*$")
     local msg = "Looking for a warlock summon" .. (note ~= "" and (" to " .. note:sub(1, 60)) or "") .. ". I'm in " .. myZone() .. "."
@@ -251,7 +251,7 @@ end
 -- What to whisper the leader. Pure.
 function S.SuggestText(names)
     local list = table.concat(names, ", ", 1, math.min(#names, 5))
-    return ("Could you invite %s to the group? I'm summoning. (sent with Blood Pact)"):format(list):sub(1, 255)
+    return ("Could you invite %s to the group? I'm summoning. (sent with Speakeasy)"):format(list):sub(1, 255)
 end
 
 -- One whisper to my group's leader asking them to invite these players.
@@ -512,7 +512,7 @@ end, function(p)
         p.status:SetText("|cff40ff40" .. U.Safe(nameOf(mine.by), 30) .. " is inviting you. Accept the group invite.|r")
     elseif mine then
         p.status:SetText(mine.to and ("Your request is out. " .. U.Safe(nameOf(mine.to), 30) .. " was whispered.")
-            or "Your request is out. Warlocks running Blood Pact were alerted; use Post in guild chat to reach the rest.")
+            or "Your request is out. Warlocks running Speakeasy were alerted; use Post in guild chat to reach the rest.")
     else
         p.status:SetText("Green warlocks have " .. S.HELPERS .. " or more guildmates in their zone to click the portal.")
     end

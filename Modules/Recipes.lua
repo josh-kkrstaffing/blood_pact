@@ -1,4 +1,4 @@
--- Blood Pact: who knows which recipes.
+-- Speakeasy: who knows which recipes.
 -- The game only shows a character's recipes to that character, and only
 -- while their profession window is open. So each player's own addon records
 -- their recipes the first time they open a profession, and shares the recipe

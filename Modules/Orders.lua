@@ -1,4 +1,4 @@
--- Blood Pact: crafting orders, inside the guild only.
+-- Speakeasy: crafting orders, inside the guild only.
 -- A member asks for a recipe to be crafted, either from one named guild
 -- crafter or on the Wanted board for any guild crafter who knows it. The
 -- crafter accepts with a promised turnaround (2, 8, 24 or 48 hours), marks it
@@ -210,7 +210,7 @@ end
 
 -- Auction prices come from the Auctionator addon when the player has it: its
 -- last scan for the item, or the vendor price it has seen. Nothing is scanned
--- or bought by Blood Pact.
+-- or bought by Speakeasy.
 function O.HasPrices()
     return Auctionator ~= nil and Auctionator.API ~= nil and Auctionator.API.v1 ~= nil
         and Auctionator.API.v1.GetAuctionPriceByItemID ~= nil
@@ -360,7 +360,7 @@ function O.Create(rid, prof, qty, mats, note, toGUID)
     -- One whisper from this click, to a guild member who is online. Never in test mode.
     local m = toGUID and ns.roster.byGUID[toGUID]
     if m and m.online and not ns.mock then
-        local msg = ("Blood Pact order: can you make %s%s for me? %s See /bp > Professions > Orders."):format(
+        local msg = ("Speakeasy order: can you make %s%s for me? %s See /bp > Professions > Orders."):format(
             recipeLink(rid), qty > 1 and (" x" .. qty) or "", O.MATS_ASK[mats])
         ns.Chat(msg:sub(1, 255), "WHISPER", U.ShortName(m.name))      -- the order stands either way
     end

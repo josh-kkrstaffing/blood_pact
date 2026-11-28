@@ -1,6 +1,6 @@
--- Blood Pact: the Party button. A raid leader or assist presses it and the
+-- Speakeasy: the Party button. A raid leader or assist presses it and the
 -- raid gets a raid warning ("Take a drink!"), the same thing /rw does, so
--- everyone sees it with or without the addon. Raiders with Blood Pact also
+-- everyone sees it with or without the addon. Raiders with Speakeasy also
 -- hear the line spoken by text to speech.
 --
 -- The lines are a sound board the guild owns: a starter list, plus whatever
@@ -17,8 +17,8 @@ P.MAX_LINE = 60
 P.DEFAULT = { "Take a drink!", "Take a shot!", "Take a puff!", "Bottoms up!", "Cheers, Blood Pact!", "Holler and swaller!" }
 P.HOWTO = {
     "Party is for raid nights. The raid leader and assists press it; the whole raid sees a raid warning with the line, the same as typing /rw.",
-    "It works in a five-player party too: the party leader presses it. The line goes to party chat, and party members with Blood Pact also get the big on-screen text.",
-    "Raiders who have Blood Pact also hear the line spoken. Untick \"Play party sounds\" to keep it quiet on your end.",
+    "It works in a five-player party too: the party leader presses it. The line goes to party chat, and party members with Speakeasy also get the big on-screen text.",
+    "Raiders who have Speakeasy also hear the line spoken. Untick \"Play party sounds\" to keep it quiet on your end.",
     "Word of the night: type a word and press Announce. From then on, whenever anyone types that word in raid or party chat, the next line goes out on its own, with who said it. It listens on the screen of the leader who announced it.",
     "Said on voice and not typed? The addon can't hear voice chat, so press Next line. Clear the box and press Announce to stop listening.",
     "Next plays the lines in order. Random picks one. Click any line to play that one.",

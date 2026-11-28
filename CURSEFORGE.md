@@ -1,8 +1,8 @@
 Made by **Kitch**, of the Blood Pact guild, US East PvP Horde, on WoW Forever. Looking for a guild, or want to follow the addon? Join our Discord: https://discord.gg/hfCKk6kED
 
-# Blood Pact
+# Speakeasy
 
-Blood Pact is a free, open-source guild management addon for World of Warcraft: Forever (client 1.60.1). It gives a guild one shared window for recruiting, the roster, professions and crafting orders, gear readiness, raids, summons, DKP and loot, and player tickets.
+Speakeasy is a free, open-source guild management addon for World of Warcraft: Forever (client 1.60.1). It gives a guild one shared window for recruiting, the roster, professions and crafting orders, gear readiness, raids, summons, DKP and loot, and player tickets.
 
 Everything syncs between guild members inside the game. There is no website, no account, no companion app and no outside server: your guild's data stays in your guild.
 
@@ -35,7 +35,7 @@ The tabs run in the order a guild does things.
 - Each player's addon reads their own skills and recipes and shares them with the guild.
 - Crafting orders that stay inside the guild: order from a specific crafter, or post a Wanted order any crafter with the recipe can take.
 - The crafter accepts with a promised turnaround of 2, 8, 24 or 48 hours. Orders move from To craft, to In transit, to Delivered.
-- At a mailbox, Blood Pact fills in the mail for a finished order; you check it and press Send.
+- At a mailbox, Speakeasy fills in the mail for a finished order; you check it and press Send.
 - With the Auctionator addon installed, orders show an estimated material cost.
 
 ### BiS Check
@@ -97,15 +97,15 @@ Every player's addon checks every record against the guild roster before accepti
 
 ## Fair play
 
-Blood Pact never plays the game for you. It does not automate combat, movement or targeting. Searches, whispers, invites and summons each start from your own click or your own spell cast. WoW Forever does not let addons send guild invites, so invites are always sent by you.
+Speakeasy never plays the game for you. It does not automate combat, movement or targeting. Searches, whispers, invites and summons each start from your own click or your own spell cast. WoW Forever does not let addons send guild invites, so invites are always sent by you.
 
 ## Privacy
 
-Blood Pact sends no data outside the game. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records are shared only with your guildmates over the game's own addon message channel and saved on your own computer.
+Speakeasy sends no data outside the game. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records are shared only with your guildmates over the game's own addon message channel and saved on your own computer.
 
 ## Optional addon
 
-- **Auctionator**: adds an estimated material cost to crafting orders. Blood Pact works without it.
+- **Auctionator**: adds an estimated material cost to crafting orders. Speakeasy works without it.
 
 ## Good to know
 
@@ -119,4 +119,4 @@ Found a bug or have an idea? Tell us on Discord: https://discord.gg/hfCKk6kED
 
 The code is on GitHub under the MIT License: https://github.com/josh-kkrstaffing/blood_pact
 
-*Blood Pact is a fan-made addon. It is not made, endorsed, sponsored or supported by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.*
+*Speakeasy is a fan-made addon. It is not made, endorsed, sponsored or supported by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.*

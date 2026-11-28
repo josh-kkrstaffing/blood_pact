@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.14.0
+
+- The addon has a new name: Speakeasy. It was called Blood Pact, which is still the name of the guild that makes it
+- Nothing is lost in the rename: your DKP, raids, settings and chips carry over, and guildmates on older versions still sync
+- /bp still opens it. /speakeasy and /spk work too
+- In your AddOns folder it is still the BloodPact folder, so the update lands in place
+
 ## 1.13.0
 
 - New: guild chips. At the guild bank, "Donate for chips" deposits your gold into the guild bank and gives you play chips one for one: 1 gold is 1 gold chip, 1 silver is 1 silver chip, 1 copper is 1 copper chip

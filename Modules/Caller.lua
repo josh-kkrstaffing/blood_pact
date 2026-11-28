@@ -1,4 +1,4 @@
--- Blood Pact: Raid Caller. Boss plans made of call-outs, spoken by the
+-- Speakeasy: Raid Caller. Boss plans made of call-outs, spoken by the
 -- computer's own text-to-speech voice.
 --
 -- What the game allows (WoW Forever, checked Nov 26, 2026):
@@ -347,7 +347,7 @@ ns.UI.AddTab("caller", "Call-outs", "view", function(p)
     end)
     p.overlay:SetPoint("TOPLEFT", 280, -8)
     p.test = W.Button(p, "Test voice", 90, 20, function()
-        if not C.Speak("Blood Pact. Tank swap.") then ns.UI.Say("The game didn't speak. Check that your computer has a text-to-speech voice.") end
+        if not C.Speak("Speakeasy. Tank swap.") then ns.UI.Say("The game didn't speak. Check that your computer has a text-to-speech voice.") end
     end)
     p.test:SetPoint("TOPLEFT", 500, -6)
     p.how = W.Button(p, "How does this work?", 150, 20)

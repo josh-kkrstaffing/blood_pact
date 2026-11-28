@@ -1,4 +1,4 @@
--- Blood Pact: slash commands and the addon-compartment entry.
+-- Speakeasy: slash commands and the addon-compartment entry.
 local _, ns = ...
 
 local function help()
@@ -7,7 +7,7 @@ local function help()
     ns.Print("/bp sync - announce your data to the guild now")
     ns.Print("/bp mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
     ns.Print("/bp status - sync and message queue details")
-    ns.Print("/bp about - who makes Blood Pact and how to join us")
+    ns.Print("/bp about - who makes Speakeasy and how to join us")
     ns.Print("/bp prof - read your professions now, share them, and show what the game reported")
     ns.Print("/bp recipes - with a profession window open: record and share its recipes now")
     ns.Print("/bp pvp - read your PvP rank now, share it, and show what the game reported")
@@ -17,6 +17,8 @@ end
 
 SLASH_BLOODPACT1 = "/bp"
 SLASH_BLOODPACT2 = "/bloodpact"
+SLASH_BLOODPACT3 = "/speakeasy"
+SLASH_BLOODPACT4 = "/spk"
 SlashCmdList.BLOODPACT = function(input)
     local cmd, rest = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = (cmd or ""):lower()

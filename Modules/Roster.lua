@@ -1,4 +1,4 @@
--- Blood Pact: guild roster manager. Join dates, rank history, alts and a log
+-- Speakeasy: guild roster manager. Join dates, rank history, alts and a log
 -- of guild changes, all on the synced log so every officer sees the same thing.
 -- Team Captains and above record changes from two sources:
 --   1. the game's guild system messages, live ("X has promoted Y to Z")
@@ -356,7 +356,7 @@ function R.Invite(guid)
     if not plan then return nil, why end
     local name = U.ShortName(m.name)
     if plan == "ask" then
-        local ok, reason = ns.Chat(("Could you invite %s to the group? (sent with Blood Pact)"):format(name), "WHISPER", U.ShortName(g.leader))
+        local ok, reason = ns.Chat(("Could you invite %s to the group? (sent with Speakeasy)"):format(name), "WHISPER", U.ShortName(g.leader))
         if not ok then return nil, (reason == "locked" and (ns.CHAT_LOCKED .. " ") or "") .. "Ask " .. g.leader .. " to invite " .. name .. "." end
         return ("You don't lead this group, so %s was asked to invite %s."):format(g.leader, name)
     end
@@ -773,7 +773,7 @@ end, function(p)
         return
     end
     local known = st and st.members[sel.guid]
-    local lines = { U.Safe(sel.name, 48), sel.rank .. ", level " .. sel.level, "Joined: " .. (sel.joined and day(sel.joined) or "before Blood Pact started tracking") }
+    local lines = { U.Safe(sel.name, 48), sel.rank .. ", level " .. sel.level, "Joined: " .. (sel.joined and day(sel.joined) or "before Speakeasy started tracking") }
     if sel.main then
         lines[#lines + 1] = "Alt of: " .. U.Safe(ns.NameForGUID(sel.main) or "?", 48)
     else

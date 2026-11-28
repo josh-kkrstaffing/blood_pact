@@ -1,4 +1,4 @@
--- Blood Pact: PvP rank on the roster.
+-- Speakeasy: PvP rank on the roster.
 -- The guild roster doesn't carry PvP rank, so each player's own addon reads
 -- theirs and shares the number (0 to 14) with the guild when it changes.
 -- WoW Forever tracks rank as a 0-14 bar; older clients have UnitPVPRank.
@@ -121,7 +121,7 @@ function V.Tooltip(owner, name, entry)
     GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
     GameTooltip:AddLine(ns.U.Safe(name or "?", 40))
     GameTooltip:AddLine(("PvP rank %d: %s"):format(r, V.Title(r, V.MyFaction()) or "?"), 1, 0.82, 0)
-    GameTooltip:AddLine("Reported by their own Blood Pact on " .. (date or os.date)("%b %d, %Y", entry.t), 0.6, 0.6, 0.6)
+    GameTooltip:AddLine("Reported by their own Speakeasy on " .. (date or os.date)("%b %d, %Y", entry.t), 0.6, 0.6, 0.6)
     GameTooltip:Show()
 end
 
@@ -139,14 +139,14 @@ for _, event in ipairs({ "PLAYER_PVP_RANK_CHANGED", "MAJOR_FACTION_RENOWN_LEVEL_
 end
 ns.Listen("ROSTER_CHANGED", function() if ns.roster.loaded then publishSoon(100) end end)
 
--- The steps a member follows to put their PvP rank in Blood Pact.
+-- The steps a member follows to put their PvP rank in Speakeasy.
 V.HOWTO = {
     "1. Open your character sheet (Character).",
     "2. Click the Player vs. Player tab so the game loads your rank.",
-    "3. Blood Pact reads your rank and shares it with the guild a moment later.",
+    "3. Speakeasy reads your rank and shares it with the guild a moment later.",
     "You can also type /bp pvp to share it right away.",
 }
-V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Blood Pact shares it a moment later (or type /bp pvp)."
+V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Speakeasy shares it a moment later (or type /bp pvp)."
 
 -- Opening the character sheet or its PvP tab: read the rank and share it soon.
 local function hookShow(frame)

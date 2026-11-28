@@ -1,4 +1,4 @@
--- Blood Pact: BiS check. Compares your gear with Blood Pact's pre-raid
+-- Speakeasy: BiS check. Compares your gear with Speakeasy's pre-raid
 -- list for your spec (Modules/BiSData.lua, all 28 specs) and ranks your
 -- biggest upgrades. Reads only your own equipped items, bags and bank.
 -- The one thing shared with the guild is your readiness score: your spec and
@@ -254,7 +254,7 @@ ns.UI.AddTab("bis", "BiS Check", "view", function(p)
     p.summary:SetWordWrap(false)
     p.specButtons = {}
 
-    local header = { { "Slot", 4 }, { "You have", 84 }, { "Score", 262 }, { "Blood Pact BiS", 312 }, { "How to get it", 480 } }
+    local header = { { "Slot", 4 }, { "You have", 84 }, { "Score", 262 }, { "Speakeasy BiS", 312 }, { "How to get it", 480 } }
     for _, h in ipairs(header) do
         local fs = W.Text(p, h[1], "GameFontNormalSmall")
         fs:SetPoint("TOPLEFT", h[2], -64)
@@ -294,7 +294,7 @@ end, function(p)
     for _, b in ipairs(p.specButtons) do b:Hide() end
     if not lists then
         p.title:SetText("BiS Check")
-        p.summary:SetText("Blood Pact doesn't have a ranked list for " .. U.Safe(class or "your class", 20) .. " yet.")
+        p.summary:SetText("Speakeasy doesn't have a ranked list for " .. U.Safe(class or "your class", 20) .. " yet.")
         p.list:SetItems({})
         return
     end

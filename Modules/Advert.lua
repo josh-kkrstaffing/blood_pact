@@ -1,4 +1,4 @@
--- Blood Pact: advertising your crafting in Trade chat.
+-- Speakeasy: advertising your crafting in Trade chat.
 -- On your own recipe list you tick up to four recipes, and one click posts a
 -- "looking for work" line to the Trade channel with your skill, the city
 -- you are in, and those recipes as links. One post per click, and no more

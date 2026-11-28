@@ -1,4 +1,4 @@
--- Blood Pact smoke test: runs the whole addon, as the game would load it,
+-- Speakeasy smoke test: runs the whole addon, as the game would load it,
 -- inside a stand-in for the WoW client. Three "players" in one guild load
 -- the addon, sync with each other over a simulated addon channel, open every
 -- tab and press every button. Any Lua error, any call to a widget method the
@@ -535,7 +535,7 @@ G.GetNumGroupMembers = function()
     local g = GROUPS[ctx.guid]
     return g and (#g + (g.raid and 0 or 1)) or 0
 end
-G.GetGuildInfo = function() return "Blood Pact" end
+G.GetGuildInfo = function() return "Speakeasy" end
 G.GetNormalizedRealmName = function() return "Normal" end
 local CHANNELS = {}
 G.GetChannelList = function() return unpack(CHANNELS[ctx.guid] or {}) end
@@ -1046,7 +1046,7 @@ run(member, "place order", function()
 end)
 local whisper = guildChat[#guildChat] or ""
 check(#guildChat == whispersBefore + 1 and whisper:find("WHISPER:Binky Bee:", 1, true) == 1
-    and whisper:find("Blood Pact order", 1, true) ~= nil and whisper:find("x2", 1, true) ~= nil,
+    and whisper:find("Speakeasy order", 1, true) ~= nil and whisper:find("x2", 1, true) ~= nil,
     "placing an order whispers the online crafter once, and only them")
 advance(10)
 check(said(gm, "New crafting order from Pip: Enchant Bracer - Minor Health x2."), "the crafter is told about a new order")
@@ -1129,7 +1129,7 @@ advance(10)
 BAGS[gm.guid] = { [0] = { { id = 6218, n = 2 }, { id = 6218, n = 1 } }, [1] = { { id = 6218, n = 5 }, { id = 6218, n = 1, bound = true } } }
 local function mailPanel(c)
     for _, w in ipairs(c.widgets) do
-        if w._.kind == "FontString" and w._.text == "Blood Pact: orders to mail" then return w._.parent end
+        if w._.kind == "FontString" and w._.text == "Speakeasy: orders to mail" then return w._.parent end
     end
 end
 run(gm, "not at a mailbox", function()
@@ -1291,7 +1291,7 @@ run(gm, "queue", function()
     -- The Officer leads instead: the invite is suggested to them.
     LEADERS[gm.guid] = officer.guid
     vela.inv:GetScript("OnClick")(vela.inv, "LeftButton")
-    check(#guildChat == tells + 1 and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Vela to the group? I'm summoning. (sent with Blood Pact)",
+    check(#guildChat == tells + 1 and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Vela to the group? I'm summoning. (sent with Speakeasy)",
         "when the warlock doesn't lead the group, the leader is asked to invite, with one whisper")
     check(said(gm, "You don't lead this group, so Grim Tusk was asked to invite Vela."), "and the warlock is told so")
     LEADERS[gm.guid] = gm.guid
@@ -1521,7 +1521,7 @@ clickText(gm, "Social")                                    -- an earlier pass le
 local tellsBefore = #guildChat
 check(clickRow(gm, "Newbie One-Normal"), "a name in the list can be clicked")
 local tell = guildChat[#guildChat] or ""
-check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Blood Pact is recruiting on WoW Forever.", 1, true) == 1,
+check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Speakeasy is recruiting on WoW Forever.", 1, true) == 1,
     "one click whispers that player the Social message")
 clickRow(gm, "Newbie One-Normal")
 check(#guildChat == tellsBefore + 1, "a second click on the same name doesn't whisper again")
@@ -1534,7 +1534,7 @@ check(#guildChat == tellsBefore + 2, "right-click opens a whisper to type and se
 check(clickText(gm, "Raiding"), "another message can be picked")
 clickRow(gm, "Razor Hill Rex-Normal")
 tell = guildChat[#guildChat] or ""
-check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Blood Pact is building raid teams", 1, true) == 1,
+check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Speakeasy is building raid teams", 1, true) == 1,
     "the whisper carries whichever message is picked")
 run(gm, "edited message", function()
     rp.box:SetText("Custom pitch for you")
@@ -1576,7 +1576,7 @@ run(gm, "replies", function()
     check(#member.ns.Recruit.replies == 0, "members who can't recruit get no list")
     check(rp.h3:GetText() == "3. They replied (1). Click a name to copy their guild invite", "step 3 shows who is waiting")
 end)
--- A click puts the invite in a copy box. Blood Pact writes nothing into the
+-- A click puts the invite in a copy box. Speakeasy writes nothing into the
 -- game's chat box: the game refuses a guild invite an addon wrote or touched.
 local openedBefore, typed = #chatOpened, {}
 typingIn[gm.guid] = { Insert = function(_, text) typed[#typed + 1] = text end }
@@ -1666,7 +1666,7 @@ clickRow(gm, "Moo Two-Normal")
 check(#guildChat == lockedTells and chatRefused == 1, "a whisper the game refuses is not sent")
 check(said(gm, "The game is blocking chat from addons here, as it does inside battlegrounds and instances. The message is typed in a whisper to Moo Two: press Enter to send it."),
     "the recruiter is told why, and the message is typed into a whisper for them")
-check(#typedTell == 1 and typedTell[1]:find("Hey! Blood Pact is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
+check(#typedTell == 1 and typedTell[1]:find("Hey! Speakeasy is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
 check(not said(gm, "The game blocked an action for addons (UNKNOWN())"), "the vague blocked-action line isn't shown for it")
 check(not said(gm, "Whispered Moo Two the Social message."), "and it isn't reported as whispered")
 clickRow(gm, "Moo Two-Normal")
@@ -1680,7 +1680,7 @@ end)
 CHATLOCK[gm.guid], typingIn[gm.guid] = nil, nil
 fire(gm, "PLAYER_ENTERING_WORLD")
 clickRow(gm, "Moo Two-Normal")
-check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Blood Pact is recruiting", 1, true) == 1,
+check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Speakeasy is recruiting", 1, true) == 1,
     "after leaving, one click whispers again")
 clickText(gm, "Social")
 pressEverything(gm)
@@ -2114,7 +2114,7 @@ run(gm, "roster invite", function()
     LEADERS[gm.guid] = officer.guid
     local tells = #guildChat
     check(R.Invite(MEMBER) == "You don't lead this group, so Grim Tusk was asked to invite Pip." and #invites == n + 2
-        and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Pip to the group? (sent with Blood Pact)" and #guildChat == tells + 1,
+        and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Pip to the group? (sent with Speakeasy)" and #guildChat == tells + 1,
         "in a group you don't lead, the leader is asked with one whisper")
     GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
 end)

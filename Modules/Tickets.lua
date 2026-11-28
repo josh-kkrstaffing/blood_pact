@@ -1,4 +1,4 @@
--- Blood Pact: tickets. A guild member reports a problem (bad language,
+-- Speakeasy: tickets. A guild member reports a problem (bad language,
 -- cheating, a ninja loot, a broken rule) and Team Captains and above work it
 -- through three states: New, In progress, Resolved.
 --

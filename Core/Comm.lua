@@ -1,4 +1,4 @@
--- Blood Pact: addon-channel transport. Splits payloads into 255-byte messages,
+-- Speakeasy: addon-channel transport. Splits payloads into 255-byte messages,
 -- paces sends under the server's per-prefix throttle (burst of 10, refills
 -- 1 per second), holds sends during WoW Forever's in-instance comms lockdown,
 -- and reassembles incoming messages.
@@ -175,7 +175,7 @@ end
 -- "No player named 'X' is currently playing." after one of our whispers.
 local NOT_FOUND = ns.U.FormatPattern(ERR_CHAT_PLAYER_NOT_FOUND_S or "No player named '%s' is currently playing.")
 
--- Returns true when the message was caused by a Blood Pact whisper.
+-- Returns true when the message was caused by a Speakeasy whisper.
 function C.OnSystemMessage(msg)
     if type(msg) ~= "string" then return false end
     local name = msg:match(NOT_FOUND)

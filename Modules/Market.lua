@@ -1,4 +1,4 @@
--- Blood Pact: find pre-raid BiS upgrades on the auction house.
+-- Speakeasy: find pre-raid BiS upgrades on the auction house.
 --
 -- Works for every class and spec: it takes the list the BiS Check tab is
 -- showing, keeps the items that rank above what you own, and looks each one
@@ -6,7 +6,7 @@
 -- for sale inside it, cheapest buyout first, with one Buy button per item.
 --
 -- One click buys one item at the buyout price printed on its button. The
--- game needs a real click for every purchase, and Blood Pact does not act
+-- game needs a real click for every purchase, and Speakeasy does not act
 -- for the player. Bids are never placed below the buyout.
 local _, ns = ...
 local M = {}
@@ -24,10 +24,10 @@ M.HOWTO = {
     "2. Type the least and the most gold you want to pay for one item. Leave a box empty for no limit.",
     "3. Two boxes choose what is scanned: \"BiS list\" and \"Usable gear\". Tick one or both, then press Scan.",
     "\"BiS list\" looks up every item on your spec's list that ranks above what you own. It takes a moment: the auction house answers one search at a time.",
-    "\"Usable gear\" needs the Pawn addon. Blood Pact reads the weapons and armor you can equip, cheapest first, and asks Pawn about each one. Pawn compares the item's real stats with what you are wearing, using its stat weights for your spec, so a higher item level alone doesn't count and a two-hander is compared properly with a main hand and off-hand. Only what Pawn calls an upgrade is listed, with Pawn's percentage.",
+    "\"Usable gear\" needs the Pawn addon. Speakeasy reads the weapons and armor you can equip, cheapest first, and asks Pawn about each one. Pawn compares the item's real stats with what you are wearing, using its stat weights for your spec, so a higher item level alone doesn't count and a two-hander is compared properly with a main hand and off-hand. Only what Pawn calls an upgrade is listed, with Pawn's percentage.",
     "A most-gold limit makes the usable scan much faster: it stops reading once prices pass it. Up to 40 upgrades are priced per scan, biggest first.",
     "4. Click a column heading to sort; click it again to reverse. Click a row to show that item in the auction window.",
-    "5. Press Buy to buy that one item at the price on the button, then collect it from your mailbox. One item per click: the game needs your own click for every purchase. Only items with a buyout are listed; Blood Pact never bids.",
+    "5. Press Buy to buy that one item at the price on the button, then collect it from your mailbox. One item per click: the game needs your own click for every purchase. Only items with a buyout are listed; Speakeasy never bids.",
     "Quest rewards and Tier 0.5 pieces are skipped on the BiS list, because they can't be sold. The list follows the spec picked on the BiS Check tab; Pawn follows the scales you have turned on in Pawn.",
 }
 
@@ -576,7 +576,7 @@ function M.Scan()
     local lo, why = M.MyRange()
     if not lo then return nil, why end
     local key, list = BiS.CurrentSpec()
-    if not list then return nil, "Blood Pact has no list for your class yet." end
+    if not list then return nil, "Speakeasy has no list for your class yet." end
     if not M.Ideal() and not M.Usable() then return nil, "Tick BiS list, Usable gear, or both." end
     local usable = M.Usable() and pawnReady()
     if M.Usable() and not usable and not M.Ideal() then
@@ -660,7 +660,7 @@ function M.Show(row)
     local bar = f and f.SearchBar
     local box = bar and bar.SearchBox
     if not (box and box.SetText and bar.StartSearch) then
-        return nil, "Blood Pact can't drive this auction window. Search there for: " .. row.query
+        return nil, "Speakeasy can't drive this auction window. Search there for: " .. row.query
     end
     local ok = pcall(function()
         if f.SetDisplayMode and AuctionHouseFrameDisplayMode and AuctionHouseFrameDisplayMode.Buy then
@@ -880,7 +880,7 @@ function M.Refresh()
     if lastNote then
         f.status:SetText("|cffffd100" .. lastNote .. "|r")
     elseif not list then
-        f.status:SetText("Blood Pact doesn't have a list for your class yet.")
+        f.status:SetText("Speakeasy doesn't have a list for your class yet.")
     elseif not M.Supported() then
         f.status:SetText("This auction house can't be searched by addons.")
     elseif scan and scan.phase == "ubrowse" then

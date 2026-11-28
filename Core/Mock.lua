@@ -1,4 +1,4 @@
--- Blood Pact: solo "mock guildmate" test mode. Swaps in a fake guild roster and
+-- Speakeasy: solo "mock guildmate" test mode. Swaps in a fake guild roster and
 -- its own saved store. Nothing in mock mode is ever sent to the real guild.
 --   /bp mock on      start, with you as Guild Master of 19 fake guildmates
 --   /bp mock boss    simulate a boss kill (auto-award to a fake 10-player raid)

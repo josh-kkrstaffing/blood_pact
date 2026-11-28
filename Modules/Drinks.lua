@@ -1,4 +1,4 @@
--- Blood Pact: Drink of the Night. Whoever schedules a raid can give it a
+-- Speakeasy: Drink of the Night. Whoever schedules a raid can give it a
 -- drink, and the recipe shows on the raid's sign-up screen so raiders can
 -- shop for it before raid night. The built-in list leans on Nashville,
 -- Tennessee: recipes published by its bars and distilleries. A guild can

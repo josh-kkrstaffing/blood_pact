@@ -1,4 +1,4 @@
--- Blood Pact: activity and the officer task queue.
+-- Speakeasy: activity and the officer task queue.
 -- Everything here is worked out from the synced log plus the guild roster, so
 -- every officer sees the same tasks. Only "claimed" and "done" are written to
 -- the log. The game blocks addons from changing ranks or removing members on
@@ -27,7 +27,7 @@ function O.Group(st, guid)
 end
 
 -- Days since the player (any of their characters) was last active: online now,
--- last online from the roster, or a Blood Pact sign-up or raid attendance.
+-- last online from the roster, or a Speakeasy sign-up or raid attendance.
 -- nil = no information.
 function O.ActiveDays(st, roster, guid, now)
     local best
@@ -52,7 +52,7 @@ end
 
 local function nameOf(roster, guid) return roster[guid] and roster[guid].name or "?" end
 
--- The open tasks. roleOf(guid) gives a Blood Pact role ("initiate", ...).
+-- The open tasks. roleOf(guid) gives a Speakeasy role ("initiate", ...).
 function O.Tasks(st, roster, now, roleOf)
     local s, out = st.settings, {}
     local function add(t)

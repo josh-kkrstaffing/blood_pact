@@ -1,8 +1,8 @@
--- Blood Pact: professions on the roster.
+-- Speakeasy: professions on the roster.
 -- Each player's own addon reads their skill levels from the game (nobody else
 -- can) and shares them with the guild: up to two professions plus First Aid,
 -- Cooking and Fishing. Shared when they change, at most once an hour.
--- Skill names are matched in English, like the rest of Blood Pact for now.
+-- Skill names are matched in English, like the rest of Speakeasy for now.
 -- The Professions tab lists the guild by profession: pick one on the left,
 -- see who has it on the right, best first. Click a crafter to see the
 -- recipes they have shared (see Recipes.lua).
@@ -33,14 +33,14 @@ P.ICON = {
 -- Nothing to craft in these, so there is no recipe list to wait for.
 P.NO_RECIPES = { Herbalism = true, Skinning = true, Fishing = true }
 
--- The steps a crafter follows to put their recipes in Blood Pact.
+-- The steps a crafter follows to put their recipes in Speakeasy.
 P.HOWTO = {
     "1. Open your character's Professions (the Professions button, or Character > Professions).",
     "2. Click the link bubble on a profession to open its recipe window.",
-    "3. Blood Pact records the recipes and shares them with the guild. Do it once for each profession.",
+    "3. Speakeasy records the recipes and shares them with the guild. Do it once for each profession.",
     "New recipes are added the next time you open that window.",
 }
-P.HOWTO_SHORT = "To share your recipes: open Character > Professions, click the link bubble on each profession. Blood Pact syncs them."
+P.HOWTO_SHORT = "To share your recipes: open Character > Professions, click the link bubble on each profession. Speakeasy syncs them."
 local PRIMARY = {}
 for _, name in pairs(P.SKILL_IDS) do
     if not P.SECONDARY[name] then PRIMARY[name] = true end
@@ -597,7 +597,7 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
 
     p.foot = W.Text(d, "", "GameFontDisableSmall")
     p.foot:SetPoint("BOTTOMLEFT", 0, 2)
-    -- How a crafter gets their recipes into Blood Pact: hover for the steps.
+    -- How a crafter gets their recipes into Speakeasy: hover for the steps.
     p.howTo = W.Button(d, "How do I share my recipes?", 190, 20, function()
         ns.UI.Say(P.HOWTO_SHORT)
     end)
@@ -864,7 +864,7 @@ end, function(p)
             p.nCount:SetText(nProf and (#list .. (#list == 1 and " recipe" or " recipes") .. " the guild can make") or "")
             p.nEmpty:SetShown(#profs == 0)
             p.nRecipeHead.SetShown(#list > 0)
-            p.nEmpty:SetText("No recipes shared yet. They appear here once guild crafters open their profession windows with Blood Pact.")
+            p.nEmpty:SetText("No recipes shared yet. They appear here once guild crafters open their profession windows with Speakeasy.")
             p.nb:SetShown(#profs > 0)
             -- Who can be asked: every crafter who knows it, except me.
             p.nCrafters = {}
@@ -910,7 +910,7 @@ end, function(p)
                 parts[#parts + 1] = sel.by == me and "It's in the mail. Collect it at a mailbox, then press I received it."
                     or "In the mail. It's complete when they press I received it."
             elseif sel.crafter == me and (sel.status == "accepted" or sel.status == "ready") then
-                parts[#parts + 1] = "At a mailbox, Blood Pact fills in the mail for this order; you press Send."
+                parts[#parts + 1] = "At a mailbox, Speakeasy fills in the mail for this order; you press Send."
             end
             local cost = Orders.IsActive(sel) and Orders.CostText(sel.rid, sel.q)
             if cost then parts[#parts + 1] = "Est. materials " .. cost .. "." end
@@ -1020,10 +1020,10 @@ end, function(p)
                 p.empty:SetText(chosen .. " has no recipes to list.")
             elseif viewing == ns.MyGUID() then
                 p.empty:SetText("To share your " .. chosen .. " recipes: open Character > Professions and click the link bubble on "
-                    .. chosen .. ". Blood Pact records them and shares them with the guild.")
+                    .. chosen .. ". Speakeasy records them and shares them with the guild.")
             else
                 p.empty:SetText(name .. " hasn't shared " .. chosen .. " recipes yet. They're recorded the first time "
-                    .. name .. " opens the " .. chosen .. " window with Blood Pact 0.10 or newer.")
+                    .. name .. " opens the " .. chosen .. " window with Speakeasy 0.10 or newer.")
             end
             p.count:SetText("")
         else

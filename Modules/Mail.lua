@@ -1,9 +1,9 @@
--- Blood Pact: mailing a finished crafting order.
--- At a mailbox, the crafter picks one of their orders and Blood Pact fills in
+-- Speakeasy: mailing a finished crafting order.
+-- At a mailbox, the crafter picks one of their orders and Speakeasy fills in
 -- the game's own Send Mail form: the guild member who asked, the item as the
 -- subject, a short message, and the crafted items from the crafter's bags.
 -- The player checks it and presses the game's Send button themselves, and the
--- game charges the postage then. Blood Pact never sends mail on its own and
+-- game charges the postage then. Speakeasy never sends mail on its own and
 -- only ever addresses a member of the guild.
 local _, ns = ...
 local Mail = {}
@@ -83,7 +83,7 @@ end
 
 -- n = how many are in this mail, left = how many the order still needed.
 function Mail.Body(item, n, left, crafter)
-    local text = ("Blood Pact order: here is your %s%s, made by %s."):format(item, n > 1 and (" x" .. n) or "", crafter)
+    local text = ("Speakeasy order: here is your %s%s, made by %s."):format(item, n > 1 and (" x" .. n) or "", crafter)
     if n < left then
         text = text .. (" That is %d of the %d still owed; the rest will follow."):format(n, left)
     end
@@ -95,7 +95,7 @@ end
 -- Game side: bags and the Send Mail form
 ---------------------------------------------------------------------------
 Mail.open = false
-local pending          -- the mail Blood Pact filled in and the player hasn't sent yet
+local pending          -- the mail Speakeasy filled in and the player hasn't sent yet
 local hooked = false   -- do we get to see what the player actually sends?
 local panel
 
@@ -219,7 +219,7 @@ function Mail.Prepare(orderId)
     local body = Mail.Body(row.name, total, row.left, ns.NameForGUID(ns.MyGUID()) or "a guild crafter")
     local to = U.ShortName(row.to)
     if not (setText(SendMailNameEditBox, to) and setText(SendMailSubjectEditBox, subject)) then
-        return nil, "Blood Pact couldn't find the game's Send Mail form. Mail it by hand."
+        return nil, "Speakeasy couldn't find the game's Send Mail form. Mail it by hand."
     end
     local wrote = setText(bodyBox(), body)
 
@@ -319,7 +319,7 @@ local function refresh(note)
         local cost = postage()
         panel.status:SetText(("Filled in for %s.%s Check it, then press Send."):format(pending.to, cost and (" Postage " .. cost .. ".") or ""))
     elseif sel then
-        panel.status:SetText(sel.why or ("Press the button and Blood Pact writes the mail to %s and attaches the items. You press Send."):format(sel.to))
+        panel.status:SetText(sel.why or ("Press the button and Speakeasy writes the mail to %s and attaches the items. You press Send."):format(sel.to))
     else
         panel.status:SetText(#rows > 0 and "Click an order to mail it." or "")
     end
@@ -332,7 +332,7 @@ local function build()
     f:SetClampedToScreen(true)
     if MailFrame then f:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 8, 0) else f:SetPoint("CENTER", 320, 0) end
     W.Glass(f)
-    W.Text(f, "Blood Pact: orders to mail", "GameFontNormal"):SetPoint("TOPLEFT", 10, -9)
+    W.Text(f, "Speakeasy: orders to mail", "GameFontNormal"):SetPoint("TOPLEFT", 10, -9)
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
     W.Line(f, -32)
 
@@ -377,7 +377,7 @@ end
 -- Show the panel. quiet = only when there is something to mail.
 function Mail.Show(quiet)
     if not Mail.open then
-        if not quiet then ns.Print("Open a mailbox first. Blood Pact then lists the orders you can mail.") end
+        if not quiet then ns.Print("Open a mailbox first. Speakeasy then lists the orders you can mail.") end
         return false
     end
     local rows = Mail.Rows()

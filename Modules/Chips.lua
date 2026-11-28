@@ -1,4 +1,4 @@
--- Blood Pact: guild chips. A raider donates gold to the guild bank and gets
+-- Speakeasy: guild chips. A raider donates gold to the guild bank and gets
 -- play chips, one for one: a gold chip per gold, a silver chip per silver, a
 -- copper chip per copper. Chips are for the guild's games and bragging
 -- rights. They are one-way: chips never turn back into gold, and nobody

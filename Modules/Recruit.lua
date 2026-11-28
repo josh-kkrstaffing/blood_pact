@@ -1,4 +1,4 @@
--- Blood Pact: Recruit tab (Team Captain and above).
+-- Speakeasy: Recruit tab (Team Captain and above).
 -- Never whispers or invites by itself: every search and every whisper is one
 -- click by the recruiter, to one player. WoW Forever forbids addon and macro
 -- guild invites, and /who needs a click per search, so:
@@ -203,7 +203,7 @@ function R.AddReply(list, name, text, now)
 end
 
 -- The guild invite as the player would type it, with the name spelled
--- exactly as the game sent it. Blood Pact only offers it for copying: the
+-- exactly as the game sent it. Speakeasy only offers it for copying: the
 -- game refuses a guild invite whose chat line an addon wrote or touched
 -- ("blocked from an action only available to the Blizzard UI"), so the
 -- player copies it here and pastes it into chat themselves.

@@ -1,4 +1,4 @@
--- Blood Pact: replays the log into DKP state. Deterministic: any client with
+-- Speakeasy: replays the log into DKP state. Deterministic: any client with
 -- the same confirmed events computes the same balances, whatever the order
 -- the events arrived in.
 local _, ns = ...

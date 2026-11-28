@@ -1,4 +1,4 @@
--- Blood Pact: messages while a warlock summons.
+-- Speakeasy: messages while a warlock summons.
 -- For warlocks of Team Captain rank and above, and only while they are
 -- channeling their own Ritual of Summoning:
 --   * the player being summoned gets a whisper telling them to accept, and
