@@ -524,8 +524,7 @@ test("cards: poker hands rank in order, and Hold'em pays by the table", function
     eq(back, 100 + 100 + 200); eq(how, "nofit")                       -- and it pays even when your hand is the worse one
     back, how = K.HoldemBack(c("9s 8d"), c("Kh Qd"), board, 100)
     eq(back, 0); eq(how, "lose")
-    back, how = K.HoldemBack(c("Ah 3s"), c("Ad 3h"), board, 100)
-    eq(how, "nofit")
+    eq(select(2, K.HoldemBack(c("Ah 3s"), c("Ad 3h"), board, 100)), "nofit")
     back, how = K.HoldemBack(c("Kh 3s"), c("Kd 3h"), board, 100)
     eq(back, 300); eq(how, "tie")
     back, how = K.HoldemBack(c("Ks Kd"), c("9s 9d"), c("Kh Kc 9h 2c 7s"), 100)
