@@ -48,6 +48,7 @@ load("Modules/Chips.lua")
 load("Modules/Cards.lua")
 load("Modules/Casino.lua")
 load("Modules/Party.lua")
+load("Modules/MiniButton.lua")
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
 load("Modules/SummonQueue.lua")
@@ -447,6 +448,22 @@ test("casino: stakes, the roulette wheel and its house edge", function()
         eq(total, 36)                                    -- 38 chips in, 36 back: the house keeps 2 in 38, 5.26%
         assert(G.BetLabel(bet) ~= nil)
     end
+end)
+
+test("minimap button: it sits on the edge of a round or a square minimap", function()
+    local B = ns.MiniButton
+    local function near(a, b) assert(math.abs(a - b) < 1e-6, a .. " is not " .. b) end
+    local x, y = B.Place(0, false, 140, 140)
+    near(x, 70 + B.PAD); near(y, 0)
+    x, y = B.Place(90, false, 140, 140)
+    near(x, 0); near(y, 70 + B.PAD)
+    x, y = B.Place(225, false, 140, 140)                 -- on the circle, lower left
+    near(math.sqrt(x * x + y * y), 70 + B.PAD); assert(x < 0 and y < 0)
+    x, y = B.Place(45, true, 140, 140)                   -- a square minimap: out to the corner
+    near(x, 70 + B.PAD); near(y, 70 + B.PAD)
+    x, y = B.Place(100, true, 200, 140)                  -- along the top edge
+    near(y, 70 + B.PAD); assert(x < 0 and x > -100)
+    near(B.AngleTo(1, 0), 0); near(B.AngleTo(0, 1), 90); near(B.AngleTo(-1, -1), 225); near(B.AngleTo(0, 0), B.DEFAULT_ANGLE)
 end)
 
 test("casino: the pictures line up with the rules", function()

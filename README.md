@@ -109,6 +109,8 @@ Blind Tiger sends **no data outside the game**. It has no website, server or dat
 ## Commands
 
 - `/tiger` opens the window (also in the addon compartment menu).
+- The round tiger on the minimap does the same: click to open, right-click for the games floor, drag to move it. `/tiger minimap` hides it or brings it back.
+- `/tiger games` opens the games floor.
 - `/tiger whoami` shows your character ID and role.
 - `/tiger mock on` starts a solo test mode with 19 fake guildmates. Try `/tiger mock boss`, `/tiger mock award` and `/tiger mock forge`, then `/tiger mock off`. Mock data never leaves your client.
 - `/tiger status` shows sync details.

@@ -283,6 +283,22 @@ def chip():
     save(img.resize((64, 64), Image.LANCZOS), "chip")
 
 
+def mini(mark):
+    """The minimap button: the tiger in a gold ring, round, clear outside."""
+    n = 64 * S
+    c = n // 2
+    img = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    r = c - 2 * S
+    d.ellipse([c - r, c - r, c + r, c + r], fill=INK)
+    face = round_mark(mark, 2 * r - 8 * S)
+    img.alpha_composite(face, (c - face.size[0] // 2, c - face.size[1] // 2))
+    d.ellipse([c - r, c - r, c + r, c + r], outline=GOLD_LO, width=5 * S)
+    d.ellipse([c - r + S, c - r + S, c + r - S, c + r - S], outline=GOLD, width=3 * S)
+    d.ellipse([c - r + 2 * S, c - r + 2 * S, c + r - 2 * S, c + r - 2 * S], outline=GOLD_HI, width=S)
+    save(img.resize((64, 64), Image.LANCZOS), "mini")
+
+
 def main():
     mark = Image.open(os.path.join(OUT, "mark.tga")).convert("RGBA")
     cards(mark)
@@ -291,6 +307,7 @@ def main():
     reels(mark)
     felt()
     chip()
+    mini(mark)
 
 
 if __name__ == "__main__":

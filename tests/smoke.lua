@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetAlpha", "SetRotation", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
+    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetAlpha", "SetRotation", "SetBlendMode", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
     M[name] = noop
 end
 -- Secure buttons and the frames that hold them are locked while their owner
@@ -110,6 +110,8 @@ function M:HookScript(name, fn)
 end
 function M:Show() locked(self, "Show"); self._.shown = true end
 function M:Hide() locked(self, "Hide"); self._.shown = false end
+function M:GetCenter() return 500, 500 end
+function M:GetEffectiveScale() return 1 end
 function M:SetShown(v) locked(self, "SetShown"); self._.shown = v and true or false end
 function M:IsShown() return self._.shown end
 function M:IsVisible()
@@ -227,6 +229,11 @@ end
 G.CreateFont = function() return widget("Font") end
 G.UIParent = widget("Frame")
 G.UISpecialFrames = {}
+G.Minimap = widget("Frame")
+G.Minimap:SetSize(140, 140)
+local MINIMAP_SHAPE, CURSOR = nil, { 0, 0 }
+G.GetMinimapShape = function() return MINIMAP_SHAPE end
+G.GetCursorPosition = function() return CURSOR[1], CURSOR[2] end
 G.GameTooltip = widget("GameTooltip")
 G.GameTooltip_Hide = function() end
 G.SlashCmdList = {}
@@ -2507,6 +2514,40 @@ check(clickText(gm, "Play games") and gm.ns.Casino.frame:IsShown() and clickText
 run(gm, "close floor", function() gm.ns.Casino.frame:Hide() end)
 run(gm, "close chips", function() gm.ns.Chips.frame:Hide() end)
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
+
+-- The minimap button: the small tiger that opens the window.
+run(member, "minimap button", function()
+    local B = member.ns.MiniButton
+    local b = B.button
+    check(b ~= nil and b:IsShown() and B.at[1] < 0 and B.at[2] < 0, "the tiger sits on the minimap's lower left to begin with")
+    local was = member.ns.UI.IsOpen()
+    b:GetScript("OnClick")(b, "LeftButton")
+    check(member.ns.UI.IsOpen() ~= was, "a click opens or closes the window")
+    b:GetScript("OnClick")(b, "LeftButton")
+    b:GetScript("OnClick")(b, "RightButton")
+    check(member.ns.Casino.frame:IsShown(), "a right-click opens the games floor")
+    member.ns.Casino.frame:Hide()
+    CURSOR = { 500, 800 }                                -- straight above the minimap's centre
+    b:GetScript("OnDragStart")(b)
+    b:GetScript("OnUpdate")(b, 0.1)
+    b:GetScript("OnDragStop")(b)
+    check(b:GetScript("OnUpdate") == nil and math.abs(B.at[1]) < 0.001 and B.at[2] > 70 and member.ns.db.minimap.angle == 90,
+        "dragging moves it round the edge and the place is kept")
+    CURSOR = { 800, 800 }
+    MINIMAP_SHAPE = "SQUARE"
+    b:GetScript("OnDragStart")(b); b:GetScript("OnUpdate")(b, 0.1); b:GetScript("OnDragStop")(b)
+    check(B.at[1] > 73 and B.at[2] > 73, "on a square minimap it goes out to the corner")
+    MINIMAP_SHAPE = nil
+end)
+run(member, "hide the button", function()
+    member.slash("minimap")
+    check(not member.ns.MiniButton.button:IsShown() and member.ns.db.minimap.hide == true, "/tiger minimap hides it")
+    member.slash("minimap")
+    check(member.ns.MiniButton.button:IsShown(), "and brings it back")
+    member.slash("games")
+    check(member.ns.Casino.frame:IsShown(), "/tiger games opens the floor")
+    member.ns.Casino.frame:Hide()
+end)
 
 -- The floor in pictures: the result is settled at the click, and the moving wheel, reels and cards only show it.
 local floorBefore

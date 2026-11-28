@@ -3,7 +3,7 @@
 ## Notes: Your guild's back room for WoW Forever: DKP and loot, raid sign-ups, roster, crafting orders, BiS and auction upgrades, raid kit, call-outs and summons, plus a Party button, Drink of the Night and play chips. For guilds only. Made by Kitch. Fan-made; not affiliated with Blizzard Entertainment.
 ## Author: Kitch
 ## X-Website: https://discord.gg/hfCKk6kED
-## Version: 2.1.0
+## Version: 2.2.0
 ## SavedVariables: BlindTigerDB
 ## OptionalDeps: Questie, Auctionator
 ## IconTexture: Interface\AddOns\BlindTiger\Media\mark
@@ -45,6 +45,7 @@ Modules\Chips.lua
 Modules\Cards.lua
 Modules\Casino.lua
 Modules\Party.lua
+Modules\MiniButton.lua
 Modules\Statics.lua
 Modules\Roster.lua
 Modules\Summon.lua

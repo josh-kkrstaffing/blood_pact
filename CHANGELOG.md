@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.0
+
+- New: a minimap button. A small round tiger sits on the edge of the minimap. Click it to open or close Blind Tiger, right-click it for the games floor, and drag it to move it round the edge
+- It works with round and square minimaps. /tiger minimap hides it or brings it back
+- New: /tiger games opens the games floor directly
+
 ## 2.1.0
 
 - The games floor now plays in pictures. All of the art is Blind Tiger's own, drawn for the addon

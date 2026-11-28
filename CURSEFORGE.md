@@ -2,7 +2,7 @@
 
 **Your guild's back room for World of Warcraft: Forever.** One window runs the serious side of a guild (DKP, raids, roster, crafting, gear) and the fun side (a Party button, a Drink of the Night, and a games floor played in chips).
 
-"Blind tiger" is an old word for a speakeasy. Open it with `/tiger`.
+"Blind tiger" is an old word for a speakeasy. Open it with `/tiger` or the tiger on your minimap.
 
 **For guilds only.** Blind Tiger works inside one guild and shares only with its members. Its games use play chips among guildmates and are not for the public.
 

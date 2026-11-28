@@ -3,6 +3,8 @@ local _, ns = ...
 
 local function help()
     ns.Print("/tiger or /blindtiger - open or close the window")
+    ns.Print("/tiger games - open the games floor")
+    ns.Print("/tiger minimap - hide the minimap button, or bring it back")
     ns.Print("/tiger whoami - show your character GUID and role")
     ns.Print("/tiger sync - announce your data to the guild now")
     ns.Print("/tiger mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
@@ -22,6 +24,11 @@ SlashCmdList.BLINDTIGER = function(input)
     cmd = (cmd or ""):lower()
     if cmd == "" then
         ns.UI.Toggle()
+    elseif cmd == "games" or cmd == "casino" or cmd == "floor" then
+        ns.Casino.Toggle()
+    elseif cmd == "minimap" then
+        ns.MiniButton.SetHidden(not ns.MiniButton.Hidden())
+        ns.Print(ns.MiniButton.Hidden() and "The minimap button is hidden. /tiger minimap brings it back." or "The minimap button is back.")
     elseif cmd == "whoami" then
         local role = ns.RBAC.RoleOf(ns.MyGUID())
         ns.Print("GUID: " .. tostring(ns.MyGUID()) .. "  Role: " .. (role and ns.RBAC.LABEL[role] or "none"))
