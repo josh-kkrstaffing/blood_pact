@@ -5,6 +5,7 @@
 - The addon has a new name: Blind Tiger. It was called Blood Pact, which is still the name of the guild that makes it
 - Your data carries over. The update installs two folders: BlindTiger, and a small "Blood Pact data carry-over" helper that hands your saved DKP, raids, settings and chips to Blind Tiger the first time you log in. After that the helper does nothing and can be switched off
 - The command is now /tiger (or /blindtiger)
+- A new mark: a friendly one-eyed tiger, drawn for the addon. It shows in the title bar, the games floor and the addon list
 - Guildmates still on Blood Pact 1.x keep syncing with Blind Tiger
 - Blind Tiger is for guilds only, and now says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 

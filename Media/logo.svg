@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- ears -->
+  <circle cx="132" cy="128" r="62" fill="#E8922A"/>
+  <circle cx="380" cy="128" r="62" fill="#E8922A"/>
+  <circle cx="136" cy="134" r="34" fill="#FBE3C0"/>
+  <circle cx="376" cy="134" r="34" fill="#FBE3C0"/>
+  <!-- head -->
+  <path d="M256 78 C380 78 452 160 452 268 C452 384 368 452 256 452 C144 452 60 384 60 268 C60 160 132 78 256 78 Z" fill="#F5A63A"/>
+  <!-- forehead stripes -->
+  <path d="M256 84 L238 150 Q256 164 274 150 Z" fill="#3A2416"/>
+  <path d="M196 96 L196 148 Q210 156 222 146 Z" fill="#3A2416"/>
+  <path d="M316 96 L290 146 Q302 156 316 148 Z" fill="#3A2416"/>
+  <!-- cheek stripes -->
+  <path d="M64 250 L124 262 Q128 274 120 284 Z" fill="#3A2416"/>
+  <path d="M70 318 L128 312 Q134 324 128 334 Z" fill="#3A2416"/>
+  <path d="M448 250 L388 262 Q384 274 392 284 Z" fill="#3A2416"/>
+  <path d="M442 318 L384 312 Q378 324 384 334 Z" fill="#3A2416"/>
+  <!-- muzzle -->
+  <ellipse cx="256" cy="352" rx="118" ry="86" fill="#FBE9CF"/>
+  <!-- eye patch strap -->
+  <path d="M96 150 Q260 196 430 262" fill="none" stroke="#2A1A12" stroke-width="16" stroke-linecap="round"/>
+  <!-- open eye -->
+  <ellipse cx="180" cy="246" rx="44" ry="48" fill="#FFFFFF"/>
+  <circle cx="186" cy="252" r="27" fill="#2A1A12"/>
+  <circle cx="196" cy="240" r="9" fill="#FFFFFF"/>
+  <path d="M134 196 Q178 172 222 198" fill="none" stroke="#3A2416" stroke-width="10" stroke-linecap="round"/>
+  <!-- eye patch -->
+  <path d="M280 214 Q334 188 388 222 Q396 276 334 300 Q280 284 280 214 Z" fill="#2A1A12"/>
+  <circle cx="334" cy="246" r="19" fill="none" stroke="#F2C14E" stroke-width="6"/>
+  <circle cx="334" cy="246" r="6" fill="#F2C14E"/>
+  <!-- nose and smile -->
+  <path d="M226 308 Q256 296 286 308 Q280 336 256 344 Q232 336 226 308 Z" fill="#B5533C"/>
+  <path d="M256 344 L256 366" stroke="#3A2416" stroke-width="8" stroke-linecap="round"/>
+  <path d="M196 362 Q226 398 256 366 Q286 398 316 362" fill="none" stroke="#3A2416" stroke-width="9" stroke-linecap="round"/>
+  <path d="M236 388 Q256 420 276 388 Q256 396 236 388 Z" fill="#E8766A"/>
+  <!-- whisker dots -->
+  <g fill="#3A2416"><circle cx="190" cy="336" r="5"/><circle cx="172" cy="352" r="5"/><circle cx="322" cy="336" r="5"/><circle cx="340" cy="352" r="5"/></g>
+</svg>

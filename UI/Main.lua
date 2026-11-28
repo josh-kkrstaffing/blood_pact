@@ -184,8 +184,10 @@ local function build()
     bar:SetScript("OnDragStop", function() frame:StopMovingOrSizing(); saveLayout() end)
     tinsert(UISpecialFrames, "BlindTigerMainFrame")
 
+    local mark = W.Logo(bar, 26)
+    mark:SetPoint("LEFT", 10, 0)
     local title = W.Text(bar, "BLIND TIGER", "GameFontNormalLarge")
-    title:SetPoint("LEFT", 14, 0)
+    title:SetPoint("LEFT", mark, "RIGHT", 8, 0)
     roleText = W.Text(bar, "", "GameFontDisableSmall")
     roleText:SetPoint("LEFT", title, "RIGHT", 14, -1)
     local close = W.Button(bar, "X", 26, 22, function() frame:Hide() end)
@@ -218,6 +220,7 @@ local function build()
     about:EnableMouse(true)
     W.Fill(about, { W.C.bg[1], W.C.bg[2], W.C.bg[3], 0.97 })      -- hides the tab underneath
     local info = ns.ABOUT
+    W.Logo(about, 96):SetPoint("TOPRIGHT", -40, -28)
     local y = -28
     local function line(text, template, gap)
         local fs = W.Text(about, text, template)

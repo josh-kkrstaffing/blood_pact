@@ -340,6 +340,15 @@ function W.Accordion(parent, title, width, bodyHeight, key, onToggle, startOpen)
     return a
 end
 
+-- The Blind Tiger mark: the guild's own drawing, shipped in Media.
+W.LOGO = "Interface\\AddOns\\BlindTiger\\Media\\logo"
+function W.Logo(parent, size)
+    local t = parent:CreateTexture(nil, "ARTWORK")
+    t:SetTexture(W.LOGO)
+    t:SetSize(size, size)
+    return t
+end
+
 function W.Text(parent, text, template)
     local fs = parent:CreateFontString(nil, "OVERLAY")
     fs:SetFontObject(FONT_MAP[template] or W.F.body)
