@@ -10,6 +10,6 @@ read_globals = {
   "ChatFrameUtil", "ChatFrame_SendTell", "CreateFrame", "GetGuildInfo", "GetGuildRosterInfo",
   "GetNormalizedRealmName", "GetNumGroupMembers", "GetNumGuildMembers", "GetServerTime", "GetTime",
   "GetZoneText", "IsInGuild", "IsInRaid", "UIParent", "UISpecialFrames", "UnitGUID", "UnitIsGroupLeader",
-  "UnitName", "C_VoiceChat", "C_AuctionHouse", "GetMoney", "GetItemCount", "C_Item", "C_UnitAuras", "UnitBuff", "GetWeaponEnchantInfo", "issecretvalue", "InCombatLockdown", "IsInGroup", "date", "geterrorhandler", "hooksecurefunc", "tinsert", "wipe", "AuctionHouseFrame", "AuctionHouseFrameDisplayMode", "PawnGetItemData", "PawnIsItemAnUpgrade", "PawnIsReady", "PawnCanItemHaveStats", "PawnBigUpgradeThreshold", "GetDetailedItemLevelInfo", "GetItemInfoInstant",
+  "UnitName", "C_VoiceChat", "C_AuctionHouse", "GetMoney", "GetItemCount", "C_Item", "C_UnitAuras", "UnitBuff", "GetWeaponEnchantInfo", "issecretvalue", "InCombatLockdown", "IsInGroup", "date", "geterrorhandler", "hooksecurefunc", "tinsert", "wipe", "AuctionHouseFrame", "AuctionHouseFrameDisplayMode", "DepositGuildBankMoney", "QueryGuildBankLog", "GetNumGuildBankMoneyTransactions", "GetGuildBankMoneyTransaction", "MAX_GUILDBANK_TABS", "PawnGetItemData", "PawnIsItemAnUpgrade", "PawnIsReady", "PawnCanItemHaveStats", "PawnBigUpgradeThreshold", "GetDetailedItemLevelInfo", "GetItemInfoInstant",
 }
 files["tests/"] = { std = "lua51" }

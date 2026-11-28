@@ -2218,6 +2218,83 @@ run(gm, "bought once", function()
     S.frame:Hide()
 end)
 
+-- Guild chips: a donation to the guild bank earns chips, pending until an Officer's addon sees it in the money log.
+local BANKLOG, BANKOPEN = {}, {}
+G.MAX_GUILDBANK_TABS = 6
+G.Enum.PlayerInteractionType = { GuildBanker = 10 }
+G.DepositGuildBankMoney = function(amount)
+    assert(BANKOPEN[ctx.guid], "a deposit needs the guild bank open")
+    assert(amount > 0 and MONEY[ctx.guid] >= amount, "a deposit the player can afford")
+    MONEY[ctx.guid] = MONEY[ctx.guid] - amount
+    BANKLOG[#BANKLOG + 1] = { kind = "deposit", name = ctx.name, amount = amount, at = clock }
+    local c = ctx
+    addTimer(0.1, function() fire(c, "GUILDBANK_UPDATE_MONEY") end)
+end
+G.QueryGuildBankLog = function(tab)
+    assert(tab == 7, "the money log is the tab after the last item tab")
+    local c = ctx
+    addTimer(0.2, function() fire(c, "GUILDBANKLOG_UPDATE") end)
+end
+G.GetNumGuildBankMoneyTransactions = function() return #BANKLOG end
+G.GetGuildBankMoneyTransaction = function(i)
+    local e = BANKLOG[i]
+    local hours = math.floor((clock - e.at) / 3600)
+    return e.kind, e.name, e.amount, 0, 0, math.floor(hours / 24), hours % 24
+end
+local function atBank(c, open)
+    BANKOPEN[c.guid] = open
+    fire(c, open and "GUILDBANKFRAME_OPENED" or "GUILDBANKFRAME_CLOSED")
+end
+-- Two days ago the member put a gold in the bank the ordinary way. That earns no chips.
+BANKLOG[1] = { kind = "deposit", name = member.name, amount = 10000, at = clock - 2 * 86400 }
+BANKLOG[2] = { kind = "withdrawal", name = gm.name, amount = 10000, at = clock - 86400 }
+run(member, "chips need the bank", function()
+    local C = member.ns.Chips
+    MONEY[member.guid] = 50000
+    check(select(2, C.Donate("1", "", "")) == "Open the guild bank first. The gold goes in there.", "no donation away from the guild bank")
+end)
+run(member, "donate for chips", function()
+    local C = member.ns.Chips
+    atBank(member, true)
+    check(select(2, C.Donate("9", "", "")) == "You don't have 9g.", "no donation beyond what you carry")
+    assert(C.Donate("1", "", ""))
+    check(MONEY[member.guid] == 40000 and #BANKLOG == 3, "the gold goes into the guild bank")
+    check(select(2, C.Donate("", "1", "")) == "Still recording your last donation.", "one donation at a time")
+end)
+advance(3)
+run(member, "chips pending", function()
+    local C = member.ns.Chips
+    local mine = C.Balances(member.ns.Reducer.State())[member.guid]
+    check(mine and mine.pending == 10000 and mine.ok == 0, "the donor's chips are pending, one for one")
+    check(member.ns.Log.New("CHIP_OK", { buy = next(member.ns.Reducer.State().chipBuys) }) == nil, "a member can't confirm chips")
+    -- A claim with no deposit behind it.
+    assert(member.ns.Log.New("CHIP_BUY", { amt = 990000 }))
+    atBank(member, false)
+end)
+run(officer, "an officer donates", function()
+    MONEY[officer.guid] = 600
+    atBank(officer, true)
+    assert(officer.ns.Chips.Donate("", "5", ""))
+end)
+advance(3)
+run(officer, "officers confirm others, not themselves", function()
+    local bal = officer.ns.Chips.Balances(officer.ns.Reducer.State())
+    check(bal[officer.guid].pending == 500 and bal[officer.guid].ok == 0, "an Officer's own donation stays pending on their own say-so")
+    check(bal[member.guid].ok == 10000 and bal[member.guid].pending == 990000,
+        "an Officer at the bank confirms the donation the money log shows, and not the claim it doesn't")
+    atBank(officer, false)
+end)
+run(gm, "another officer confirms", function() atBank(gm, true) end)
+advance(3)
+run(member, "chips confirmed everywhere", function()
+    local C = member.ns.Chips
+    local bal = C.Balances(member.ns.Reducer.State())
+    check(bal[officer.guid].ok == 500 and bal[member.guid].ok == 10000, "confirmed chips reach the whole guild")
+    local board = C.Board(member.ns.Reducer.State(), member.ns.NameForGUID)
+    check(board[1].guid == member.guid and C.Text(board[1].ok) == "1g" and C.Text(board[2].ok) == "5s", "the leaderboard ranks by chips")
+end)
+run(gm, "leave the bank", function() atBank(gm, false) end)
+
 -- The Party button: a raid warning from the leader, spoken for raiders with the addon.
 local partyGroups = { GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] }
 GROUPS[gm.guid] = { raid = true, gm.guid, officer.guid }
@@ -2349,6 +2426,8 @@ end)
 check(clickText(gm, "Raids") and clickText(gm, "Pick a drink") and gm.ns.Drinks.frame:IsShown(), "the Raids tab's header opens the drink menu")
 run(gm, "close drink", function() gm.ns.Drinks.frame:Hide() end)
 check(clickText(gm, "Party") and gm.ns.Party.frame:IsShown(), "the Party button sits in the title bar")
+check(clickText(gm, "Chips") and gm.ns.Chips.frame:IsShown(), "the Party window opens the chips window")
+run(gm, "close chips", function() gm.ns.Chips.frame:Hide() end)
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
 GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] =
     partyGroups[1], partyGroups[2], partyGroups[3], partyGroups[4], partyGroups[5], partyGroups[6]

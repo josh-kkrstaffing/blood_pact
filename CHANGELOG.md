@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.13.0
+
+- New: guild chips. At the guild bank, "Donate for chips" deposits your gold into the guild bank and gives you play chips one for one: 1 gold is 1 gold chip, 1 silver is 1 silver chip, 1 copper is 1 copper chip
+- Chips start as pending and become real when an Officer's addon sees your deposit in the bank's money log. That happens by itself whenever an Officer opens the guild bank. Nobody can confirm their own chips
+- Chips are one-way: they can't be turned back into gold. They are for the guild's games and the leaderboard
+- Open it from the Chips button in the Party window. It shows your chips, what is pending, and the guild leaderboard
+- Only donations made with the button earn chips; gold put in the bank the ordinary way is a plain donation
+
 ## 1.12.1
 
 - Party: fixed the leader hearing each line spoken twice

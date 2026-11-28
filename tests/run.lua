@@ -44,6 +44,7 @@ load("Modules/Statics.lua")
 load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
 load("Modules/Drinks.lua")
+load("Modules/Chips.lua")
 load("Modules/Party.lua")
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
@@ -378,6 +379,45 @@ test("party: the sound board, who may press, and the rotation", function()
     for _, line in ipairs(P.DEFAULT) do assert(P.Clean(line) == line) end
     local ok = ns.Log.KINDS and ns.Log.KINDS.PARTY_LINE
     if ok then assert(ok[2]({ text = "Hi", on = true }) and not ok[2]({ text = "", on = true }) and not ok[2]({ text = "Hi" })) end
+end)
+
+-- Guild chips -----------------------------------------------------------------
+test("chips: amounts, the money log match, and balances", function()
+    local C = ns.Chips
+    eq(C.Amount("1", "", ""), 10000); eq(C.Amount("", "1", ""), 100); eq(C.Amount("", "", "1"), 1); eq(C.Amount("12", "34", "56"), 123456)
+    eq(C.Amount("", "", ""), nil); eq(C.Amount("0", "0", "0"), nil); eq(C.Amount("1.5", "", ""), nil); eq(C.Amount("", "100", ""), nil)
+    eq(C.Amount("-1", "", ""), nil); eq(C.Amount("x", "", ""), nil)
+    eq(C.Text(123456), "12g 34s 56c"); eq(C.Text(10000), "1g"); eq(C.Text(100), "1s"); eq(C.Text(1), "1c"); eq(C.Text(0), "0c"); eq(C.Text(10001), "1g 1c")
+    eq(C.Age(0, 0, 0, 0), 0); eq(C.Age(0, 0, 2, 3), 51 * 3600); eq(C.Age(1, 1, 0, 0), 395 * 86400)
+
+    local now = 1000000
+    local function buy(id, name, amt, ago, ok) return { id = id, name = name, amt = amt, t = now - ago, ok = ok or false } end
+    local function dep(name, amount, hours) return { name = name, amount = amount, age = hours * 3600 } end
+    -- One claim, one matching deposit.
+    eq(table.concat(C.Verify({ buy("a", "Binky", 10000, 60) }, { dep("Binky", 10000, 0) }, now), ","), "a")
+    -- Wrong person, wrong amount, or no deposit near that time: nothing.
+    eq(#C.Verify({ buy("a", "Binky", 10000, 60) }, { dep("Lenny", 10000, 0) }, now), 0)
+    eq(#C.Verify({ buy("a", "Binky", 10000, 60) }, { dep("Binky", 9999, 0) }, now), 0)
+    eq(#C.Verify({ buy("a", "Binky", 10000, 60) }, { dep("Binky", 10000, 48) }, now), 0)      -- a deposit from two days ago doesn't back a claim made now
+    eq(#C.Verify({ buy("a", "Binky", 10000, 60) }, {}, now), 0)
+    -- Two claims, one deposit: only one is confirmed, the earlier.
+    eq(table.concat(C.Verify({ buy("b", "Binky", 10000, 30), buy("a", "Binky", 10000, 90) }, { dep("Binky", 10000, 0) }, now), ","), "a")
+    -- A claim already confirmed has used its deposit; a second identical claim needs a second deposit.
+    eq(#C.Verify({ buy("a", "Binky", 10000, 90, true), buy("b", "Binky", 10000, 30) }, { dep("Binky", 10000, 0) }, now), 0)
+    eq(table.concat(C.Verify({ buy("a", "Binky", 10000, 90, true), buy("b", "Binky", 10000, 30) }, { dep("Binky", 10000, 0), dep("Binky", 10000, 0) }, now), ","), "b")
+    -- Days later the log still backs an old claim an Officer never saw.
+    eq(table.concat(C.Verify({ buy("a", "Binky", 500, 50 * 3600) }, { dep("Binky", 500, 50) }, now), ","), "a")
+
+    local st = { chipBuys = { a = { id = "a", who = "g1", amt = 10000, t = 1, ok = true }, b = { id = "b", who = "g1", amt = 250, t = 2, ok = false },
+        c = { id = "c", who = "g2", amt = 30000, t = 3, ok = true }, d = { id = "d", who = "g3", amt = 5, t = 4, ok = false } } }
+    local bal = C.Balances(st)
+    eq(bal.g1.ok, 10000); eq(bal.g1.pending, 250); eq(bal.g2.ok, 30000); eq(bal.g3.ok, 0); eq(C.Balances(nil).g1, nil)
+    local board = C.Board(st, function(g) return ({ g1 = "Binky", g2 = "Lenny", g3 = "Tip" })[g] end)
+    eq(board[1].name .. board[2].name .. board[3].name, "LennyBinkyTip")
+
+    -- The log: anyone may claim; only an Officer's entry confirms, and never the donor's own.
+    assert(ns.Log.KINDS.CHIP_BUY[2]({ amt = 1 }) and not ns.Log.KINDS.CHIP_BUY[2]({ amt = 0 }) and not ns.Log.KINDS.CHIP_BUY[2]({ amt = 1.5 }))
+    eq(ns.Log.KINDS.CHIP_BUY[1], "signup"); eq(ns.Log.KINDS.CHIP_OK[1], "award")
 end)
 
 -- Drink of the Night ----------------------------------------------------------

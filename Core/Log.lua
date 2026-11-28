@@ -123,6 +123,10 @@ L.KINDS = {
             and (d.mins == nil or isInt(d.mins, 1, 600)) and (d.n == nil or isInt(d.n, 1, 200))
             and not (d.mins and d.n)
     end },
+    -- Guild chips: a raider's claim that they donated to the guild bank, and an
+    -- Officer's confirmation after seeing the deposit in the bank's money log.
+    CHIP_BUY = { "signup", function(d) return isInt(d.amt, 1, 1e10) end },
+    CHIP_OK = { "award", function(d) return str(d.buy, 1, 80) end },
     -- Drink of the Night: a raid's drink and its recipe, set or cleared.
     RAID_DRINK = { "schedule", function(d)
         if not (str(d.ev, 1, 80) and type(d.on) == "boolean") then return false end

@@ -82,6 +82,8 @@ function Red.Build(g)
         kitChecks = {},           -- [day][guid] = { f, fd, w, e, t }: their own buffs at a ready check
         kitRules = { hours = 3, charge = 30 },      -- the guild leader's answers; Team Captains and above change them
         kitItems = {},            -- [list][item] = { on, mins, n }: changes to the built-in kit lists
+        chipBuys = {},            -- [entry id] = { id, who, amt, t, ok }: guild-bank donations claimed for chips
+        chipOks = {},             -- [entry id] = officer: a confirmation that arrived before its claim
         raidDrinks = {},          -- [raid id] = { name, recipe }: Drink of the Night
         partyLines = {},          -- [text] = { on, t }: the Party button's sound board, changes to the starter list
         calls = {},               -- [boss][id] = { when, v, what, text, who, mark, t }: Raid Caller plans
@@ -180,6 +182,17 @@ function Red.Build(g)
             local list = st.kitItems[d.list] or {}
             st.kitItems[d.list] = list
             list[d.item] = { on = d.on, mins = d.mins, n = d.n }
+        elseif k == "CHIP_BUY" then
+            local okBy = st.chipOks[e.id]
+            st.chipBuys[e.id] = { id = e.id, who = e.a, amt = d.amt, t = e.t, ok = okBy ~= nil and okBy ~= e.a }
+        elseif k == "CHIP_OK" then
+            -- A donor can't confirm their own chips.
+            local b = st.chipBuys[d.buy]
+            if b then
+                if b.who ~= e.a then b.ok = true end
+            elseif not st.chipOks[d.buy] then
+                st.chipOks[d.buy] = e.a
+            end
         elseif k == "RAID_DRINK" then
             st.raidDrinks[d.ev] = d.on and { name = d.name, recipe = d.recipe } or nil
         elseif k == "PARTY_LINE" then
