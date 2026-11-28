@@ -9,9 +9,12 @@
 - Blind Tiger is for guilds only, and now says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 
 - New: the games floor. Open it with "Play games" in the Chips window. You play your chips against the house, and the house is the guild
+- Four games, each against the house:
 - Roulette: the American wheel with 0 and 00. Bet a number, red or black, odd or even, high or low, a dozen or a column. House edge 5.26%
 - Slots: three reels, six symbols, a 100-times jackpot for three Tigers. House edge 7.34%
-- Both edges are counted over every possible result by the addon's own tests. Nothing is rigged per spin
+- Blackjack: pays 6 to 5, the dealer hits a soft 17, and you can double (also after a split) and split a pair once. House edge 2.14% against perfect play
+- Hold'em against the house: ante, see your cards and the flop, then call for twice the ante or fold. The dealer needs a pair of fours to qualify. House edge 2.16%
+- The roulette and slots edges are counted over every possible result by the addon's own tests, and the blackjack edge was calculated exactly. The Hold'em figure is the published one for these rules. Nothing is rigged per hand
 - Plays are added up and written to the guild's log a session at a time. Big wins show on every guildmate's floor
 - Chips still never turn back into gold
 

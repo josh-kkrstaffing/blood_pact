@@ -45,6 +45,7 @@ load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
 load("Modules/Drinks.lua")
 load("Modules/Chips.lua")
+load("Modules/Cards.lua")
 load("Modules/Casino.lua")
 load("Modules/Party.lua")
 load("Modules/Summon.lua")
@@ -467,6 +468,70 @@ test("casino: the slot machine pays back exactly what its table says", function(
     eq(bal.g1.ok, 700); eq(bal.g2.ok, 0); eq(bal.g3.ok, 700)
     local nets, house = G.Nets({ chipNets = { g1 = -300, g2 = -50, g3 = 700 } })
     eq(nets.g1, -300); eq(house, -350)
+end)
+
+test("cards: blackjack totals and what a hand gets back", function()
+    local K = ns.Cards
+    local function c(text)              -- "As Kh 7d" -> cards
+        local out = {}
+        for r, su in text:gmatch("(%w+)([shdc])") do
+            local rank = ({ A = 14, K = 13, Q = 12, J = 11, T = 10 })[r] or tonumber(r)
+            out[#out + 1] = { r = rank, s = ({ s = 1, h = 2, d = 3, c = 4 })[su] }
+        end
+        return out
+    end
+    ns._cards = c
+    eq(K.Name({ r = 14, s = 1 }), "As"); eq(K.Name({ r = 10, s = 2 }), "10h"); eq(K.Name({ r = 2, s = 4 }), "2c")
+    eq((K.Total(c("As Kh"))), 21); eq(select(2, K.Total(c("As 6h"))), true); eq((K.Total(c("As 6h Kd"))), 17); eq(select(2, K.Total(c("As 6h Kd"))), false)
+    eq((K.Total(c("As Ah 9d"))), 21); eq((K.Total(c("Ks Qh 5d"))), 25)
+    assert(K.IsNatural(c("As Th")) and not K.IsNatural(c("7s 7h 7d")) and not K.IsNatural(c("As 9h")))
+    assert(K.DealerHits(c("Ts 6h")) and K.DealerHits(c("As 6h")) and not K.DealerHits(c("Ts 7h")) and not K.DealerHits(c("As 7h")))   -- hits a soft 17 only
+    assert(K.CanSplit(c("8s 8h")) and K.CanSplit(c("Ks Th")) and not K.CanSplit(c("8s 9h")) and not K.CanSplit(c("8s 8h 2d")))
+    local dealer20, dealerBJ, dealerBust = c("Ts Kh"), c("As Kh"), c("Ts 6h 9d")
+    eq(K.BJBack({ cards = c("As Kd"), bet = 500 }, dealer20), 1100)                   -- blackjack pays 6 to 5: 500 back plus 600
+    eq(K.BJBack({ cards = c("As Kd"), bet = 500 }, dealerBJ), 500)                    -- two blackjacks push
+    eq(K.BJBack({ cards = c("As Kd"), bet = 500, split = true }, dealer20), 1000)     -- 21 after a split is not a blackjack
+    eq(K.BJBack({ cards = c("Ts 9d"), bet = 500 }, dealer20), 0); eq(K.BJBack({ cards = c("Ts Qd"), bet = 500 }, dealer20), 500)
+    eq(K.BJBack({ cards = c("Ts 9d 2c"), bet = 500 }, dealer20), 1000); eq(K.BJBack({ cards = c("Ts 9d 5c"), bet = 500 }, dealerBust), 0)   -- a bust loses even if the dealer busts
+    eq(K.BJBack({ cards = c("Ts 2d"), bet = 500 }, dealerBust), 1000); eq(K.BJBack({ cards = c("5s 6d Tc"), bet = 500 }, dealerBJ), 0)
+end)
+
+test("cards: poker hands rank in order, and Hold'em pays by the table", function()
+    local K, c = ns.Cards, ns._cards
+    local function cat(text) return select(2, K.Rank(c(text))) end
+    eq(cat("As Ks Qs Js Ts 2d 3c"), 8); eq(cat("9h 8h 7h 6h 5h Ad Ac"), 8); eq(cat("As 2s 3s 4s 5s Kd Kc"), 8)
+    eq(cat("9s 9h 9d 9c Ks 2d 3c"), 7); eq(cat("9s 9h 9d Kc Ks 2d 3c"), 6); eq(cat("9s 9h 9d Kc Ks Kd 3c"), 6)
+    eq(cat("As 9s 7s 4s 2s Kd Kc"), 5); eq(cat("9s 8h 7d 6c 5s Ad Ac"), 4); eq(cat("As 2h 3d 4c 5s Kd Qc"), 4)
+    eq(cat("9s 9h 9d Kc Qs 2d 3c"), 3); eq(cat("9s 9h Kd Kc Qs 2d 3c"), 2); eq(cat("9s 9h Kd Jc Qs 2d 3c"), 1); eq(cat("9s 7h Kd Jc Qs 2d 3c"), 0)
+    local function beats(a, b) return (K.Rank(c(a))) > (K.Rank(c(b))) end
+    assert(beats("As Ks Qs Js Ts 2d 3c", "9h 8h 7h 6h 5h Ad Ac") and beats("9s 9h 9d 9c Ks 2d 3c", "As Ah Ad Kc Ks 2d 3c"))
+    assert(beats("9s 9h 9d Kc Ks Kd 3c", "9s 9h 9d Qc Qs 2d 3c"))          -- two trips make kings full, not nines full
+    assert(beats("As 9s 7s 4s 2s Kd Kc", "9s 8h 7d 6c 5s Ad Ac") and beats("9s 8h 7d 6c 5s Ad Ac", "As 2h 3d 4c 5s Kd Qc"))   -- the wheel is the lowest straight
+    assert(beats("As Ah Kd 7c 5s 3d 2c", "Ks Kh Ad Qc Js 3d 2c") and beats("As Ah Kd 7c 5s 3d 2c", "Ac Ad Qd 7h 5h 3s 2s"))  -- kickers decide
+    eq((K.Rank(c("As Ah Kd 7c 5s 3d 2c"))), (K.Rank(c("Ac Ad Kh 7h 5h 3s 2s"))))                                               -- suits don't
+    assert(beats("Ks Kh 9d 9c As 2d 3c", "Ks Kh 8d 8c As Qd Jc"))
+    eq(K.HandName(8, 14), "a royal flush"); eq(K.HandName(8, 9), "a straight flush"); eq(K.HandName(0, 13), "high card")
+    eq(K.AntePays(8, 14), 100); eq(K.AntePays(8, 9), 20); eq(K.AntePays(7, 9), 10); eq(K.AntePays(6, 9), 3); eq(K.AntePays(5, 14), 2)
+    eq(K.AntePays(4, 9), 1); eq(K.AntePays(0, 14), 1)
+    assert(K.DealerQualifies(1, 4) and not K.DealerQualifies(1, 3) and not K.DealerQualifies(0, 14) and K.DealerQualifies(2, 3))
+    local board = c("Ks 9h 4d 2c 7s")
+    -- ante 100, call 200: 300 staked
+    local back, how = K.HoldemBack(c("Kh Qd"), c("9s 8d"), board, 100)
+    eq(back, 100 + 100 + 400); eq(how, "win")                         -- kings beat nines: ante 1 to 1, call 1 to 1
+    back, how = K.HoldemBack(c("3h 3d"), c("As Qd"), board, 100)
+    eq(back, 100 + 100 + 200); eq(how, "nofit")                       -- dealer has ace high: the ante pays, the call comes back
+    back, how = K.HoldemBack(c("As Qd"), c("3h 3d"), board, 100)
+    eq(back, 100 + 100 + 200); eq(how, "nofit")                       -- and it pays even when your hand is the worse one
+    back, how = K.HoldemBack(c("9s 8d"), c("Kh Qd"), board, 100)
+    eq(back, 0); eq(how, "lose")
+    back, how = K.HoldemBack(c("Ah 3s"), c("Ad 3h"), board, 100)
+    eq(how, "nofit")
+    back, how = K.HoldemBack(c("Kh 3s"), c("Kd 3h"), board, 100)
+    eq(back, 300); eq(how, "tie")
+    back, how = K.HoldemBack(c("Ks Kd"), c("9s 9d"), c("Kh Kc 9h 2c 7s"), 100)
+    eq(back, 100 + 1000 + 400); eq(how, "win")                        -- four kings: the ante pays 10 to 1
+    back = K.HoldemBack(c("As Qs"), c("9d 9c"), c("Ks Js Ts 2c 7h"), 100)
+    eq(back, 100 + 10000 + 400)                                       -- a royal flush pays the ante 100 to 1
 end)
 
 -- Drink of the Night ----------------------------------------------------------

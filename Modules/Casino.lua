@@ -11,7 +11,7 @@ local _, ns = ...
 local G = {}
 ns.Casino = G
 
-local U, Red, Chips = ns.U, ns.Reducer, ns.Chips
+local U, Red, Chips, K = ns.U, ns.Reducer, ns.Chips, ns.Cards
 
 G.MAX_MULT = 100          -- the most any game returns on one stake (the slots jackpot)
 G.COMMIT_EVERY = 25       -- plays before a session is written to the log
@@ -152,10 +152,12 @@ function G.Unwritten()
     return net, bet, n
 end
 
--- Chips I can stake right now: confirmed chips, plus or minus what I've played.
+-- Chips I can stake right now: confirmed chips, plus or minus what I've played,
+-- less what is sitting on a table in a hand that isn't over.
+local inPlay = 0
 function G.Available()
     local mine = Chips.Balances(Red.State())[ns.MyGUID()]
-    return math.max(0, (mine and mine.ok or 0) + (G.Unwritten()))
+    return math.max(0, (mine and mine.ok or 0) + (G.Unwritten()) - inPlay)
 end
 
 -- Write my finished plays to the guild's log, one entry per game.
@@ -222,6 +224,161 @@ function G.Pull(stake)
     return { reels = { a, b, c }, staked = stake, back = back }
 end
 
+---------------------------------------------------------------------------
+-- Blackjack against the house
+---------------------------------------------------------------------------
+local function draw() return { r = G.rng(13) + 1, s = G.rng(4) } end      -- each card dealt fresh
+local bj                  -- the hand in progress, or the last one finished
+
+function G.Blackjack() return bj end
+
+local function bjFinish()
+    while K.DealerHits(bj.dealer) and bj.live do bj.dealer[#bj.dealer + 1] = draw() end
+    local staked, back = 0, 0
+    for _, h in ipairs(bj.hands) do
+        staked = staked + h.bet
+        h.back = K.BJBack(h, bj.dealer)
+        back = back + h.back
+    end
+    bj.phase, bj.staked, bj.back = "done", staked, back
+    inPlay = 0
+    settle("Blackjack", staked, back)
+end
+
+-- Move to the next hand that still needs playing, or finish.
+local function bjNext()
+    while bj.at <= #bj.hands and bj.hands[bj.at].done do bj.at = bj.at + 1 end
+    if bj.at > #bj.hands then
+        -- The dealer only draws if some hand is still standing.
+        bj.live = false
+        for _, h in ipairs(bj.hands) do if (K.Total(h.cards)) <= 21 then bj.live = true end end
+        bjFinish()
+    end
+end
+
+function G.BJDeal(stake)
+    if bj and bj.phase == "play" then return nil, "Finish this hand first." end
+    local ok, why = canStake(stake or 0)
+    if not ok then return nil, why end
+    bj = { stake = stake, at = 1, phase = "play", hands = { { cards = { draw() }, bet = stake } }, dealer = { draw() } }
+    bj.hands[1].cards[2] = draw()
+    bj.dealer[2] = draw()
+    inPlay = stake
+    -- A blackjack on either side ends the hand at once.
+    if K.IsNatural(bj.dealer) or K.IsNatural(bj.hands[1].cards) then
+        bj.hands[1].done, bj.live = true, false
+        bjFinish()
+    end
+    return bj
+end
+
+local function bjHand()
+    if not (bj and bj.phase == "play") then return nil, "Deal a hand first." end
+    return bj.hands[bj.at]
+end
+
+function G.BJHit()
+    local h, why = bjHand()
+    if not h then return nil, why end
+    h.cards[#h.cards + 1] = draw()
+    if (K.Total(h.cards)) >= 21 then h.done = true; bjNext() end
+    return bj
+end
+
+function G.BJStand()
+    local h, why = bjHand()
+    if not h then return nil, why end
+    h.done = true
+    bjNext()
+    return bj
+end
+
+function G.BJCanDouble()
+    local h = bjHand()
+    return h ~= nil and #h.cards == 2 and not h.aces and G.Available() >= h.bet
+end
+
+function G.BJDouble()
+    local h, why = bjHand()
+    if not h then return nil, why end
+    if #h.cards ~= 2 or h.aces then return nil, "You can only double on your first two cards." end
+    if G.Available() < h.bet then return nil, "You don't have the chips to double." end
+    inPlay = inPlay + h.bet
+    h.bet, h.doubled = h.bet * 2, true
+    h.cards[#h.cards + 1] = draw()
+    h.done = true
+    bjNext()
+    return bj
+end
+
+function G.BJCanSplit()
+    local h = bjHand()
+    return h ~= nil and #bj.hands == 1 and K.CanSplit(h.cards) and G.Available() >= h.bet
+end
+
+function G.BJSplit()
+    local h, why = bjHand()
+    if not h then return nil, why end
+    if #bj.hands ~= 1 or not K.CanSplit(h.cards) then return nil, "You can split a pair once." end
+    if G.Available() < h.bet then return nil, "You don't have the chips to split." end
+    inPlay = inPlay + h.bet
+    local aces = h.cards[1].r == 14
+    local second = { cards = { h.cards[2], draw() }, bet = h.bet, split = true, aces = aces, done = aces }
+    h.cards[2] = draw()
+    h.split, h.aces, h.done = true, aces, aces         -- split aces get one card each
+    bj.hands[2] = second
+    for _, x in ipairs(bj.hands) do if (K.Total(x.cards)) == 21 then x.done = true end end
+    bjNext()
+    return bj
+end
+
+---------------------------------------------------------------------------
+-- Hold'em against the house
+---------------------------------------------------------------------------
+local he
+
+function G.Holdem() return he end
+
+local function shuffled()
+    local deck = {}
+    for s = 1, 4 do for r = 2, 14 do deck[#deck + 1] = { r = r, s = s } end end
+    for i = #deck, 2, -1 do
+        local j = G.rng(i)
+        deck[i], deck[j] = deck[j], deck[i]
+    end
+    return deck
+end
+
+-- Ante up: two cards each and the flop. You need the chips to call as well.
+function G.HEDeal(ante)
+    if he and he.phase == "flop" then return nil, "Call or fold this hand first." end
+    local ok, why = canStake((ante or 0) * 3)
+    if not ok then return nil, (ante or 0) >= 1 and "You need three times the ante: the ante, and twice that to call." or why end
+    local d = shuffled()
+    he = { ante = ante, phase = "flop", player = { d[1], d[2] }, dealer = { d[3], d[4] }, board = { d[5], d[6], d[7] }, rest = { d[8], d[9] } }
+    inPlay = ante
+    return he
+end
+
+function G.HEFold()
+    if not (he and he.phase == "flop") then return nil, "Deal a hand first." end
+    he.phase, he.how, he.staked, he.back = "done", "fold", he.ante, 0
+    inPlay = 0
+    settle("Hold'em", he.ante, 0)
+    return he
+end
+
+function G.HECall()
+    if not (he and he.phase == "flop") then return nil, "Deal a hand first." end
+    he.board[4], he.board[5] = he.rest[1], he.rest[2]
+    local back, how, pc, ph, dc, dh = K.HoldemBack(he.player, he.dealer, he.board, he.ante)
+    he.phase, he.how, he.staked, he.back = "done", how, he.ante * 3, back
+    he.mine, he.theirs = K.HandName(pc, ph), K.HandName(dc, dh)
+    inPlay = 0
+    settle("Hold'em", he.staked, back)
+    return he
+end
+
 -- A guildmate's big win, for the floor's feed.
 ns.Sync.Handle("CW", function(msg, _, sguid)
     if sguid == ns.MyGUID() or type(msg.g) ~= "string" or type(msg.w) ~= "number" then return end
@@ -262,7 +419,7 @@ local function build()
     W.Line(f, -32)
 
     f.tabs = {}
-    for i, name in ipairs({ "Roulette", "Slots" }) do
+    for i, name in ipairs({ "Roulette", "Slots", "Blackjack", "Hold'em" }) do
         local b = W.Button(f, name, 100, 22, function()
             game, note = name, nil
             G.Refresh()
@@ -270,8 +427,6 @@ local function build()
         b:SetPoint("TOPLEFT", 12 + (i - 1) * 106, -40)
         f.tabs[name] = b
     end
-    f.soon = W.Text(f, "Blackjack and poker are next.", "GameFontDisableSmall")
-    f.soon:SetPoint("TOPLEFT", 230, -45)
     W.Text(f, "Stake", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 12, -76)
     f.stake = W.Edit(f, 80, 12)
     f.stake:SetPoint("TOPLEFT", 52, -72)
@@ -372,6 +527,51 @@ local function build()
     s.table:SetJustifyH("LEFT")
     s.table:SetWordWrap(true)
 
+    -- Blackjack and Hold'em share one layout: the dealer, you, a result line, buttons, the rules.
+    local function table_(rules)
+        local t = CreateFrame("Frame", nil, f)
+        t:SetPoint("TOPLEFT", 12, -100)
+        t:SetSize(536, 250)
+        t.lines = {}
+        for i = 1, 4 do
+            local fs = W.Text(t, "", i == 4 and "GameFontNormalLarge" or "GameFontHighlightLarge")
+            fs:SetPoint("TOPLEFT", 0, -(i - 1) * 28)
+            fs:SetWidth(536)
+            fs:SetJustifyH("LEFT")
+            fs:SetWordWrap(false)
+            t.lines[i] = fs
+        end
+        t.rules = W.Text(t, rules, "GameFontDisableSmall")
+        t.rules:SetPoint("TOPLEFT", 0, -156)
+        t.rules:SetWidth(536)
+        t.rules:SetJustifyH("LEFT")
+        t.rules:SetWordWrap(true)
+        t.buttons = {}
+        return t
+    end
+    local function action(t, i, label, fn, style)
+        local b = W.Button(t, label, 96, 26, function()
+            local ok, why = fn()
+            note = (not ok) and why or nil
+            G.Refresh()
+        end, style)
+        b:SetPoint("TOPLEFT", (i - 1) * 102, -118)
+        t.buttons[label] = b
+        return b
+    end
+    local b = table_("Blackjack pays 6 to 5. The dealer hits a soft 17. Double on any two cards, and after a split. Split a pair once; split aces get one card each. House edge 2.14% against perfect play.")
+    f.blackjack = b
+    action(b, 1, "Deal", function() local st = stake(); if not st then return nil, note end; return G.BJDeal(st) end, "accent")
+    action(b, 2, "Hit", G.BJHit)
+    action(b, 3, "Stand", G.BJStand)
+    action(b, 4, "Double", G.BJDouble)
+    action(b, 5, "Split", G.BJSplit)
+    local h = table_("Your stake is the ante. See your cards and the flop, then call for twice the ante or fold. The dealer needs a pair of fours to qualify. Ante pays: royal flush 100, straight flush 20, four of a kind 10, full house 3, flush 2, anything else 1. The call pays even money. House edge 2.16%.")
+    f.holdem = h
+    action(h, 1, "Deal", function() local st = stake(); if not st then return nil, note end; return G.HEDeal(st) end, "accent")
+    action(h, 2, "Call", G.HECall)
+    action(h, 3, "Fold", G.HEFold)
+
     f.status = W.Text(f, "", "GameFontHighlightSmall")
     f.status:SetPoint("TOPLEFT", 12, -352)
     f.status:SetWidth(536)
@@ -398,7 +598,63 @@ function G.Refresh()
     for name, b in pairs(f.tabs) do b:SetEnabled(name ~= game) end
     f.roulette:SetShown(game == "Roulette")
     f.slots:SetShown(game == "Slots")
-    if game == "Roulette" then
+    f.blackjack:SetShown(game == "Blackjack")
+    f.holdem:SetShown(game == "Hold'em")
+    local function cards(list, hide)
+        local out = {}
+        for i, c in ipairs(list) do
+            local red = c.s == 2 or c.s == 3
+            out[i] = (hide and i > 1) and "??" or ((red and "|cffff5050" or "|cffffffff") .. K.Name(c) .. "|r")
+        end
+        return table.concat(out, "  ")
+    end
+    local function outcome(staked, back)
+        local won = back - staked
+        return won > 0 and ("|cff40ff40You won " .. Chips.Text(won) .. "|r") or won == 0 and "A push: your chips come back"
+            or ("|cffff6040The house takes " .. Chips.Text(-won) .. "|r")
+    end
+    if game == "Blackjack" then
+        local t, hand = f.blackjack, G.Blackjack()
+        local playing = hand ~= nil and hand.phase == "play"
+        if hand then
+            t.lines[1]:SetText("Dealer: " .. cards(hand.dealer, playing) .. (playing and "" or ("   (" .. (K.Total(hand.dealer)) .. ")")))
+            for i = 1, 2 do
+                local x = hand.hands[i]
+                t.lines[i + 1]:SetText(x and ((playing and hand.at == i and "> " or "") .. (#hand.hands > 1 and ("Hand " .. i .. ": ") or "You: ")
+                    .. cards(x.cards) .. "   (" .. (K.Total(x.cards)) .. ")   " .. Chips.Text(x.bet)) or "")
+            end
+            t.lines[4]:SetText(playing and "Your move" or outcome(hand.staked, hand.back))
+        else
+            t.lines[1]:SetText("Dealer:")
+            t.lines[2]:SetText("You:")
+            t.lines[3]:SetText("")
+            t.lines[4]:SetText("Set a stake and deal.")
+        end
+        t.buttons.Deal:SetEnabled(not playing)
+        t.buttons.Hit:SetEnabled(playing)
+        t.buttons.Stand:SetEnabled(playing)
+        t.buttons.Double:SetEnabled(playing and G.BJCanDouble())
+        t.buttons.Split:SetEnabled(playing and G.BJCanSplit())
+    elseif game == "Hold'em" then
+        local t, hand = f.holdem, G.Holdem()
+        local playing = hand ~= nil and hand.phase == "flop"
+        if hand then
+            t.lines[1]:SetText("Dealer: " .. (playing and "??  ??" or cards(hand.dealer)) .. (hand.theirs and ("   " .. hand.theirs) or ""))
+            t.lines[2]:SetText("Board: " .. cards(hand.board))
+            t.lines[3]:SetText("You: " .. cards(hand.player) .. (hand.mine and ("   " .. hand.mine) or "") .. "   ante " .. Chips.Text(hand.ante))
+            t.lines[4]:SetText(playing and ("Call for " .. Chips.Text(hand.ante * 2) .. " or fold")
+                or hand.how == "fold" and ("|cffff6040You folded. The house takes " .. Chips.Text(hand.ante) .. "|r")
+                or ((hand.how == "nofit" and "The dealer doesn't qualify. " or "") .. outcome(hand.staked, hand.back)))
+        else
+            t.lines[1]:SetText("Dealer:")
+            t.lines[2]:SetText("Board:")
+            t.lines[3]:SetText("You:")
+            t.lines[4]:SetText("Set your ante as the stake and deal.")
+        end
+        t.buttons.Deal:SetEnabled(not playing)
+        t.buttons.Call:SetEnabled(playing)
+        t.buttons.Fold:SetEnabled(playing)
+    elseif game == "Roulette" then
         local r = f.roulette
         if lastSpin then
             local won = lastSpin.back - lastSpin.staked
