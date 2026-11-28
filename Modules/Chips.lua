@@ -108,6 +108,12 @@ function C.Balances(st)
         out[b.who] = row
         if b.ok then row.ok = row.ok + b.amt else row.pending = row.pending + b.amt end
     end
+    -- What the games floor has given or taken. Chips can't go below nothing.
+    for guid, net in pairs(st and st.chipNets or {}) do
+        local row = out[guid] or { ok = 0, pending = 0 }
+        out[guid] = row
+        row.ok = math.max(0, row.ok + net)
+    end
     return out
 end
 
@@ -327,6 +333,8 @@ local function build()
     end)
     f.board.scroll:SetPoint("TOPLEFT", 12, -210)
     f.board.scroll:SetSize(396, 130)
+    f.games = W.Button(f, "Play games", 100, 20, function() ns.Casino.Toggle() end, "accent")
+    f.games:SetPoint("TOPRIGHT", -180, -6)
     f.foot = W.Text(f, "Chips are one-way: they can't be turned back into gold. Donations go to the guild.", "GameFontDisableSmall")
     f.foot:SetPoint("BOTTOMLEFT", 12, 10)
     f.foot:SetWidth(396)

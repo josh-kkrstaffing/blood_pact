@@ -41,6 +41,7 @@ Modules\Kit.lua
 Modules\Caller.lua
 Modules\Drinks.lua
 Modules\Chips.lua
+Modules\Casino.lua
 Modules\Party.lua
 Modules\Statics.lua
 Modules\Roster.lua

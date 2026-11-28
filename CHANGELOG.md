@@ -8,6 +8,13 @@
 - Guildmates still on Blood Pact 1.x keep syncing with Blind Tiger
 - Blind Tiger is for guilds only, and now says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 
+- New: the games floor. Open it with "Play games" in the Chips window. You play your chips against the house, and the house is the guild
+- Roulette: the American wheel with 0 and 00. Bet a number, red or black, odd or even, high or low, a dozen or a column. House edge 5.26%
+- Slots: three reels, six symbols, a 100-times jackpot for three Tigers. House edge 7.34%
+- Both edges are counted over every possible result by the addon's own tests. Nothing is rigged per spin
+- Plays are added up and written to the guild's log a session at a time. Big wins show on every guildmate's floor
+- Chips still never turn back into gold
+
 ## 1.13.0
 
 - New: guild chips. At the guild bank, "Donate for chips" deposits your gold into the guild bank and gives you play chips one for one: 1 gold is 1 gold chip, 1 silver is 1 silver chip, 1 copper is 1 copper chip

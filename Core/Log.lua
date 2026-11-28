@@ -127,6 +127,12 @@ L.KINDS = {
     -- Officer's confirmation after seeing the deposit in the bank's money log.
     CHIP_BUY = { "signup", function(d) return isInt(d.amt, 1, 1e10) end },
     CHIP_OK = { "award", function(d) return str(d.buy, 1, 80) end },
+    -- A run of plays on the games floor, added up: chips staked and the net result.
+    -- No game returns more than 100 times a stake, and nobody can lose more than they staked.
+    CHIP_SESSION = { "signup", function(d)
+        return str(d.game, 1, 20) and isInt(d.n, 1, 1000) and isInt(d.bet, 1, 1e12)
+            and type(d.net) == "number" and d.net == floor(d.net) and d.net >= -d.bet and d.net <= d.bet * 100
+    end },
     -- Drink of the Night: a raid's drink and its recipe, set or cleared.
     RAID_DRINK = { "schedule", function(d)
         if not (str(d.ev, 1, 80) and type(d.on) == "boolean") then return false end

@@ -2302,6 +2302,43 @@ run(member, "chips confirmed everywhere", function()
 end)
 run(gm, "leave the bank", function() atBank(gm, false) end)
 
+-- The games floor: chips against the house. The dice are scripted here so the results are known.
+local function script(c, ...)
+    local seq, i = { ... }, 0
+    c.ns.Casino.rng = function(n) i = i + 1; assert(seq[i] and seq[i] <= n, "a roll in range"); return seq[i] end
+end
+run(gm, "no chips, no play", function()
+    check(select(2, gm.ns.Casino.Pull(100)) == "You have no chips. Donate at the guild bank to get some.", "the floor needs chips")
+end)
+run(member, "roulette and slots", function()
+    local G = member.ns.Casino
+    check(G.Available() == 10000, "confirmed chips can be staked; pending ones can't")
+    check(select(2, G.Spin({ { kind = "red", stake = 10001 } })) == "You only have 1g in chips.", "no staking more than you hold")
+    script(member, 19)                                   -- the wheel stops on 17, a black number
+    local spin = G.Spin({ { kind = "red", stake = 100 }, { kind = "num", pick = "17", stake = 100 } })
+    check(spin.pocket == "17" and spin.staked == 200 and spin.back == 3600 and G.Available() == 13400, "a number pays 35 to 1; red loses on a black number")
+    script(member, 1, 1, 1)
+    local pull = G.Pull(100)
+    check(pull.reels[1] == "Tiger" and pull.back == 10000 and G.Available() == 23300, "three Tigers pay the jackpot")
+    check(G.Feed()[1] == "You won 99s on Slots.", "a big win is called out on the floor")
+    script(member, 20, 20, 4)
+    check(G.Pull(300).back == 0 and G.Available() == 23000, "a losing pull goes to the house")
+    local net, bet, n = G.Unwritten()
+    check(net == 13000 and bet == 600 and n == 3, "plays are added up before they are written down")
+    G.Commit()
+    check(select(3, G.Unwritten()) == 0 and G.Available() == 23000, "a session is written to the guild's log once")
+end)
+advance(3)
+run(gm, "the house's books", function()
+    local G = gm.ns.Casino
+    local st = gm.ns.Reducer.State()
+    local _, house = G.Nets(st)
+    check(gm.ns.Chips.Balances(st)[member.guid].ok == 23000 and house == -13000, "the guild sees the same chips and what the house is up or down")
+    check(G.Feed()[1] == member.ns.NameForGUID(member.guid) .. " won 99s on Slots.", "guildmates see big wins on the floor")
+    check(gm.ns.Log.New("CHIP_SESSION", { game = "Slots", n = 1, bet = 100, net = 100000 }) == nil, "a session claiming more than any game pays is refused")
+end)
+
+
 -- The Party button: a raid warning from the leader, spoken for raiders with the addon.
 local partyGroups = { GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] }
 GROUPS[gm.guid] = { raid = true, gm.guid, officer.guid }
@@ -2434,6 +2471,8 @@ check(clickText(gm, "Raids") and clickText(gm, "Pick a drink") and gm.ns.Drinks.
 run(gm, "close drink", function() gm.ns.Drinks.frame:Hide() end)
 check(clickText(gm, "Party") and gm.ns.Party.frame:IsShown(), "the Party button sits in the title bar")
 check(clickText(gm, "Chips") and gm.ns.Chips.frame:IsShown(), "the Party window opens the chips window")
+check(clickText(gm, "Play games") and gm.ns.Casino.frame:IsShown() and clickText(gm, "Slots") and clickText(gm, "Roulette"), "the chips window opens the games floor")
+run(gm, "close floor", function() gm.ns.Casino.frame:Hide() end)
 run(gm, "close chips", function() gm.ns.Chips.frame:Hide() end)
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
 GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] =

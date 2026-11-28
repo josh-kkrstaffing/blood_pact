@@ -45,6 +45,7 @@ load("Modules/Roster.lua")
 ns.Sync = { Handle = function() end }
 load("Modules/Drinks.lua")
 load("Modules/Chips.lua")
+load("Modules/Casino.lua")
 load("Modules/Party.lua")
 load("Modules/Summon.lua")
 load("Modules/Recruit.lua")
@@ -418,6 +419,54 @@ test("chips: amounts, the money log match, and balances", function()
     -- The log: anyone may claim; only an Officer's entry confirms, and never the donor's own.
     assert(ns.Log.KINDS.CHIP_BUY[2]({ amt = 1 }) and not ns.Log.KINDS.CHIP_BUY[2]({ amt = 0 }) and not ns.Log.KINDS.CHIP_BUY[2]({ amt = 1.5 }))
     eq(ns.Log.KINDS.CHIP_BUY[1], "signup"); eq(ns.Log.KINDS.CHIP_OK[1], "award")
+end)
+
+-- The games floor ---------------------------------------------------------------
+test("casino: stakes, the roulette wheel and its house edge", function()
+    local G = ns.Casino
+    eq(G.Stake("5s"), 500); eq(G.Stake("1g"), 10000); eq(G.Stake("1g 50s"), 15000); eq(G.Stake("75c"), 75); eq(G.Stake(" 2G 3S 4C "), 20304)
+    eq(G.Stake("5"), nil); eq(G.Stake(""), nil); eq(G.Stake("abc"), nil); eq(G.Stake("0s"), nil); eq(G.Stake("5x"), nil); eq(G.Stake("-5s"), nil)
+    eq(#G.POCKETS, 38); eq(G.Pocket("00"), "00"); eq(G.Pocket("0"), "0"); eq(G.Pocket("36"), "36"); eq(G.Pocket("37"), nil); eq(G.Pocket("x"), nil)
+    local reds = 0
+    for n = 1, 36 do if G.RED[n] then reds = reds + 1 end end
+    eq(reds, 18)
+    eq(G.PocketColor("0"), "green"); eq(G.PocketColor("00"), "green"); eq(G.PocketColor("1"), "red"); eq(G.PocketColor("2"), "black")
+    assert(G.BetWins({ kind = "num", pick = "17" }, "17") and not G.BetWins({ kind = "num", pick = "17" }, "18") and G.BetWins({ kind = "num", pick = "00" }, "00"))
+    assert(G.BetWins({ kind = "red" }, "1") and not G.BetWins({ kind = "red" }, "2") and not G.BetWins({ kind = "red" }, "0") and not G.BetWins({ kind = "black" }, "00"))
+    assert(G.BetWins({ kind = "dozen", pick = 2 }, "13") and G.BetWins({ kind = "dozen", pick = 2 }, "24") and not G.BetWins({ kind = "dozen", pick = 2 }, "25"))
+    assert(G.BetWins({ kind = "column", pick = 1 }, "34") and G.BetWins({ kind = "column", pick = 3 }, "36") and not G.BetWins({ kind = "column", pick = 3 }, "35"))
+    local staked, back = G.RouletteResult({ { kind = "num", pick = "17", stake = 100 }, { kind = "red", stake = 200 }, { kind = "dozen", pick = 1, stake = 50 } }, "17")
+    eq(staked, 350); eq(back, 3600)                     -- 17 is black and in the 2nd dozen: only the number pays, 35 to 1 plus the stake back
+    -- The house edge, counted over every pocket: 2 in 38 on every kind of bet.
+    for _, bet in ipairs({ { kind = "num", pick = "7" }, { kind = "num", pick = "00" }, { kind = "red" }, { kind = "black" }, { kind = "odd" }, { kind = "even" },
+        { kind = "low" }, { kind = "high" }, { kind = "dozen", pick = 3 }, { kind = "column", pick = 2 } }) do
+        bet.stake = 1
+        local total = 0
+        for _, p in ipairs(G.POCKETS) do total = total + select(2, G.RouletteResult({ bet }, p)) end
+        eq(total, 36)                                    -- 38 chips in, 36 back: the house keeps 2 in 38, 5.26%
+        assert(G.BetLabel(bet) ~= nil)
+    end
+end)
+
+test("casino: the slot machine pays back exactly what its table says", function()
+    local G = ns.Casino
+    eq(G.REEL_SIZE, 20)
+    eq(G.ReelStop(1), "Tiger"); eq(G.ReelStop(2), "Seven"); eq(G.ReelStop(3), "Seven"); eq(G.ReelStop(4), "Bar"); eq(G.ReelStop(20), "Lemon")
+    eq(G.SlotPay("Tiger", "Tiger", "Tiger"), 100); eq(G.SlotPay("Lemon", "Lemon", "Lemon"), 9); eq(G.SlotPay("Cherry", "Cherry", "Cherry"), 16)
+    eq(G.SlotPay("Cherry", "Bar", "Cherry"), 3); eq(G.SlotPay("Cherry", "Bar", "Bell"), 0); eq(G.SlotPay("Seven", "Seven", "Bar"), 0)
+    local back, outOf = G.SlotReturn()
+    eq(back, 7413); eq(outOf, 8000)                      -- a 7.34% edge for the house
+    for _, s in ipairs(G.REEL) do assert(G.SLOT_PAYS[s[1]] <= G.MAX_MULT) end
+    -- The log refuses a session that claims more than any game can pay, or a loss bigger than the stakes.
+    local kind = ns.Log.KINDS.CHIP_SESSION[2]
+    assert(kind({ game = "Slots", n = 3, bet = 300, net = -300 }) and kind({ game = "Slots", n = 1, bet = 100, net = 9900 }))
+    assert(not kind({ game = "Slots", n = 1, bet = 100, net = 10001 }) and not kind({ game = "Slots", n = 1, bet = 100, net = -101 })
+        and not kind({ game = "Slots", n = 0, bet = 100, net = 0 }) and not kind({ game = "Slots", n = 1, bet = 100, net = 1.5 }))
+    -- Chips after play: what the floor took comes off, and never below nothing.
+    local bal = ns.Chips.Balances({ chipBuys = { a = { id = "a", who = "g1", amt = 1000, t = 1, ok = true } }, chipNets = { g1 = -300, g2 = -50, g3 = 700 } })
+    eq(bal.g1.ok, 700); eq(bal.g2.ok, 0); eq(bal.g3.ok, 700)
+    local nets, house = G.Nets({ chipNets = { g1 = -300, g2 = -50, g3 = 700 } })
+    eq(nets.g1, -300); eq(house, -350)
 end)
 
 -- Drink of the Night ----------------------------------------------------------

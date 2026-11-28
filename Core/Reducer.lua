@@ -83,6 +83,7 @@ function Red.Build(g)
         kitRules = { hours = 3, charge = 30 },      -- the guild leader's answers; Team Captains and above change them
         kitItems = {},            -- [list][item] = { on, mins, n }: changes to the built-in kit lists
         chipBuys = {},            -- [entry id] = { id, who, amt, t, ok }: guild-bank donations claimed for chips
+        chipNets = {},            -- [guid] = chips won (or lost, negative) on the games floor
         chipOks = {},             -- [entry id] = officer: a confirmation that arrived before its claim
         raidDrinks = {},          -- [raid id] = { name, recipe }: Drink of the Night
         partyLines = {},          -- [text] = { on, t }: the Party button's sound board, changes to the starter list
@@ -185,6 +186,8 @@ function Red.Build(g)
         elseif k == "CHIP_BUY" then
             local okBy = st.chipOks[e.id]
             st.chipBuys[e.id] = { id = e.id, who = e.a, amt = d.amt, t = e.t, ok = okBy ~= nil and okBy ~= e.a }
+        elseif k == "CHIP_SESSION" then
+            st.chipNets[e.a] = (st.chipNets[e.a] or 0) + d.net
         elseif k == "CHIP_OK" then
             -- A donor can't confirm their own chips.
             local b = st.chipBuys[d.buy]
