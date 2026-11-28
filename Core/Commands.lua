@@ -1,24 +1,24 @@
--- Speakeasy: slash commands and the addon-compartment entry.
+-- Blind Tiger: slash commands and the addon-compartment entry.
 local _, ns = ...
 
 local function help()
-    ns.Print("/spk or /bloodpact - open or close the window")
-    ns.Print("/spk whoami - show your character GUID and role")
-    ns.Print("/spk sync - announce your data to the guild now")
-    ns.Print("/spk mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
-    ns.Print("/spk status - sync and message queue details")
-    ns.Print("/spk about - who makes Speakeasy and how to join us")
-    ns.Print("/spk prof - read your professions now, share them, and show what the game reported")
-    ns.Print("/spk recipes - with a profession window open: record and share its recipes now")
-    ns.Print("/spk pvp - read your PvP rank now, share it, and show what the game reported")
-    ns.Print("/spk mail - at a mailbox: list the crafting orders you can mail")
-    ns.Print("/spk summon - warlocks: open the summon queue (people type 123 to join it)")
+    ns.Print("/tiger or /bloodpact - open or close the window")
+    ns.Print("/tiger whoami - show your character GUID and role")
+    ns.Print("/tiger sync - announce your data to the guild now")
+    ns.Print("/tiger mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
+    ns.Print("/tiger status - sync and message queue details")
+    ns.Print("/tiger about - who makes Blind Tiger and how to join us")
+    ns.Print("/tiger prof - read your professions now, share them, and show what the game reported")
+    ns.Print("/tiger recipes - with a profession window open: record and share its recipes now")
+    ns.Print("/tiger pvp - read your PvP rank now, share it, and show what the game reported")
+    ns.Print("/tiger mail - at a mailbox: list the crafting orders you can mail")
+    ns.Print("/tiger summon - warlocks: open the summon queue (people type 123 to join it)")
 end
 
-SLASH_SPEAKEASY1 = "/spk"
-SLASH_SPEAKEASY2 = "/speakeasy"
-SLASH_SPEAKEASY3 = "/bp"          -- the old command, kept quietly for habit
-SlashCmdList.SPEAKEASY = function(input)
+SLASH_BLINDTIGER1 = "/tiger"
+SLASH_BLINDTIGER2 = "/blindtiger"
+SLASH_BLINDTIGER3 = "/bp"          -- the old command, kept quietly for habit
+SlashCmdList.BLINDTIGER = function(input)
     local cmd, rest = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = (cmd or ""):lower()
     if cmd == "" then
@@ -72,6 +72,6 @@ SlashCmdList.SPEAKEASY = function(input)
 end
 
 -- Named in the TOC as AddonCompartmentFunc.
-function Speakeasy_OnCompartmentClick()
+function BlindTiger_OnCompartmentClick()
     ns.UI.Toggle()
 end

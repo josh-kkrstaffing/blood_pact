@@ -1,4 +1,4 @@
--- Speakeasy: utilities (pure Lua, no WoW API). Serializer, hash, text safety.
+-- Blind Tiger: utilities (pure Lua, no WoW API). Serializer, hash, text safety.
 local _, ns = ...
 local U = {}
 ns.U = U

@@ -1,4 +1,4 @@
--- Speakeasy: statics, the guild's fixed 10-player raid teams.
+-- Blind Tiger: statics, the guild's fixed 10-player raid teams.
 -- Each Team Captain has one team and looks after it: they add and remove
 -- its members and set who tanks, heals and deals damage. Officers and above
 -- can edit any team. A member is on one static at a time. Everyone in the

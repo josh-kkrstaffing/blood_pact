@@ -1,4 +1,4 @@
--- Speakeasy: activity and the officer task queue.
+-- Blind Tiger: activity and the officer task queue.
 -- Everything here is worked out from the synced log plus the guild roster, so
 -- every officer sees the same tasks. Only "claimed" and "done" are written to
 -- the log. The game blocks addons from changing ranks or removing members on
@@ -27,7 +27,7 @@ function O.Group(st, guid)
 end
 
 -- Days since the player (any of their characters) was last active: online now,
--- last online from the roster, or a Speakeasy sign-up or raid attendance.
+-- last online from the roster, or a Blind Tiger sign-up or raid attendance.
 -- nil = no information.
 function O.ActiveDays(st, roster, guid, now)
     local best
@@ -52,7 +52,7 @@ end
 
 local function nameOf(roster, guid) return roster[guid] and roster[guid].name or "?" end
 
--- The open tasks. roleOf(guid) gives a Speakeasy role ("initiate", ...).
+-- The open tasks. roleOf(guid) gives a Blind Tiger role ("initiate", ...).
 function O.Tasks(st, roster, now, roleOf)
     local s, out = st.settings, {}
     local function add(t)
@@ -127,6 +127,6 @@ ns.On("PLAYER_LOGIN", function()
     C_Timer.After(30, function()
         if not ns.RBAC.ICan("roster") or not ns.roster.loaded then return end
         local n = #O.Current()
-        if n > 0 then ns.Print(("%d officer task%s waiting. Type /spk, then Roster > Officer tasks."):format(n, n == 1 and "" or "s")) end
+        if n > 0 then ns.Print(("%d officer task%s waiting. Type /tiger, then Roster > Officer tasks."):format(n, n == 1 and "" or "s")) end
     end)
 end)

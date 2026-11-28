@@ -1,4 +1,4 @@
--- Speakeasy smoke test: runs the whole addon, as the game would load it,
+-- Blind Tiger smoke test: runs the whole addon, as the game would load it,
 -- inside a stand-in for the WoW client. Three "players" in one guild load
 -- the addon, sync with each other over a simulated addon channel, open every
 -- tab and press every button. Any Lua error, any call to a widget method the
@@ -181,11 +181,11 @@ local OPTIONAL = {}   -- globals the addon only probes for; fine to be missing
 for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerNumSlots", "GetContainerItemLink",
     "BANK_CONTAINER", "NUM_BAG_SLOTS", "NUM_BANKBAGSLOTS", "Questie", "ERR_GUILD_JOIN_S", "ERR_GUILD_LEAVE_S",
     "ERR_GUILD_REMOVE_SS", "ERR_GUILD_PROMOTE_SSS", "ERR_GUILD_DEMOTE_SSS", "ERR_CHAT_PLAYER_NOT_FOUND_S",
-    "ChatFrame_AddMessageEventFilter", "InviteUnit", "SendChatMessage", "SpeakeasyDB", "BloodPactDB", "RaidNotice_AddMessage",
+    "ChatFrame_AddMessageEventFilter", "InviteUnit", "SendChatMessage", "BlindTigerDB", "BloodPactDB", "RaidNotice_AddMessage",
     "RaidWarningFrame", "ChatTypeInfo", "SOUNDKIT", "PlaySound", "PixelUtil", "GameFontNormalLarge", "GameFontNormal",
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
-    "SpeakeasyFontTitle", "SpeakeasyFontHeader", "SpeakeasyFontHeaderSmall", "SpeakeasyFontBody",
-    "SpeakeasyFontBodySmall", "SpeakeasyFontMuted", "SpeakeasyFontDisabled", "os", "C_Item", "GetSpellInfo",
+    "BlindTigerFontTitle", "BlindTigerFontHeader", "BlindTigerFontHeaderSmall", "BlindTigerFontBody",
+    "BlindTigerFontBodySmall", "BlindTigerFontMuted", "BlindTigerFontDisabled", "os", "C_Item", "GetSpellInfo",
     "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown",
     "CharacterFrame", "PVPFrame", "PVPUIFrame", "IsInInstance", "UnitBuff", "issecretvalue",
     "PawnGetItemData", "PawnIsItemAnUpgrade", "PawnIsReady", "PawnCanItemHaveStats", "PawnBigUpgradeThreshold" }) do
@@ -456,7 +456,7 @@ local function tradeWindow() return TRADE[ctx.guid] end
 -- Auctionator's public price API: one reagent has an auction price, one none.
 G.Auctionator = { API = { v1 = {
     GetAuctionPriceByItemID = function(caller, item)
-        assert(caller == "Speakeasy", "Auctionator wants the caller's name")
+        assert(caller == "BlindTiger", "Auctionator wants the caller's name")
         return (item == 10940 and 150) or (item == 6218 and 12345) or nil
     end,
     GetVendorPriceByItemID = function() return nil end,
@@ -535,7 +535,7 @@ G.GetNumGroupMembers = function()
     local g = GROUPS[ctx.guid]
     return g and (#g + (g.raid and 0 or 1)) or 0
 end
-G.GetGuildInfo = function() return "Speakeasy" end
+G.GetGuildInfo = function() return "Blood Pact" end
 G.GetNormalizedRealmName = function() return "Normal" end
 local CHANNELS = {}
 G.GetChannelList = function() return unpack(CHANNELS[ctx.guid] or {}) end
@@ -667,7 +667,7 @@ G.C_ChatInfo = {
         -- Inside a battleground the game refuses addon chat: no error, just a blocked-action event.
         if CHATLOCK[ctx.guid] then
             chatRefused = chatRefused + 1
-            fire(ctx, "ADDON_ACTION_BLOCKED", "Speakeasy", "UNKNOWN()")
+            fire(ctx, "ADDON_ACTION_BLOCKED", "BlindTiger", "UNKNOWN()")
             return
         end
         guildChat[#guildChat + 1] = kind .. ":" .. tostring(target) .. ":" .. msg
@@ -697,7 +697,7 @@ G.C_ChatInfo = {
 -- Loading the addon the way the game does: the files in the .toc, in order
 ---------------------------------------------------------------------------
 local FILES = {}
-for line in io.lines("Speakeasy.toc") do
+for line in io.lines("BlindTiger.toc") do
     line = line:gsub("\r", "")
     if line ~= "" and line:sub(1, 1) ~= "#" then FILES[#FILES + 1] = (line:gsub("\\", "/")) end
 end
@@ -708,19 +708,19 @@ local function newClient(i)
         online = true }
     clients[c.guid] = c
     ctx = c
-    rawset(G, "SpeakeasyDB", nil)
+    rawset(G, "BlindTigerDB", nil)
     -- The third client still has saved data from when the addon was called Blood Pact.
     rawset(G, "BloodPactDB", i == 3 and { schema = 1, guilds = {}, ui = { autoBossAward = true, progression = false }, fromBloodPact = true } or nil)
     for _, f in ipairs(FILES) do
         local chunk, err = loadfile(f)
         if not chunk then error(err) end
-        local ok, e = pcall(chunk, "Speakeasy", c.ns)
+        local ok, e = pcall(chunk, "BlindTiger", c.ns)
         if not ok then error("loading " .. f .. ": " .. tostring(e)) end
     end
-    c.slash = G.SlashCmdList.SPEAKEASY
-    fire(c, "ADDON_LOADED", "Speakeasy")
+    c.slash = G.SlashCmdList.BLINDTIGER
+    fire(c, "ADDON_LOADED", "BlindTiger")
     if i == 3 then
-        assert(c.ns.db.fromBloodPact and c.ns.db.carriedOver and rawget(G, "BloodPactDB") == nil, "saved Blood Pact data carries over to Speakeasy once")
+        assert(c.ns.db.fromBloodPact and c.ns.db.carriedOver and rawget(G, "BloodPactDB") == nil, "saved Blood Pact data carries over to Blind Tiger once")
     else
         assert(not c.ns.db.carriedOver, "a fresh install starts clean")
     end
@@ -729,9 +729,9 @@ local function newClient(i)
     return c
 end
 
-local function slash(c, text) inCtx(c, "/spk " .. text, c.slash, text) end
+local function slash(c, text) inCtx(c, "/tiger " .. text, c.slash, text) end
 local function open(c)
-    if not c.ns.UI.IsOpen() then inCtx(c, "/spk", c.slash, "") end
+    if not c.ns.UI.IsOpen() then inCtx(c, "/tiger", c.slash, "") end
     inCtx(c, "open", function() assert(c.ns.UI.IsOpen(), "the window did not open") end)
 end
 local function run(c, where, fn, ...) inCtx(c, where, fn, ...) end
@@ -779,14 +779,14 @@ end
 local gm = newClient(1)
 local officer = newClient(2)
 advance(5)
-check(said(gm, "loaded. Type /spk"), "login message")
-check(said(gm, "Made by Kitch, of the Blood Pact guild, US East PvP Horde. Type /spk about to find us."), "the first login says who makes the addon")
+check(said(gm, "loaded. Type /tiger"), "login message")
+check(said(gm, "Made by Kitch, of the Blood Pact guild, US East PvP Horde. Type /tiger about to find us."), "the first login says who makes the addon")
 check(gm.ns.roster.loaded and gm.ns.roster.complete, "roster loads and is complete")
 check(gm.ns.RBAC.RoleOf(gm.guid) == "gm" and officer.ns.RBAC.RoleOf(officer.guid) == "officer", "roles from ranks")
 
 -- 2. Open the window, visit every tab, press everything (real guild, not mock).
 open(gm)
-check(gm.ns.UI.IsOpen(), "the first /spk opens the window")
+check(gm.ns.UI.IsOpen(), "the first /tiger opens the window")
 slash(gm, "whoami")
 slash(gm, "status")
 advance(1)
@@ -986,8 +986,8 @@ slash(gm, "prof")
 slash(member, "prof")
 run(gm, "prof command", function()
     check(said(gm, "Your professions: Enchanting 280/300, Tailoring 300/300, Cooking 225/300, First Aid 300/300, Fishing 40/75"),
-        "/spk prof shows what the game reported")
-    check(said(gm, "Already shared"), "/spk prof says when nothing changed")
+        "/tiger prof shows what the game reported")
+    check(said(gm, "Already shared"), "/tiger prof says when nothing changed")
 end)
 
 -- Recipes: the GM opens Enchanting; the recipes they know reach the guild.
@@ -1022,7 +1022,7 @@ run(officer, "recipes arrive", function()
     check(#crafters == 1 and crafters[1].guid == gm.guid, "the crafter is listed under Enchanting")
 end)
 slash(gm, "recipes")
-check(said(gm, "Open one of your profession windows first."), "/spk recipes explains itself with no window open")
+check(said(gm, "Open one of your profession windows first."), "/tiger recipes explains itself with no window open")
 
 -- PvP rank: read by each player's own addon and shown on everyone's roster.
 advance(150)
@@ -1037,7 +1037,7 @@ run(member, "pvp ranks", function()
     check(row and row.pvp and member.ns.PvP.Icon(row.pvp.r) == "Interface\\PvPRankBadges\\PvPRank07"
         and member.ns.PvP.Title(row.pvp.r, "Horde") == "Blood Guard", "the roster row carries the rank badge and its title")
 end)
-check(said(gm, "Your PvP rank: 7, Blood Guard."), "/spk pvp shows what the game reported")
+check(said(gm, "Your PvP rank: 7, Blood Guard."), "/tiger pvp shows what the game reported")
 
 -- Crafting orders: a Member orders from the GM (who shared Enchanting recipes).
 local orderId, wantedId
@@ -1053,7 +1053,7 @@ run(member, "place order", function()
 end)
 local whisper = guildChat[#guildChat] or ""
 check(#guildChat == whispersBefore + 1 and whisper:find("WHISPER:Binky Bee:", 1, true) == 1
-    and whisper:find("Speakeasy order", 1, true) ~= nil and whisper:find("x2", 1, true) ~= nil,
+    and whisper:find("Blind Tiger order", 1, true) ~= nil and whisper:find("x2", 1, true) ~= nil,
     "placing an order whispers the online crafter once, and only them")
 advance(10)
 check(said(gm, "New crafting order from Pip: Enchant Bracer - Minor Health x2."), "the crafter is told about a new order")
@@ -1129,14 +1129,14 @@ local rodId
 run(member, "order rods", function() rodId = assert(member.ns.Orders.Create(7421, "Enchanting", 3, "crafter", "", gm.guid)).id end)
 advance(10)
 slash(gm, "mail")
-check(said(gm, "Open a mailbox first."), "/spk mail explains itself away from a mailbox")
+check(said(gm, "Open a mailbox first."), "/tiger mail explains itself away from a mailbox")
 run(gm, "accept rods", function() assert(gm.ns.Orders.Update(rodId, "accept", 24)) end)
 advance(10)
 -- In the GM's bags: stacks of 2 and 1, a stack of 5 (too many), and a bound one.
 BAGS[gm.guid] = { [0] = { { id = 6218, n = 2 }, { id = 6218, n = 1 } }, [1] = { { id = 6218, n = 5 }, { id = 6218, n = 1, bound = true } } }
 local function mailPanel(c)
     for _, w in ipairs(c.widgets) do
-        if w._.kind == "FontString" and w._.text == "Speakeasy: orders to mail" then return w._.parent end
+        if w._.kind == "FontString" and w._.text == "Blind Tiger: orders to mail" then return w._.parent end
     end
 end
 run(gm, "not at a mailbox", function()
@@ -1271,7 +1271,7 @@ local function queueNames(c)
     return table.concat(names, ",")
 end
 slash(officer, "summon")
-check(said(officer, "Only a warlock gets a summon queue."), "/spk summon tells a non-warlock how to ask instead")
+check(said(officer, "Only a warlock gets a summon queue."), "/tiger summon tells a non-warlock how to ask instead")
 chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
 chat(officer, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
 chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)                       -- asking twice
@@ -1298,7 +1298,7 @@ run(gm, "queue", function()
     -- The Officer leads instead: the invite is suggested to them.
     LEADERS[gm.guid] = officer.guid
     vela.inv:GetScript("OnClick")(vela.inv, "LeftButton")
-    check(#guildChat == tells + 1 and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Vela to the group? I'm summoning. (sent with Speakeasy)",
+    check(#guildChat == tells + 1 and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Vela to the group? I'm summoning. (sent with Blind Tiger)",
         "when the warlock doesn't lead the group, the leader is asked to invite, with one whisper")
     check(said(gm, "You don't lead this group, so Grim Tusk was asked to invite Vela."), "and the warlock is told so")
     LEADERS[gm.guid] = gm.guid
@@ -1528,7 +1528,7 @@ clickText(gm, "Social")                                    -- an earlier pass le
 local tellsBefore = #guildChat
 check(clickRow(gm, "Newbie One-Normal"), "a name in the list can be clicked")
 local tell = guildChat[#guildChat] or ""
-check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Speakeasy is recruiting on WoW Forever.", 1, true) == 1,
+check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Blood Pact is recruiting on WoW Forever.", 1, true) == 1,
     "one click whispers that player the Social message")
 clickRow(gm, "Newbie One-Normal")
 check(#guildChat == tellsBefore + 1, "a second click on the same name doesn't whisper again")
@@ -1541,7 +1541,7 @@ check(#guildChat == tellsBefore + 2, "right-click opens a whisper to type and se
 check(clickText(gm, "Raiding"), "another message can be picked")
 clickRow(gm, "Razor Hill Rex-Normal")
 tell = guildChat[#guildChat] or ""
-check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Speakeasy is building raid teams", 1, true) == 1,
+check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Blood Pact is building raid teams", 1, true) == 1,
     "the whisper carries whichever message is picked")
 run(gm, "edited message", function()
     rp.box:SetText("Custom pitch for you")
@@ -1579,11 +1579,11 @@ advance(2)
 run(gm, "replies", function()
     local R = gm.ns.Recruit
     check(#R.replies == 1 and R.replies[1].name == MOLDY .. REALM, "a whispered 'inv' from outside the guild is listed once")
-    check(said(gm, MOLDY .. " asked for a guild invite. Type /spk, open Recruit and click their name."), "the recruiter is told in chat")
+    check(said(gm, MOLDY .. " asked for a guild invite. Type /tiger, open Recruit and click their name."), "the recruiter is told in chat")
     check(#member.ns.Recruit.replies == 0, "members who can't recruit get no list")
     check(rp.h3:GetText() == "3. They replied (1). Click a name to copy their guild invite", "step 3 shows who is waiting")
 end)
--- A click puts the invite in a copy box. Speakeasy writes nothing into the
+-- A click puts the invite in a copy box. Blind Tiger writes nothing into the
 -- game's chat box: the game refuses a guild invite an addon wrote or touched.
 local openedBefore, typed = #chatOpened, {}
 typingIn[gm.guid] = { Insert = function(_, text) typed[#typed + 1] = text end }
@@ -1673,7 +1673,7 @@ clickRow(gm, "Moo Two-Normal")
 check(#guildChat == lockedTells and chatRefused == 1, "a whisper the game refuses is not sent")
 check(said(gm, "The game is blocking chat from addons here, as it does inside battlegrounds and instances. The message is typed in a whisper to Moo Two: press Enter to send it."),
     "the recruiter is told why, and the message is typed into a whisper for them")
-check(#typedTell == 1 and typedTell[1]:find("Hey! Speakeasy is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
+check(#typedTell == 1 and typedTell[1]:find("Hey! Blood Pact is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
 check(not said(gm, "The game blocked an action for addons (UNKNOWN())"), "the vague blocked-action line isn't shown for it")
 check(not said(gm, "Whispered Moo Two the Social message."), "and it isn't reported as whispered")
 clickRow(gm, "Moo Two-Normal")
@@ -1687,7 +1687,7 @@ end)
 CHATLOCK[gm.guid], typingIn[gm.guid] = nil, nil
 fire(gm, "PLAYER_ENTERING_WORLD")
 clickRow(gm, "Moo Two-Normal")
-check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Speakeasy is recruiting", 1, true) == 1,
+check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Blood Pact is recruiting", 1, true) == 1,
     "after leaving, one click whispers again")
 clickText(gm, "Social")
 pressEverything(gm)
@@ -1907,7 +1907,7 @@ advance(8)
 run(gm, "ticket arrives", function()
     local t = gm.ns.Tickets.Store()[ticketId]
     check(t ~= nil and t.by == MEMBER and t.status == "new" and t.about == "Vela" and t.cat == "lang", "a Team Captain or above receives the ticket")
-    check(said(gm, "New ticket from Pip: Language or harassment, about Vela. Type /spk and open Tickets."), "and is told a ticket came in")
+    check(said(gm, "New ticket from Pip: Language or harassment, about Vela. Type /tiger and open Tickets."), "and is told a ticket came in")
 end)
 run(officer, "every staff member has it", function()
     check(officer.ns.Tickets.Store()[ticketId] ~= nil, "the other staff online get it too")
@@ -2104,7 +2104,7 @@ end)
 advance(5)
 
 slash(member, "status")
-check(said(member, "| role member | guild key ") and said(member, "Saved guild data: "), "/spk status prints the troubleshooting lines")
+check(said(member, "| role member | guild key ") and said(member, "Saved guild data: "), "/tiger status prints the troubleshooting lines")
 
 -- Inviting from the Roster: to a party, to a raid when the party is full, or through the leader.
 run(gm, "roster invite", function()
@@ -2121,7 +2121,7 @@ run(gm, "roster invite", function()
     LEADERS[gm.guid] = officer.guid
     local tells = #guildChat
     check(R.Invite(MEMBER) == "You don't lead this group, so Grim Tusk was asked to invite Pip." and #invites == n + 2
-        and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Pip to the group? (sent with Speakeasy)" and #guildChat == tells + 1,
+        and guildChat[#guildChat] == "WHISPER:Grim Tusk:Could you invite Pip to the group? (sent with Blind Tiger)" and #guildChat == tells + 1,
         "in a group you don't lead, the leader is asked with one whisper")
     GROUPS[gm.guid], LEADERS[gm.guid] = nil, nil
 end)
@@ -2750,8 +2750,8 @@ end)
 
 -- About: who makes it and where to join.
 slash(member, "about")
-check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/spk about gives the Discord link")
-check(said(member, "Made by Kitch, of the Blood Pact guild, US East PvP Horde."), "/spk about says who made it")
+check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/tiger about gives the Discord link")
+check(said(member, "Made by Kitch, of the Blood Pact guild, US East PvP Horde."), "/tiger about says who made it")
 run(member, "credit in the window", function()
     open(member)
     local places, visible = 0, 0

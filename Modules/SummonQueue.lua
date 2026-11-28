@@ -1,4 +1,4 @@
--- Speakeasy: the warlock's summon queue.
+-- Blind Tiger: the warlock's summon queue.
 -- Anyone who wants a summon types the keyword ("123" unless the warlock
 -- changes it) in raid, party or guild chat, or whispers it to the warlock.
 -- The warlock's addon puts the name in a small list; clicking a name casts

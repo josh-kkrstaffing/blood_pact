@@ -1,4 +1,4 @@
--- Speakeasy: raid sign-ups and attendance.
+-- Blind Tiger: raid sign-ups and attendance.
 -- Team Captains and above schedule raids and take attendance; everyone signs up.
 -- Signing up asks for a spot. A Team Captain or above selects who gets one.
 -- Everything is a log event, so it syncs like DKP and no website is needed.
@@ -398,9 +398,9 @@ ns.UI.AddTab("raids", "Raids", "view", function(p)
             if g then
                 GameTooltip:AddLine(("Pre-raid BiS, %s list"):format(U.Safe(g.spec, 24)), 1, 1, 1)
                 GameTooltip:AddLine(("Owns %d%% of it (bags and bank count); wearing %d%%"):format(g.pre, g.worn), 0.8, 0.8, 0.8)
-                GameTooltip:AddLine("Reported by their own Speakeasy on " .. date("%b %d", g.t), 0.6, 0.6, 0.6)
+                GameTooltip:AddLine("Reported by their own Blind Tiger on " .. date("%b %d", g.t), 0.6, 0.6, 0.6)
             else
-                GameTooltip:AddLine("No readiness score: they haven't run this Speakeasy version yet.", 0.8, 0.8, 0.8, true)
+                GameTooltip:AddLine("No readiness score: they haven't run this Blind Tiger version yet.", 0.8, 0.8, 0.8, true)
             end
             GameTooltip:Show()
         end)
@@ -668,8 +668,8 @@ function R.WhisperSignups(r)
     if not RBAC.ICan("schedule") then return nil, "Only Team Captains and above can do this." end
     local mins = math.floor((r.at - ns.Now()) / 60 + 0.5)
     local msg = mins > 0
-        and ("Speakeasy: %s starts in %d minutes. Get ready, and please be there 15 minutes early."):format(r.title, mins)
-        or ("Speakeasy: %s is starting. Please head to the raid now."):format(r.title)
+        and ("Blind Tiger: %s starts in %d minutes. Get ready, and please be there 15 minutes early."):format(r.title, mins)
+        or ("Blind Tiger: %s is starting. Please head to the raid now."):format(r.title)
     local names = {}
     local chosenOnly = R.PickedCount(r) > 0      -- once the raid is selected, only the selected
     for guid, s in pairs(r.signups) do

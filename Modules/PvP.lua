@@ -1,8 +1,8 @@
--- Speakeasy: PvP rank on the roster.
+-- Blind Tiger: PvP rank on the roster.
 -- The guild roster doesn't carry PvP rank, so each player's own addon reads
 -- theirs and shares the number (0 to 14) with the guild when it changes.
 -- WoW Forever tracks rank as a 0-14 bar; older clients have UnitPVPRank.
--- Both are tried. /spk pvp shows what the game reported.
+-- Both are tried. /tiger pvp shows what the game reported.
 local _, ns = ...
 local V = {}
 ns.PvP = V
@@ -50,7 +50,7 @@ end
 ---------------------------------------------------------------------------
 -- Game side
 ---------------------------------------------------------------------------
--- -> my rank (0-14) or nil when the game wouldn't say, plus notes for /spk pvp.
+-- -> my rank (0-14) or nil when the game wouldn't say, plus notes for /tiger pvp.
 function V.Read()
     local notes, rank = {}, nil
     if type(UnitPVPRank) == "function" then
@@ -96,7 +96,7 @@ function V.MyFaction()
     return ok and faction or "Horde"
 end
 
--- /spk pvp
+-- /tiger pvp
 function V.Diagnose()
     local rank, notes = V.Read()
     if rank == nil then
@@ -121,7 +121,7 @@ function V.Tooltip(owner, name, entry)
     GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
     GameTooltip:AddLine(ns.U.Safe(name or "?", 40))
     GameTooltip:AddLine(("PvP rank %d: %s"):format(r, V.Title(r, V.MyFaction()) or "?"), 1, 0.82, 0)
-    GameTooltip:AddLine("Reported by their own Speakeasy on " .. (date or os.date)("%b %d, %Y", entry.t), 0.6, 0.6, 0.6)
+    GameTooltip:AddLine("Reported by their own Blind Tiger on " .. (date or os.date)("%b %d, %Y", entry.t), 0.6, 0.6, 0.6)
     GameTooltip:Show()
 end
 
@@ -139,14 +139,14 @@ for _, event in ipairs({ "PLAYER_PVP_RANK_CHANGED", "MAJOR_FACTION_RENOWN_LEVEL_
 end
 ns.Listen("ROSTER_CHANGED", function() if ns.roster.loaded then publishSoon(100) end end)
 
--- The steps a member follows to put their PvP rank in Speakeasy.
+-- The steps a member follows to put their PvP rank in Blind Tiger.
 V.HOWTO = {
     "1. Open your character sheet (Character).",
     "2. Click the Player vs. Player tab so the game loads your rank.",
-    "3. Speakeasy reads your rank and shares it with the guild a moment later.",
-    "You can also type /spk pvp to share it right away.",
+    "3. Blind Tiger reads your rank and shares it with the guild a moment later.",
+    "You can also type /tiger pvp to share it right away.",
 }
-V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Speakeasy shares it a moment later (or type /spk pvp)."
+V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Blind Tiger shares it a moment later (or type /tiger pvp)."
 
 -- Opening the character sheet or its PvP tab: read the rank and share it soon.
 local function hookShow(frame)

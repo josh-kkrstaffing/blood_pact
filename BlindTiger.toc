@@ -1,12 +1,12 @@
 ## Interface: 16001
-## Title: Speakeasy
+## Title: Blind Tiger
 ## Notes: Your guild's back room for WoW Forever: DKP and loot, raid sign-ups, roster, crafting orders, BiS and auction upgrades, raid kit, call-outs and summons, plus a Party button, Drink of the Night and play chips. For guilds only. Made by Kitch, of the Blood Pact guild, US East PvP Horde. Fan-made; not affiliated with Blizzard Entertainment.
 ## Author: Kitch (Blood Pact guild, US East PvP Horde)
 ## X-Website: https://discord.gg/hfCKk6kED
 ## Version: 2.0.0
-## SavedVariables: SpeakeasyDB
+## SavedVariables: BlindTigerDB
 ## OptionalDeps: Questie, Auctionator, BloodPact
-## AddonCompartmentFunc: Speakeasy_OnCompartmentClick
+## AddonCompartmentFunc: BlindTiger_OnCompartmentClick
 ## X-License: MIT
 ## X-Curse-Project-ID: 1815593
 

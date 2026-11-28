@@ -1,4 +1,4 @@
--- Speakeasy: buy a recipe's materials at the auction house.
+-- Blind Tiger: buy a recipe's materials at the auction house.
 --
 -- Pick a recipe, say how many crafts (1 to 20), and the window lists each
 -- material: needed, held, still to buy. Each material is bought with its own
@@ -7,7 +7,7 @@
 -- click pays it.
 --
 -- One click never buys more than one material. The game requires a real click
--- for every purchase, and Speakeasy does not act for the player.
+-- for every purchase, and Blind Tiger does not act for the player.
 local _, ns = ...
 local S = {}
 ns.Shop = S
@@ -213,7 +213,7 @@ local W = ns.W
 local helping = false
 
 local function build()
-    local f = CreateFrame("Frame", "SpeakeasyShop", UIParent)
+    local f = CreateFrame("Frame", "BlindTigerShop", UIParent)
     f:SetSize(560, 330)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetToplevel(true)
@@ -317,7 +317,7 @@ function S.Refresh()
     if lastNote then
         f.status:SetText("|cffffd100" .. lastNote .. "|r")
     elseif #rows == 0 then
-        f.status:SetText("The game hasn't told Speakeasy what this recipe needs. Open that profession's window once.")
+        f.status:SetText("The game hasn't told Blind Tiger what this recipe needs. Open that profession's window once.")
     elseif not S.Supported() then
         f.status:SetText("This auction house can't sell materials in bulk to addons, so this is a shopping list only.")
     elseif not isOpen then

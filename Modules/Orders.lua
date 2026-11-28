@@ -1,4 +1,4 @@
--- Speakeasy: crafting orders, inside the guild only.
+-- Blind Tiger: crafting orders, inside the guild only.
 -- A member asks for a recipe to be crafted, either from one named guild
 -- crafter or on the Wanted board for any guild crafter who knows it. The
 -- crafter accepts with a promised turnaround (2, 8, 24 or 48 hours), marks it
@@ -210,7 +210,7 @@ end
 
 -- Auction prices come from the Auctionator addon when the player has it: its
 -- last scan for the item, or the vendor price it has seen. Nothing is scanned
--- or bought by Speakeasy.
+-- or bought by Blind Tiger.
 function O.HasPrices()
     return Auctionator ~= nil and Auctionator.API ~= nil and Auctionator.API.v1 ~= nil
         and Auctionator.API.v1.GetAuctionPriceByItemID ~= nil
@@ -219,10 +219,10 @@ end
 function O.PriceOf(item)
     if not O.HasPrices() then return nil end
     local api = Auctionator.API.v1
-    local ok, price = pcall(api.GetAuctionPriceByItemID, "Speakeasy", item)
+    local ok, price = pcall(api.GetAuctionPriceByItemID, "BlindTiger", item)
     if ok and type(price) == "number" and price > 0 then return price end
     if api.GetVendorPriceByItemID then
-        ok, price = pcall(api.GetVendorPriceByItemID, "Speakeasy", item)
+        ok, price = pcall(api.GetVendorPriceByItemID, "BlindTiger", item)
         if ok and type(price) == "number" and price > 0 then return price end
     end
     return nil
@@ -250,7 +250,7 @@ function O.BuyPrice(rid)
     if not O.HasPrices() then return nil end
     local item = ns.Recipes.Output(rid)
     if not item then return nil end
-    local ok, price = pcall(Auctionator.API.v1.GetAuctionPriceByItemID, "Speakeasy", item)
+    local ok, price = pcall(Auctionator.API.v1.GetAuctionPriceByItemID, "BlindTiger", item)
     if ok and type(price) == "number" and price > 0 then return price end
     return nil
 end
@@ -272,7 +272,7 @@ function O.VendorPrice(rid)
         if ok and type(sell) == "number" and sell > 0 then return sell end
     end
     if O.HasPrices() and Auctionator.API.v1.GetVendorPriceByItemID then
-        local ok, sell = pcall(Auctionator.API.v1.GetVendorPriceByItemID, "Speakeasy", item)
+        local ok, sell = pcall(Auctionator.API.v1.GetVendorPriceByItemID, "BlindTiger", item)
         if ok and type(sell) == "number" and sell > 0 then return sell end
     end
     return nil
@@ -360,7 +360,7 @@ function O.Create(rid, prof, qty, mats, note, toGUID)
     -- One whisper from this click, to a guild member who is online. Never in test mode.
     local m = toGUID and ns.roster.byGUID[toGUID]
     if m and m.online and not ns.mock then
-        local msg = ("Speakeasy order: can you make %s%s for me? %s See /spk > Professions > Orders."):format(
+        local msg = ("Blind Tiger order: can you make %s%s for me? %s See /tiger > Professions > Orders."):format(
             recipeLink(rid), qty > 1 and (" x" .. qty) or "", O.MATS_ASK[mats])
         ns.Chat(msg:sub(1, 255), "WHISPER", U.ShortName(m.name))      -- the order stands either way
     end
@@ -416,7 +416,7 @@ function O.Announce()
         if primed and o.by == me and ACTIVE[o.status] and mailedNow > (seenMail[id] or 0) then
             local item, who = O.ItemText(o), U.Safe(nameOf(o.crafter), 40)
             if mailedNow >= o.q then
-                ns.Print(("%s mailed your order: %s. Collect it at a mailbox, then press \"I received it\" under /spk > Professions > Orders."):format(who, item))
+                ns.Print(("%s mailed your order: %s. Collect it at a mailbox, then press \"I received it\" under /tiger > Professions > Orders."):format(who, item))
             else
                 ns.Print(("%s mailed %d of your order: %s. The rest will follow."):format(who, mailedNow, item))
             end
@@ -425,9 +425,9 @@ function O.Announce()
         if primed and was ~= o.status and o.lastBy ~= me then
             local item, who = O.ItemText(o), U.Safe(nameOf(o.lastBy), 40)
             if o.status == "open" and o.to == me and was == nil then
-                ns.Print(("New crafting order from %s: %s. Type /spk, then Professions > Orders."):format(U.Safe(nameOf(o.by), 40), item))
+                ns.Print(("New crafting order from %s: %s. Type /tiger, then Professions > Orders."):format(U.Safe(nameOf(o.by), 40), item))
             elseif was == nil and O.Matches(st, me, o) then
-                ns.Print(("New Wanted order you can craft: %s for %s. Type /spk, then Professions > Orders."):format(item, U.Safe(nameOf(o.by), 40)))
+                ns.Print(("New Wanted order you can craft: %s for %s. Type /tiger, then Professions > Orders."):format(item, U.Safe(nameOf(o.by), 40)))
             elseif o.by == me and o.status == "accepted" then
                 ns.Print(("%s accepted your order for %s, due in %s."):format(who, item, span(o.due - ns.Now())))
             elseif o.by == me and o.status == "ready" then
@@ -466,7 +466,7 @@ ns.Listen("ROSTER_CHANGED", function()
         O.Announce()
         local n = O.Needs(ns.Reducer.State(), ns.MyGUID())
         if n > 0 then
-            ns.Print(("%d crafting order%s waiting for you. Type /spk, then Professions > Orders."):format(n, n == 1 and "" or "s"))
+            ns.Print(("%d crafting order%s waiting for you. Type /tiger, then Professions > Orders."):format(n, n == 1 and "" or "s"))
         end
     end)
 end)

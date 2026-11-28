@@ -2,7 +2,7 @@
 
 ## 1. Test in game (about 30 minutes)
 
-1. Copy the `Speakeasy` folder into `World of Warcraft\_forever_\Interface\AddOns\`.
+1. Copy the `Blind Tiger` folder into `World of Warcraft\_forever_\Interface\AddOns\`.
 2. Log in, type `/bp whoami`, and copy the GUID it prints.
 3. Paste that GUID into `ROOT_ADMINS` in `Core/RBAC.lua` (this makes you ADMIN), then `/reload`.
 4. Solo test: `/bp mock on`, open `/bp`, then try `/bp mock boss`, `/bp mock award` and `/bp mock forge`. The forged award must show as provisional and not change standings. Finish with `/bp mock off`.
@@ -12,12 +12,12 @@
 ## 2. Publish
 
 1. Sign in at curseforge.com and open the Author Console. Create a project: game World of Warcraft, name "Blood Pact", summary from the TOC Notes line, description from README.md, license MIT.
-2. Upload a zip of the `Speakeasy` folder (the folder itself inside the zip). Choose the WoW Forever game version and release type "Release" (or "Beta" for a soft launch).
+2. Upload a zip of the `Blind Tiger` folder (the folder itself inside the zip). Choose the WoW Forever game version and release type "Release" (or "Beta" for a soft launch).
 3. CurseForge reviews new projects before they go public.
 
 ## 3. Automate later releases (optional)
 
 1. Put this folder in a GitHub repository.
-2. The CurseForge project ID (1815593) is already in `Speakeasy.toc`.
+2. The CurseForge project ID (1815593) is already in `BlindTiger.toc`.
 3. Create an API token in the CurseForge Author Console and save it as the repository secret `CF_API_KEY`.
-4. Bump the version in `Speakeasy.toc` and `CHANGELOG.md`, then push a tag such as `v0.1.1`. Lint and tests run first; the release uploads only if both pass.
+4. Bump the version in `BlindTiger.toc` and `CHANGELOG.md`, then push a tag such as `v0.1.1`. Lint and tests run first; the release uploads only if both pass.

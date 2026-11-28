@@ -1,4 +1,4 @@
--- Speakeasy: role-based access control.
+-- Blind Tiger: role-based access control.
 -- ADMIN is the developer's permanent root role, pinned to character GUIDs in
 -- this file. No in-game event can add, remove or restrict it; only a new
 -- release can. Every other role comes from the guild rank index.
@@ -6,7 +6,7 @@ local _, ns = ...
 local R = {}
 ns.RBAC = R
 
--- Developer character GUIDs. Run /spk whoami on each character and paste here.
+-- Developer character GUIDs. Run /tiger whoami on each character and paste here.
 R.ROOT_ADMINS = {
     "Player-6930-004DE880",   -- Binky Bee (developer)
 }

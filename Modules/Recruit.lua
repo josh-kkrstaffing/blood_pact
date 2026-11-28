@@ -1,4 +1,4 @@
--- Speakeasy: Recruit tab (Team Captain and above).
+-- Blind Tiger: Recruit tab (Team Captain and above).
 -- Never whispers or invites by itself: every search and every whisper is one
 -- click by the recruiter, to one player. WoW Forever forbids addon and macro
 -- guild invites, and /who needs a click per search, so:
@@ -203,7 +203,7 @@ function R.AddReply(list, name, text, now)
 end
 
 -- The guild invite as the player would type it, with the name spelled
--- exactly as the game sent it. Speakeasy only offers it for copying: the
+-- exactly as the game sent it. Blind Tiger only offers it for copying: the
 -- game refuses a guild invite whose chat line an addon wrote or touched
 -- ("blocked from an action only available to the Blizzard UI"), so the
 -- player copies it here and pastes it into chat themselves.
@@ -557,7 +557,7 @@ ns.On("CHAT_MSG_WHISPER", function(text, sender, _, _, _, _, _, _, _, _, _, guid
     if (guid and ns.roster.byGUID[guid]) or ns.GUIDForName(U.ShortName(sender)) then return end
     local _, new = R.AddReply(R.replies, sender, text:match("^%s*(.-)%s*$"), ns.Now())
     if not new then return end
-    ns.Print(("%s asked for a guild invite. Type /spk, open Recruit and click their name."):format(U.Safe(U.ShortName(sender), 40)))
+    ns.Print(("%s asked for a guild invite. Type /tiger, open Recruit and click their name."):format(U.Safe(U.ShortName(sender), 40)))
     if ns.UI and ns.UI.IsOpen and ns.UI.IsOpen() then ns.UI.RefreshSoon() end
 end)
 

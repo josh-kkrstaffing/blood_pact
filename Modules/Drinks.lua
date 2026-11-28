@@ -1,4 +1,4 @@
--- Speakeasy: Drink of the Night. Whoever schedules a raid can give it a
+-- Blind Tiger: Drink of the Night. Whoever schedules a raid can give it a
 -- drink, and the recipe shows on the raid's sign-up screen so raiders can
 -- shop for it before raid night. The built-in list leans on Nashville,
 -- Tennessee: recipes published by its bars and distilleries. A guild can
@@ -101,7 +101,7 @@ local W = ns.W
 local raidId, shown, lastNote
 
 local function build()
-    local f = CreateFrame("Frame", "SpeakeasyDrink", UIParent)
+    local f = CreateFrame("Frame", "BlindTigerDrink", UIParent)
     f:SetSize(520, 330)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)

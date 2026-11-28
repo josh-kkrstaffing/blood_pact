@@ -1,4 +1,4 @@
--- Speakeasy unit tests for the pure-Lua core (no game client needed).
+-- Blind Tiger unit tests for the pure-Lua core (no game client needed).
 -- Run from the repo root:  lua tests/run.lua   (Lua 5.1+; CI uses 5.1)
 local ns = {}
 ns.Listen = function() end
@@ -12,7 +12,7 @@ ns.G = function() return nil end   -- tests pass stores explicitly
 
 local function load(path)
     local chunk = assert(loadfile(path))
-    chunk("Speakeasy", ns)
+    chunk("BlindTiger", ns)
 end
 load("Core/Util.lua")
 load("Core/Time.lua")
@@ -689,15 +689,15 @@ test("raid: member can't take attendance; sign-up shows who was there", function
     eq(by["Player-1-MEM1"].showed, nil)
 end)
 
-test("/spk and /speakeasy both open the window", function()
+test("/tiger and /blindtiger both open the window", function()
     rawset(_G, "SlashCmdList", {})
     local opened = 0
     ns.UI.Toggle = function() opened = opened + 1 end
     load("Core/Commands.lua")
-    eq(rawget(_G, "SLASH_SPEAKEASY1"), "/spk")
-    eq(rawget(_G, "SLASH_SPEAKEASY2"), "/speakeasy")
-    eq(rawget(_G, "SLASH_SPEAKEASY3"), "/bp")
-    local handler = rawget(_G, "SlashCmdList").SPEAKEASY
+    eq(rawget(_G, "SLASH_BLINDTIGER1"), "/tiger")
+    eq(rawget(_G, "SLASH_BLINDTIGER2"), "/blindtiger")
+    eq(rawget(_G, "SLASH_BLINDTIGER3"), "/bp")
+    local handler = rawget(_G, "SlashCmdList").BLINDTIGER
     handler("")
     handler("   ")
     eq(opened, 2)
@@ -806,7 +806,7 @@ test("roster: log builds join dates and history once; members can't write it; al
     eq(st.alts["Player-1-MEM2"], nil)
 end)
 
-test("activity: best of main and alts, roster or Speakeasy activity; levels follow settings", function()
+test("activity: best of main and alts, roster or Blind Tiger activity; levels follow settings", function()
     local O = ns.Officer
     local st = { alts = { ALT = "MAIN" }, lastSeen = {}, settings = Red.DEFAULTS }
     local roster = { MAIN = { name = "Main", offlineDays = 100 }, ALT = { name = "Alt", offlineDays = 4 } }
@@ -1460,7 +1460,7 @@ test("mail: which stacks to attach, and what the letter says", function()
     eq(M.Subject("Elixir of Minor Defense", 5), "Elixir of Minor Defense x5")
     eq(#M.Subject(("long "):rep(40), 3), M.SUBJECT_MAX)
     local body = M.Body("Runed Copper Rod", 3, 3, "Binky Bee")
-    eq(body, "Speakeasy order: here is your Runed Copper Rod x3, made by Binky Bee. When you have it, type /spk, open Professions > Orders and press \"I received it\".")
+    eq(body, "Blind Tiger order: here is your Runed Copper Rod x3, made by Binky Bee. When you have it, type /tiger, open Professions > Orders and press \"I received it\".")
     eq(M.Body("Rod", 12, 15, "Bee"):find("That is 12 of the 15 still owed; the rest will follow.", 1, true) ~= nil, true)
     eq(#M.Body(("long "):rep(200), 1, 1, "Bee") <= M.BODY_MAX, true)
 end)
@@ -1651,8 +1651,8 @@ end)
 
 test("summon: the whisper that asks a group leader to invite", function()
     local S = ns.Summon
-    eq(S.SuggestText({ "Vela" }), "Could you invite Vela to the group? I'm summoning. (sent with Speakeasy)")
-    eq(S.SuggestText({ "Vela", "Pip", "Grim Tusk" }), "Could you invite Vela, Pip, Grim Tusk to the group? I'm summoning. (sent with Speakeasy)")
+    eq(S.SuggestText({ "Vela" }), "Could you invite Vela to the group? I'm summoning. (sent with Blind Tiger)")
+    eq(S.SuggestText({ "Vela", "Pip", "Grim Tusk" }), "Could you invite Vela, Pip, Grim Tusk to the group? I'm summoning. (sent with Blind Tiger)")
     eq(#S.SuggestText({ ("x"):rep(120), ("y"):rep(120), ("z"):rep(120) }) <= 255, true)
 end)
 

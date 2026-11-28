@@ -1,4 +1,4 @@
--- Speakeasy: gossip sync over the GUILD channel.
+-- Blind Tiger: gossip sync over the GUILD channel.
 --   H  hello      {v = version vector}                 GUILD, after login jitter
 --   W  want       {v = my version vector}              WHISPER to someone ahead of me
 --   B  batch      {es = {{e = event, c = confirmed}}}  WHISPER reply to W or C
@@ -128,7 +128,7 @@ handlers.H = function(msg, sender, sguid)
     heardHelloHash = vvHash(msg.v)
     if not toldNewer and type(msg.ver) == "string" and #msg.ver <= 16 and U.VersionNewer(msg.ver, ns.VERSION) then
         toldNewer = true
-        ns.Print("A guildmate is on a newer Speakeasy (" .. U.Safe(msg.ver, 16) .. "). Update yours so nothing is missed.")
+        ns.Print("A guildmate is on a newer Blind Tiger (" .. U.Safe(msg.ver, 16) .. "). Update yours so nothing is missed.")
     end
     local behind = false
     for author, seq in pairs(msg.v) do

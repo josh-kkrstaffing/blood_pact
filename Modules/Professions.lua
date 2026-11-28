@@ -1,8 +1,8 @@
--- Speakeasy: professions on the roster.
+-- Blind Tiger: professions on the roster.
 -- Each player's own addon reads their skill levels from the game (nobody else
 -- can) and shares them with the guild: up to two professions plus First Aid,
 -- Cooking and Fishing. Shared when they change, at most once an hour.
--- Skill names are matched in English, like the rest of Speakeasy for now.
+-- Skill names are matched in English, like the rest of Blind Tiger for now.
 -- The Professions tab lists the guild by profession: pick one on the left,
 -- see who has it on the right, best first. Click a crafter to see the
 -- recipes they have shared (see Recipes.lua).
@@ -33,14 +33,14 @@ P.ICON = {
 -- Nothing to craft in these, so there is no recipe list to wait for.
 P.NO_RECIPES = { Herbalism = true, Skinning = true, Fishing = true }
 
--- The steps a crafter follows to put their recipes in Speakeasy.
+-- The steps a crafter follows to put their recipes in Blind Tiger.
 P.HOWTO = {
     "1. Open your character's Professions (the Professions button, or Character > Professions).",
     "2. Click the link bubble on a profession to open its recipe window.",
-    "3. Speakeasy records the recipes and shares them with the guild. Do it once for each profession.",
+    "3. Blind Tiger records the recipes and shares them with the guild. Do it once for each profession.",
     "New recipes are added the next time you open that window.",
 }
-P.HOWTO_SHORT = "To share your recipes: open Character > Professions, click the link bubble on each profession. Speakeasy syncs them."
+P.HOWTO_SHORT = "To share your recipes: open Character > Professions, click the link bubble on each profession. Blind Tiger syncs them."
 local PRIMARY = {}
 for _, name in pairs(P.SKILL_IDS) do
     if not P.SECONDARY[name] then PRIMARY[name] = true end
@@ -182,7 +182,7 @@ end
 ---------------------------------------------------------------------------
 -- Game side: read my skills with whichever API this client has
 ---------------------------------------------------------------------------
--- Returns the skills and a note per API about what it gave, for /spk prof.
+-- Returns the skills and a note per API about what it gave, for /tiger prof.
 function P.Read()
     local skills, notes = {}, {}
     local function note(api, text) notes[#notes + 1] = api .. ": " .. text end
@@ -277,7 +277,7 @@ function P.Publish(force)
     return false
 end
 
--- /spk prof: read now, share now, and say what the game gave us. When the
+-- /tiger prof: read now, share now, and say what the game gave us. When the
 -- Professions tab stays empty for someone, this output shows why.
 function P.Diagnose()
     local skills, notes = P.Read()
@@ -300,7 +300,7 @@ function P.Diagnose()
         local have = st and st.profs[ns.MyGUID()]
         ns.Print(sharedNow and (ns.Comm.QueueLength() > 0 and "Shared. It reaches the guild when the game lets addon messages through (not inside an instance or battleground)."
             or "Shared with the guild.") or (have and "Already shared; nothing changed."
-            or ("Not shared. Role: %s. Guild data: %s. Type /spk status and send the lines to the addon's author."):format(
+            or ("Not shared. Role: %s. Guild data: %s. Type /tiger status and send the lines to the addon's author."):format(
                 tostring(ns.RBAC.RoleOf(ns.MyGUID()) or "none yet"), ns.G() and "loaded" or "not loaded")))
     end
 end
@@ -597,7 +597,7 @@ ns.UI.AddTab("profs", "Professions", "view", function(p)
 
     p.foot = W.Text(d, "", "GameFontDisableSmall")
     p.foot:SetPoint("BOTTOMLEFT", 0, 2)
-    -- How a crafter gets their recipes into Speakeasy: hover for the steps.
+    -- How a crafter gets their recipes into Blind Tiger: hover for the steps.
     p.howTo = W.Button(d, "How do I share my recipes?", 190, 20, function()
         ns.UI.Say(P.HOWTO_SHORT)
     end)
@@ -864,7 +864,7 @@ end, function(p)
             p.nCount:SetText(nProf and (#list .. (#list == 1 and " recipe" or " recipes") .. " the guild can make") or "")
             p.nEmpty:SetShown(#profs == 0)
             p.nRecipeHead.SetShown(#list > 0)
-            p.nEmpty:SetText("No recipes shared yet. They appear here once guild crafters open their profession windows with Speakeasy.")
+            p.nEmpty:SetText("No recipes shared yet. They appear here once guild crafters open their profession windows with Blind Tiger.")
             p.nb:SetShown(#profs > 0)
             -- Who can be asked: every crafter who knows it, except me.
             p.nCrafters = {}
@@ -910,7 +910,7 @@ end, function(p)
                 parts[#parts + 1] = sel.by == me and "It's in the mail. Collect it at a mailbox, then press I received it."
                     or "In the mail. It's complete when they press I received it."
             elseif sel.crafter == me and (sel.status == "accepted" or sel.status == "ready") then
-                parts[#parts + 1] = "At a mailbox, Speakeasy fills in the mail for this order; you press Send."
+                parts[#parts + 1] = "At a mailbox, Blind Tiger fills in the mail for this order; you press Send."
             end
             local cost = Orders.IsActive(sel) and Orders.CostText(sel.rid, sel.q)
             if cost then parts[#parts + 1] = "Est. materials " .. cost .. "." end
@@ -970,7 +970,7 @@ end, function(p)
     for _ in pairs(ns.roster.byGUID) do total = total + 1 end
     local line = shared .. " of " .. total .. " members have shared their professions."
     if not ns.mock and not profs[ns.MyGUID()] then
-        line = line .. " Yours aren't shared yet: type /spk prof."
+        line = line .. " Yours aren't shared yet: type /tiger prof."
     elseif not ns.mock and next(st.recipes[ns.MyGUID()] or {}) == nil then
         line = line .. " Your recipes aren't shared yet: hover the button on the right."
     end
@@ -1020,10 +1020,10 @@ end, function(p)
                 p.empty:SetText(chosen .. " has no recipes to list.")
             elseif viewing == ns.MyGUID() then
                 p.empty:SetText("To share your " .. chosen .. " recipes: open Character > Professions and click the link bubble on "
-                    .. chosen .. ". Speakeasy records them and shares them with the guild.")
+                    .. chosen .. ". Blind Tiger records them and shares them with the guild.")
             else
                 p.empty:SetText(name .. " hasn't shared " .. chosen .. " recipes yet. They're recorded the first time "
-                    .. name .. " opens the " .. chosen .. " window with Speakeasy 0.10 or newer.")
+                    .. name .. " opens the " .. chosen .. " window with Blind Tiger 0.10 or newer.")
             end
             p.count:SetText("")
         else

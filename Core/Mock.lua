@@ -1,11 +1,11 @@
--- Speakeasy: solo "mock guildmate" test mode. Swaps in a fake guild roster and
+-- Blind Tiger: solo "mock guildmate" test mode. Swaps in a fake guild roster and
 -- its own saved store. Nothing in mock mode is ever sent to the real guild.
---   /spk mock on      start, with you as Guild Master of 19 fake guildmates
---   /spk mock boss    simulate a boss kill (auto-award to a fake 10-player raid)
---   /spk mock award   a fake Officer awards DKP (arrives confirmed)
---   /spk mock forge   a fake Member relays a forged Officer award (stays provisional)
---   /spk mock reset   wipe the mock store
---   /spk mock off     back to your real guild
+--   /tiger mock on      start, with you as Guild Master of 19 fake guildmates
+--   /tiger mock boss    simulate a boss kill (auto-award to a fake 10-player raid)
+--   /tiger mock award   a fake Officer awards DKP (arrives confirmed)
+--   /tiger mock forge   a fake Member relays a forged Officer award (stays provisional)
+--   /tiger mock reset   wipe the mock store
+--   /tiger mock off     back to your real guild
 local _, ns = ...
 local M = {}
 ns.Mock = M
@@ -82,7 +82,7 @@ function M.Command(arg)
     arg = (arg or ""):lower()
     if arg == "on" then return M.Start() end
     if arg == "off" then return M.Stop() end
-    if not ns.mock then ns.Print("Start mock mode first: /spk mock on") return end
+    if not ns.mock then ns.Print("Start mock mode first: /tiger mock on") return end
     if arg == "reset" then
         M.Reset()
     elseif arg == "boss" then

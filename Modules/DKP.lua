@@ -1,4 +1,4 @@
--- Speakeasy: DKP actions. Every action writes one log event; balances come
+-- Blind Tiger: DKP actions. Every action writes one log event; balances come
 -- from the reducer. Permission checks here are for the UI; every client
 -- enforces them again when the event arrives.
 local _, ns = ...

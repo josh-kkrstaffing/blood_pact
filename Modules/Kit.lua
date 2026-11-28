@@ -1,4 +1,4 @@
--- Speakeasy: Raid Kit. The consumables every raider is expected to bring.
+-- Blind Tiger: Raid Kit. The consumables every raider is expected to bring.
 --
 -- The rules are the guild leader's (Nov 25, 2026): the kit is required for
 -- every rank and every raid; everyone brings a flask, elixirs, food and a

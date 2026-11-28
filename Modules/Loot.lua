@@ -1,4 +1,4 @@
--- Speakeasy: loot history.
+-- Blind Tiger: loot history.
 -- Every time an officer charges DKP for an item in Raid & Loot, the guild's
 -- log already records who got it, which item, the price and when. This file
 -- turns those records into two views: a member's loot (Roster) and the

@@ -1,7 +1,7 @@
--- Speakeasy: copy scheduled raids to the in-game calendar as guild sign-up
+-- Blind Tiger: copy scheduled raids to the in-game calendar as guild sign-up
 -- events, so the whole guild sees them there, and mirror your sign-up onto it.
 -- Runs only from a button click. If the client refuses (the calendar API may be
--- restricted on WoW Forever), it says so once and Speakeasy keeps working.
+-- restricted on WoW Forever), it says so once and Blind Tiger keeps working.
 local _, ns = ...
 local C = {}
 ns.Calendar = C
@@ -42,7 +42,7 @@ function C.Add(r)
     local ok, err = pcall(function()
         api.CreateGuildSignUpEvent()
         api.EventSetTitle(r.title)
-        api.EventSetDescription(("%s - %s. Sign up here or in Speakeasy (/spk)."):format(r.raid, r.prog and "progression" or "farm"))
+        api.EventSetDescription(("%s - %s. Sign up here or in Blind Tiger (/tiger)."):format(r.raid, r.prog and "progression" or "farm"))
         if api.EventSetType and Enum and Enum.CalendarEventType and Enum.CalendarEventType.Raid then
             api.EventSetType(Enum.CalendarEventType.Raid)
         end
@@ -53,7 +53,7 @@ function C.Add(r)
     if ok then
         say("Raid saved and added to the in-game calendar for the guild.")
     else
-        say("Raid saved, but the game wouldn't let Speakeasy add it to the calendar: " .. tostring(err))
+        say("Raid saved, but the game wouldn't let Blind Tiger add it to the calendar: " .. tostring(err))
     end
     return ok
 end

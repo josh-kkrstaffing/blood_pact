@@ -1,4 +1,4 @@
--- Speakeasy: addon-channel transport. Splits payloads into 255-byte messages,
+-- Blind Tiger: addon-channel transport. Splits payloads into 255-byte messages,
 -- paces sends under the server's per-prefix throttle (burst of 10, refills
 -- 1 per second), holds sends during WoW Forever's in-instance comms lockdown,
 -- and reassembles incoming messages.
@@ -90,7 +90,7 @@ local function pump()
             -- Some builds throw instead of returning a code during lockdown.
             local called, result = pcall(C_ChatInfo.SendAddonMessage, C.PREFIX, item.msg, item.dist, target)
             if not called then
-                C.lastError = tostring(result):sub(1, 120)      -- shown by /spk status, to tell a real error from the lockdown
+                C.lastError = tostring(result):sub(1, 120)      -- shown by /tiger status, to tell a real error from the lockdown
                 result = RESULT_LOCKDOWN
             end
             if result == true or result == nil then result = RESULT_OK end
@@ -175,7 +175,7 @@ end
 -- "No player named 'X' is currently playing." after one of our whispers.
 local NOT_FOUND = ns.U.FormatPattern(ERR_CHAT_PLAYER_NOT_FOUND_S or "No player named '%s' is currently playing.")
 
--- Returns true when the message was caused by a Speakeasy whisper.
+-- Returns true when the message was caused by a Blind Tiger whisper.
 function C.OnSystemMessage(msg)
     if type(msg) ~= "string" then return false end
     local name = msg:match(NOT_FOUND)

@@ -1,4 +1,4 @@
--- Speakeasy: guild chips. A raider donates gold to the guild bank and gets
+-- Blind Tiger: guild chips. A raider donates gold to the guild bank and gets
 -- play chips, one for one: a gold chip per gold, a silver chip per silver, a
 -- copper chip per copper. Chips are for the guild's games and bragging
 -- rights. They are one-way: chips never turn back into gold, and nobody
@@ -254,7 +254,7 @@ local W = ns.W
 local helping = false
 
 local function build()
-    local f = CreateFrame("Frame", "SpeakeasyChips", UIParent)
+    local f = CreateFrame("Frame", "BlindTigerChips", UIParent)
     f:SetSize(420, 380)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)

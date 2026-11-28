@@ -1,4 +1,4 @@
--- Speakeasy: append-only event log. The only synced data.
+-- Blind Tiger: append-only event log. The only synced data.
 -- Every event: id, a (author GUID), s (author sequence), L (Lamport clock),
 -- t (server time, display only), prev (hash of author's previous event),
 -- k (kind), d (payload), h (hash of all of the above).
@@ -229,7 +229,7 @@ L.MAX_UNKNOWN_BYTES = 2000
 -- vouched: an Officer relayed it as confirmed, so the author's rank isn't
 --   checked again. That keeps history intact after its author is demoted or
 --   leaves the guild.
--- A kind this version doesn't know (from a newer Speakeasy) passes as
+-- A kind this version doesn't know (from a newer Blind Tiger) passes as
 --   true, "unknownKind": it is stored and passed on, but never counted.
 function L.Validate(e, g, vouched)
     if type(e) ~= "table" then return false, "shape" end

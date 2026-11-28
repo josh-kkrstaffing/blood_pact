@@ -1,4 +1,4 @@
--- Speakeasy: time zones for raid scheduling. Pure Lua, no game API.
+-- Blind Tiger: time zones for raid scheduling. Pure Lua, no game API.
 -- Raids are stored as one moment (server unix time). The scheduler types a
 -- wall-clock time in a chosen zone; everyone else sees it in their own PC time.
 -- US zones follow US daylight saving: 2nd Sunday of March to 1st Sunday of

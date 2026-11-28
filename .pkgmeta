@@ -1,8 +1,8 @@
-package-as: Speakeasy
+package-as: BlindTiger
 
 # The old folder name, kept as a tiny helper so saved data carries over the rename.
 move-folders:
-  Speakeasy/Carryover: BloodPact
+  BlindTiger/Carryover: BloodPact
 
 ignore:
   - tests
