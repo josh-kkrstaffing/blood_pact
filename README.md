@@ -104,7 +104,7 @@ Tickets are not part of the guild's shared log. They are sent by addon whisper o
 
 ## Privacy
 
-Blind Tiger sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests, and each player's own readiness score, profession levels, known recipes and PvP rank) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BloodPact.lua`. Delete that file to remove the addon's data.
+Blind Tiger sends **no data outside the game**. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records (DKP, raid sign-ups, roster history, summon requests, and each player's own readiness score, profession levels, known recipes and PvP rank) are shared only with your guildmates over World of Warcraft's addon message channel, and saved on your computer in `WTF\Account\<account>\SavedVariables\BlindTiger.lua`. Delete that file to remove the addon's data.
 
 ## Commands
 
