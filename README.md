@@ -59,7 +59,7 @@ Team Captains and above schedule raids in the Raids tab, with presets for Barrow
 
 **Guild chips.** Donate gold to the guild bank with the "Donate for chips" button and get play chips one for one. An Officer's addon confirms each donation from the bank's money log. Chips are one-way: they never turn back into gold. They are for guild games and a leaderboard.
 
-**The games floor.** Play chips against the house, which is the guild: roulette on the American wheel (house edge 5.26%), a three-reel slot machine (7.34%), blackjack (2.14%) and Hold'em against the house (2.16%). The edges come from the rules and are checked by the tests. Chips never turn back into gold.
+**The games floor.** Play chips against the house, which is the guild: roulette on the American wheel (house edge 5.26%), a three-reel slot machine (7.34%), blackjack (2.14%) and Hold'em against the house (2.16%). The edges come from the rules and are checked by the tests. Chips never turn back into gold. The games play in pictures: a spinning wheel, rolling reels and playing cards dealt onto felt.
 
 **Raid Kit.** The Raid Kit tab lists the consumables each role is expected to bring and counts your bags and bank against it. A flask, elixirs, food and a weapon buff are counted to last the raid; potions and runes use the number your Team Captains set, doubled on progression nights. Anything a guildmate can craft can be ordered onto the Wanted board from the same row. Your kit count shows on raid sign-ups to Team Captains and above. At a ready check each player's addon reports its own flask, food, weapon buff and elixirs for the raid leader, and an Officer can charge DKP for a missing flask or food. Team Captains and above edit the rules and the lists. The game hides buffs in combat and gives addons no combat log, so nothing records each potion used.
 
@@ -119,4 +119,4 @@ Blind Tiger sends **no data outside the game**. It has no website, server or dat
 
 ## Credits and licenses
 
-Made by Kitch. All code is original to Blind Tiger and released under the MIT License (see LICENSE). It bundles no third-party libraries, images, sounds or game files; window frames and icons are the game's own built-in UI textures, referenced by path.
+Made by Kitch. All code is original to Blind Tiger and released under the MIT License (see LICENSE). It bundles no third-party libraries, images, sounds or game files. The logo is the author's own, and the games art (cards, wheel, reels, felt, chips) is drawn by `tools/art.py`, with letters and suit marks set in the freely licensed DejaVu fonts; window frames and icons are the game's own built-in UI textures, referenced by path.

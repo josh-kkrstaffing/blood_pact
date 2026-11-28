@@ -449,6 +449,32 @@ test("casino: stakes, the roulette wheel and its house edge", function()
     end
 end)
 
+test("casino: the pictures line up with the rules", function()
+    local G = ns.Casino
+    -- The wheel picture holds every pocket once, and the zeros sit opposite each other.
+    eq(#G.WHEEL, 38)
+    local seen = {}
+    for _, name in ipairs(G.WHEEL) do assert(not seen[name] and G.Pocket(name) == name); seen[name] = true end
+    eq(G.WheelAngle("0"), 0); eq(G.WheelAngle("00"), math.pi); eq(G.WheelAngle("37"), nil)
+    -- Red and black alternate round the wheel, as on a real one.
+    for i = 1, 38 do
+        local a, b = G.PocketColor(G.WHEEL[i]), G.PocketColor(G.WHEEL[i % 38 + 1])
+        assert(a ~= b, "neighbours differ at " .. G.WHEEL[i])
+    end
+    -- The card sheet: a row per suit, deuce to ace; the back after the ace of spades.
+    local l, r, t, b = G.CardCoords({ r = 2, s = 1 })
+    eq(l, 0); eq(r, 72 / 1024); eq(t, 0); eq(b, 102 / 512)
+    l, r, t, b = G.CardCoords({ r = 14, s = 4 })
+    eq(l, 12 * 72 / 1024); eq(r, 13 * 72 / 1024); eq(t, 3 * 102 / 512); eq(b, 4 * 102 / 512)
+    l, r, t, b = G.CardCoords(nil)
+    eq(l, 13 * 72 / 1024); eq(t, 0); assert(r <= 1 and b <= 1)
+    -- The reel sheet holds every symbol the machine can stop on.
+    eq(select(1, G.SymbolCoords("Tiger")), 0); eq(select(3, G.SymbolCoords("Cherry")), 0.5); eq(G.SymbolCoords("Plum"), nil)
+    for _, s in ipairs(G.REEL) do assert(G.SymbolCoords(s[1])) end
+    assert(G.ChipIcons(12345):find("^1|T") and select(2, G.ChipIcons(12345):gsub("|t", "")) == 3)
+    eq(select(2, G.ChipIcons(0):gsub("|t", "")), 1); eq(select(2, G.ChipIcons(20000):gsub("|t", "")), 1)
+end)
+
 test("casino: the slot machine pays back exactly what its table says", function()
     local G = ns.Casino
     eq(G.REEL_SIZE, 20)

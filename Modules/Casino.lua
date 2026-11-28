@@ -388,17 +388,227 @@ end)
 ns.On("PLAYER_LOGOUT", function() G.Commit() end)
 
 ---------------------------------------------------------------------------
+-- The art. Every picture is the addon's own, drawn by tools/art.py: a sheet
+-- of cards, the wheel and its ball, the reel symbols, the felt and a chip.
+---------------------------------------------------------------------------
+G.ART = "Interface\\AddOns\\BlindTiger\\Media\\"
+G.ANIMATE = true          -- the tests turn this off to read results at once
+
+-- The card sheet is 1024 x 512: one row per suit, deuce to ace, 72 x 102 each.
+-- The card back sits after the ace of spades. -> left, right, top, bottom
+function G.CardCoords(card)
+    local col, row = 13, 0
+    if card then col, row = card.r - 2, card.s - 1 end
+    return col * 72 / 1024, (col + 1) * 72 / 1024, row * 102 / 512, (row + 1) * 102 / 512
+end
+
+-- The reel sheet is 512 x 256: the symbols in G.REEL order, four to a row, 128 square.
+function G.SymbolCoords(name)
+    for i, s in ipairs(G.REEL) do
+        if s[1] == name then
+            local col, row = (i - 1) % 4, math.floor((i - 1) / 4)
+            return col / 4, (col + 1) / 4, row / 2, (row + 1) / 2
+        end
+    end
+end
+
+-- The American wheel, clockwise from the single zero, as the picture is drawn.
+G.WHEEL = { "0", "28", "9", "26", "30", "11", "7", "20", "32", "17", "5", "22", "34", "15", "3", "24", "36", "13", "1",
+    "00", "27", "10", "25", "29", "12", "8", "19", "31", "18", "6", "21", "33", "16", "4", "23", "35", "14", "2" }
+
+-- Where a pocket sits on the wheel: radians clockwise from the top.
+function G.WheelAngle(pocket)
+    for i, name in ipairs(G.WHEEL) do
+        if name == pocket then return (i - 1) * 2 * math.pi / #G.WHEEL end
+    end
+end
+
+-- Chips with a chip picture for each kind: gold, silver, copper.
+local CHIP_TINT = { "255:209:0", "200:200:210", "205:127:60" }
+function G.ChipIcons(copper)
+    local parts = {}
+    local units = { math.floor(copper / 10000), math.floor(copper % 10000 / 100), copper % 100 }
+    for i, n in ipairs(units) do
+        if n > 0 or (i == 3 and #parts == 0) then
+            parts[#parts + 1] = ("%d|T%schip:13:13:0:0:64:64:0:64:0:64:%s|t"):format(n, G.ART, CHIP_TINT[i])
+        end
+    end
+    return table.concat(parts, " ")
+end
+
+---------------------------------------------------------------------------
 -- The window
 ---------------------------------------------------------------------------
 local W = ns.W
 local game = "Roulette"
 local bets, lastSpin, lastPull, note = {}, nil, nil, nil
 local COLOR = { red = "|cffff4040", black = "|cffd0d0d0", green = "|cff40d060" }
-local REEL_COLOR = { Tiger = "|cffffa020", Seven = "|cffff4040", Bar = "|cffe0e0e0", Bell = "|cffffd100", Cherry = "|cffff6080", Lemon = "|cfffff060" }
+
+local CARD_W, CARD_H, SPOT_W = 44, 62, 250
+local WHEEL_SIZE, WHEEL_TIME, WHEEL_TURNS, BALL_TURNS = 212, 3.2, 3, 5
+local REEL_STOP = { 0.7, 1.1, 1.5 }       -- seconds until each reel stops
+local FADE = 0.18                         -- seconds for a dealt card to appear
+
+-- What is moving right now. The result is already settled when this starts:
+-- the pictures only show it. { kind = "wheel", pocket } or { kind = "reels", reels }
+local anim
+local fading = {}
+
+local function felt(panel, height)
+    local t = panel:CreateTexture(nil, "BACKGROUND")
+    t:SetTexture(G.ART .. "felt")
+    t:SetPoint("TOPLEFT", 0, 0)
+    t:SetSize(536, height)
+    return t
+end
+
+local function fadeIn(c, wait)
+    c.a, c.wait = 0, wait
+    c:SetAlpha(0)
+    if not c.inFade then
+        c.inFade = true
+        fading[#fading + 1] = c
+    end
+end
+
+-- A place on the table for a row of cards under a label.
+local function spot(t, x, y)
+    local sp = { cards = {}, x = x, y = y }
+    sp.label = W.Text(t, "", "GameFontHighlightSmall")
+    sp.label:SetPoint("TOPLEFT", x, y)
+    sp.label:SetWidth(SPOT_W)
+    sp.label:SetJustifyH("LEFT")
+    sp.label:SetWordWrap(false)
+    for i = 1, 11 do
+        local c = t:CreateTexture(nil, "ARTWORK", nil, i - 5)
+        c:SetTexture(G.ART .. "cards")
+        c:SetSize(CARD_W, CARD_H)
+        c:Hide()
+        sp.cards[i] = c
+    end
+    return sp
+end
+
+-- Lay cards on a spot. An entry of "back" is a card face down. Long hands overlap to fit.
+-- A new hand clears the spot first, so every card of it is dealt in.
+local function lay(sp, list, hand)
+    if sp.hand ~= hand then
+        sp.hand = hand
+        for _, c in ipairs(sp.cards) do c.key = nil end
+    end
+    local n = #list
+    local gap = n > 1 and math.min(CARD_W + 4, (SPOT_W - CARD_W) / (n - 1)) or 0
+    local fresh = 0
+    for i, c in ipairs(sp.cards) do
+        local card = list[i]
+        if card then
+            local down = card == "back"
+            local key = down and "back" or K.Name(card)
+            c:SetTexCoord(G.CardCoords((not down) and card or nil))
+            c:ClearAllPoints()
+            c:SetPoint("TOPLEFT", sp.x + (i - 1) * gap, sp.y - 14)
+            if c.key ~= key then
+                if G.ANIMATE and c.key == nil then
+                    fadeIn(c, fresh * 0.12)
+                    fresh = fresh + 1
+                else
+                    c.a = 1
+                    c:SetAlpha(1)
+                end
+                c.key = key
+            end
+            c:Show()
+        else
+            c.key = nil
+            c:Hide()
+        end
+    end
+end
+
+local function setSymbol(tex, name)
+    if name then
+        tex:SetTexCoord(G.SymbolCoords(name))
+        tex:Show()
+    else
+        tex:Hide()
+    end
+    tex.sym = name
+end
+
+-- Put the wheel and ball where they are p of the way (0..1) through a spin
+-- that ends on this pocket. The wheel always comes to rest the way it is drawn,
+-- so the ball's last place is the pocket's own place on the picture.
+local function placeWheel(r, pocket, p)
+    local left = (1 - p) ^ 3
+    r.wheel:SetRotation(left * WHEEL_TURNS * 2 * math.pi)
+    local angle = G.WheelAngle(pocket) - left * BALL_TURNS * 2 * math.pi
+    local drop = math.max(0, math.min(1, (p - 0.5) / 0.5))
+    drop = drop * drop * (3 - 2 * drop)
+    local radius = (0.88 - 0.34 * drop) * WHEEL_SIZE / 2
+    r.ball:ClearAllPoints()
+    r.ball:SetPoint("CENTER", r.wheel, "CENTER", radius * math.sin(angle), radius * math.cos(angle))
+    r.ball:Show()
+end
+
+local function stopMoving()
+    if not anim then return end
+    local f = G.frame
+    if anim.kind == "wheel" then
+        placeWheel(f.roulette, anim.pocket, 1)
+    else
+        for i = 1, 3 do setSymbol(f.slots.reels[i], anim.reels[i]) end
+    end
+    anim = nil
+end
+
+function G.Moving() return anim ~= nil end
+
+-- Move the pictures on by dt seconds. The window calls this every frame.
+function G.Tick(dt)
+    local f = G.frame
+    if not f then return end
+    for i = #fading, 1, -1 do
+        local c = fading[i]
+        c.wait = c.wait - dt
+        if c.wait <= 0 then
+            c.a = math.min(1, c.a + dt / FADE)
+            c:SetAlpha(c.a)
+            if c.a >= 1 then
+                c.inFade = nil
+                table.remove(fading, i)
+            end
+        end
+    end
+    if not anim then return end
+    anim.t = anim.t + dt
+    if anim.kind == "wheel" then
+        if anim.t >= WHEEL_TIME then
+            stopMoving()
+            G.Refresh()
+        else
+            placeWheel(f.roulette, anim.pocket, anim.t / WHEEL_TIME)
+        end
+    else
+        anim.flick = anim.flick + dt
+        local roll = anim.flick >= 0.06
+        if roll then anim.flick = 0 end
+        for i = 1, 3 do
+            if anim.t >= REEL_STOP[i] then
+                setSymbol(f.slots.reels[i], anim.reels[i])
+            elseif roll then
+                setSymbol(f.slots.reels[i], G.REEL[math.random(#G.REEL)][1])      -- only the blur; the result is set
+            end
+        end
+        if anim.t >= REEL_STOP[3] then
+            stopMoving()
+            G.Refresh()
+        end
+    end
+end
 
 local function build()
     local f = CreateFrame("Frame", "BlindTigerFloor", UIParent)
-    f:SetSize(560, 430)
+    f:SetSize(560, 480)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)
     f:SetMovable(true)
@@ -410,8 +620,6 @@ local function build()
     f:EnableMouse(true)
     W.Glass(f, true)
     W.Title(f, "The Blind Tiger floor")
-    -- The emblem, faint, behind the tables.
-    W.Logo(f, 300, true, 0.07, "BORDER"):SetPoint("CENTER", 0, -30)
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
     f.chips = W.Text(f, "", "GameFontHighlightSmall")
     f.chips:SetPoint("TOPRIGHT", -36, -11)
@@ -423,6 +631,7 @@ local function build()
     f.tabs = {}
     for i, name in ipairs({ "Roulette", "Slots", "Blackjack", "Hold'em" }) do
         local b = W.Button(f, name, 100, 22, function()
+            stopMoving()
             game, note = name, nil
             G.Refresh()
         end)
@@ -442,14 +651,23 @@ local function build()
         return s
     end
 
-    -- Roulette
+    -- Roulette: the bets on the left, the wheel on the right.
     local r = CreateFrame("Frame", nil, f)
     r:SetPoint("TOPLEFT", 12, -100)
-    r:SetSize(536, 250)
+    r:SetSize(536, 290)
     f.roulette = r
-    r.result = W.Text(r, "", "GameFontNormalHuge")
-    r.result:SetPoint("TOPLEFT", 0, 0)
-    r.result:SetWidth(536)
+    felt(r, 220)
+    r.wheel = r:CreateTexture(nil, "ARTWORK")
+    r.wheel:SetTexture(G.ART .. "wheel")
+    r.wheel:SetSize(WHEEL_SIZE, WHEEL_SIZE)
+    r.wheel:SetPoint("TOPLEFT", 320, -4)
+    r.ball = r:CreateTexture(nil, "OVERLAY")
+    r.ball:SetTexture(G.ART .. "ball")
+    r.ball:SetSize(13, 13)
+    r.ball:Hide()
+    r.result = W.Text(r, "", "GameFontNormalLarge")
+    r.result:SetPoint("TOPLEFT", 8, -8)
+    r.result:SetWidth(308)
     r.result:SetJustifyH("LEFT")
     r.result:SetWordWrap(false)
     local function add(kind, pick)
@@ -462,89 +680,113 @@ local function build()
     end
     local outside = { { "red" }, { "black" }, { "odd" }, { "even" }, { "low" }, { "high" },
         { "dozen", 1 }, { "dozen", 2 }, { "dozen", 3 }, { "column", 1 }, { "column", 2 }, { "column", 3 } }
+    r.betButtons = {}
     for i, o in ipairs(outside) do
-        local b = W.Button(r, G.BetLabel({ kind = o[1], pick = o[2] }), 84, 22, function() add(o[1], o[2]) end)
-        b:SetPoint("TOPLEFT", ((i - 1) % 6) * 89, -34 - math.floor((i - 1) / 6) * 26)
+        local b = W.Button(r, G.BetLabel({ kind = o[1], pick = o[2] }), 74, 22, function() add(o[1], o[2]) end)
+        b:SetPoint("TOPLEFT", 8 + ((i - 1) % 4) * 78, -34 - math.floor((i - 1) / 4) * 26)
+        r.betButtons[#r.betButtons + 1] = b
     end
-    W.Text(r, "Number (0, 00, 1-36)", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 0, -94)
-    r.num = W.Edit(r, 40, 2)
-    r.num:SetPoint("TOPLEFT", 126, -90)
-    W.Button(r, "Bet the number", 110, 22, function()
+    W.Text(r, "Number (0, 00, 1-36)", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 8, -120)
+    r.num = W.Edit(r, 36, 2)
+    r.num:SetPoint("TOPLEFT", 134, -116)
+    r.betButtons[#r.betButtons + 1] = W.Button(r, "Bet the number", 110, 22, function()
         local p = G.Pocket(r.num:GetText())
         if p then add("num", p) else note = "Type 0, 00 or a number from 1 to 36."; G.Refresh() end
-    end):SetPoint("TOPLEFT", 176, -90)
+    end)
+    r.betButtons[#r.betButtons]:SetPoint("TOPLEFT", 180, -116)
     r.bets = W.Text(r, "", "GameFontHighlightSmall")
-    r.bets:SetPoint("TOPLEFT", 0, -122)
-    r.bets:SetWidth(536)
+    r.bets:SetPoint("TOPLEFT", 8, -146)
+    r.bets:SetWidth(306)
+    r.bets:SetHeight(36)
     r.bets:SetJustifyH("LEFT")
     r.bets:SetJustifyV("TOP")
     r.bets:SetWordWrap(true)
     r.spin = W.Button(r, "Spin", 120, 26, function()
         local res, why = G.Spin(bets)
-        if res then lastSpin, note = res, nil else note = why end
+        if res then
+            lastSpin, note = res, nil
+            if G.ANIMATE then anim = { kind = "wheel", t = 0, pocket = res.pocket } end
+        else
+            note = why
+        end
         G.Refresh()
     end, "accent")
-    r.spin:SetPoint("TOPLEFT", 0, -190)
-    W.Button(r, "Clear bets", 100, 26, function() bets, note = {}, nil; G.Refresh() end):SetPoint("TOPLEFT", 128, -190)
+    r.spin:SetPoint("TOPLEFT", 8, -188)
+    r.clear = W.Button(r, "Clear bets", 100, 26, function() bets, note = {}, nil; G.Refresh() end)
+    r.clear:SetPoint("TOPLEFT", 136, -188)
     r.rules = W.Text(r, "American wheel: 0 and 00. A number pays 35 to 1, a dozen or column 2 to 1, the rest even money. House edge 5.26%.", "GameFontDisableSmall")
-    r.rules:SetPoint("TOPLEFT", 0, -226)
+    r.rules:SetPoint("TOPLEFT", 0, -228)
     r.rules:SetWidth(536)
     r.rules:SetJustifyH("LEFT")
 
-    -- Slots
+    -- Slots: three reels on the felt, the pay table in pictures below.
     local s = CreateFrame("Frame", nil, f)
     s:SetPoint("TOPLEFT", 12, -100)
-    s:SetSize(536, 250)
+    s:SetSize(536, 290)
     f.slots = s
+    felt(s, 152)
     s.reels = {}
     for i = 1, 3 do
         local box = CreateFrame("Frame", nil, s)
-        box:SetSize(150, 70)
-        box:SetPoint("TOPLEFT", (i - 1) * 160, 0)
+        box:SetSize(104, 104)
+        box:SetPoint("TOPLEFT", 92 + (i - 1) * 124, -10)
         W.Glass(box, true)
-        local fs = W.Text(box, "?", "GameFontNormalHuge")
-        fs:SetPoint("CENTER", 0, 0)
-        s.reels[i] = fs
+        local tex = box:CreateTexture(nil, "ARTWORK")
+        tex:SetTexture(G.ART .. "reels")
+        tex:SetSize(88, 88)
+        tex:SetPoint("CENTER", 0, 0)
+        tex:Hide()
+        s.reels[i] = tex
     end
     s.result = W.Text(s, "", "GameFontNormalLarge")
-    s.result:SetPoint("TOPLEFT", 0, -82)
-    s.result:SetWidth(536)
-    s.result:SetJustifyH("LEFT")
+    s.result:SetPoint("TOPLEFT", 8, -124)
+    s.result:SetWidth(520)
+    s.result:SetJustifyH("CENTER")
     s.result:SetWordWrap(false)
     s.pull = W.Button(s, "Pull", 120, 26, function()
         local st = stake()
         if st then
             local res, why = G.Pull(st)
-            if res then lastPull, note = res, nil else note = why end
+            if res then
+                lastPull, note = res, nil
+                if G.ANIMATE then anim = { kind = "reels", t = 0, flick = 1, reels = res.reels } end
+            else
+                note = why
+            end
         end
         G.Refresh()
     end, "accent")
-    s.pull:SetPoint("TOPLEFT", 0, -112)
-    local lines = {}
-    for _, sym in ipairs(G.REEL) do lines[#lines + 1] = ("%s x3 pays %d"):format(sym[1], G.SLOT_PAYS[sym[1]]) end
-    lines[#lines + 1] = "Two Cherries pay " .. G.TWO_CHERRIES
-    s.table = W.Text(s, table.concat(lines, "    ") .. "\nPays are in stakes: 9 means a 1s stake comes back as 9s. House edge 7.34%.", "GameFontDisableSmall")
-    s.table:SetPoint("TOPLEFT", 0, -150)
+    s.pull:SetPoint("TOPLEFT", 208, -160)
+    for i, sym in ipairs(G.REEL) do
+        local icon = s:CreateTexture(nil, "ARTWORK")
+        icon:SetTexture(G.ART .. "reels")
+        icon:SetTexCoord(G.SymbolCoords(sym[1]))
+        icon:SetSize(24, 24)
+        icon:SetPoint("TOPLEFT", 4 + (i - 1) * 89, -198)
+        W.Text(s, "x3 = " .. G.SLOT_PAYS[sym[1]], "GameFontHighlightSmall"):SetPoint("TOPLEFT", 32 + (i - 1) * 89, -204)
+    end
+    s.table = W.Text(s, ("Three of a kind pays what is shown, in stakes: 9 means a 1s stake comes back as 9s. Two Cherries pay %d. House edge 7.34%%."):format(G.TWO_CHERRIES), "GameFontDisableSmall")
+    s.table:SetPoint("TOPLEFT", 0, -232)
     s.table:SetWidth(536)
     s.table:SetJustifyH("LEFT")
     s.table:SetWordWrap(true)
 
-    -- Blackjack and Hold'em share one layout: the dealer, you, a result line, buttons, the rules.
-    local function table_(rules)
+    -- Blackjack and Hold'em share one table: three spots for cards on the felt,
+    -- a result line, the buttons, the rules.
+    local function table_(rules, places)
         local t = CreateFrame("Frame", nil, f)
         t:SetPoint("TOPLEFT", 12, -100)
-        t:SetSize(536, 250)
-        t.lines = {}
-        for i = 1, 4 do
-            local fs = W.Text(t, "", i == 4 and "GameFontNormalLarge" or "GameFontHighlightLarge")
-            fs:SetPoint("TOPLEFT", 0, -(i - 1) * 28)
-            fs:SetWidth(536)
-            fs:SetJustifyH("LEFT")
-            fs:SetWordWrap(false)
-            t.lines[i] = fs
-        end
+        t:SetSize(536, 290)
+        felt(t, 166)
+        t.spots = {}
+        for i, at in ipairs(places) do t.spots[i] = spot(t, at[1], at[2]) end
+        t.result = W.Text(t, "", "GameFontNormalLarge")
+        t.result:SetPoint("TOPLEFT", 0, -172)
+        t.result:SetWidth(536)
+        t.result:SetJustifyH("LEFT")
+        t.result:SetWordWrap(false)
         t.rules = W.Text(t, rules, "GameFontDisableSmall")
-        t.rules:SetPoint("TOPLEFT", 0, -156)
+        t.rules:SetPoint("TOPLEFT", 0, -232)
         t.rules:SetWidth(536)
         t.rules:SetJustifyH("LEFT")
         t.rules:SetWordWrap(true)
@@ -557,35 +799,41 @@ local function build()
             note = (not ok) and why or nil
             G.Refresh()
         end, style)
-        b:SetPoint("TOPLEFT", (i - 1) * 102, -118)
+        b:SetPoint("TOPLEFT", (i - 1) * 102, -198)
         t.buttons[label] = b
         return b
     end
-    local b = table_("Blackjack pays 6 to 5. The dealer hits a soft 17. Double on any two cards, and after a split. Split a pair once; split aces get one card each. House edge 2.14% against perfect play.")
+    local TOP, LOW = -6, -86
+    -- Blackjack: the dealer on top, your hand below, a split hand beside it.
+    local b = table_("Blackjack pays 6 to 5. The dealer hits a soft 17. Double on any two cards, and after a split. Split a pair once; split aces get one card each. House edge 2.14% against perfect play.",
+        { { 12, TOP }, { 12, LOW }, { 276, LOW } })
     f.blackjack = b
     action(b, 1, "Deal", function() local st = stake(); if not st then return nil, note end; return G.BJDeal(st) end, "accent")
     action(b, 2, "Hit", G.BJHit)
     action(b, 3, "Stand", G.BJStand)
     action(b, 4, "Double", G.BJDouble)
     action(b, 5, "Split", G.BJSplit)
-    local h = table_("Your stake is the ante. See your cards and the flop, then call for twice the ante or fold. The dealer needs a pair of fours to qualify. Ante pays: royal flush 100, straight flush 20, four of a kind 10, full house 3, flush 2, anything else 1. The call pays even money. House edge 2.16%.")
+    -- Hold'em: the dealer and the board on top, your cards below.
+    local h = table_("Your stake is the ante. See your cards and the flop, then call for twice the ante or fold. The dealer needs a pair of fours to qualify. Ante pays: royal flush 100, straight flush 20, four of a kind 10, full house 3, flush 2, anything else 1. The call pays even money. House edge 2.16%.",
+        { { 12, TOP }, { 276, TOP }, { 12, LOW } })
     f.holdem = h
     action(h, 1, "Deal", function() local st = stake(); if not st then return nil, note end; return G.HEDeal(st) end, "accent")
     action(h, 2, "Call", G.HECall)
     action(h, 3, "Fold", G.HEFold)
 
     f.status = W.Text(f, "", "GameFontHighlightSmall")
-    f.status:SetPoint("TOPLEFT", 12, -352)
+    f.status:SetPoint("TOPLEFT", 12, -398)
     f.status:SetWidth(536)
     f.status:SetJustifyH("LEFT")
     f.status:SetWordWrap(false)
     f.feed = W.Text(f, "", "GameFontDisableSmall")
-    f.feed:SetPoint("TOPLEFT", 12, -372)
+    f.feed:SetPoint("TOPLEFT", 12, -418)
     f.feed:SetWidth(536)
     f.feed:SetJustifyH("LEFT")
     f.feed:SetJustifyV("TOP")
     f.feed:SetWordWrap(true)
-    f:SetScript("OnHide", function() G.Commit() end)
+    f:SetScript("OnUpdate", function(_, dt) G.Tick(dt) end)
+    f:SetScript("OnHide", function() stopMoving(); G.Commit() end)
     f:Hide()
     G.frame = f
     return f
@@ -594,22 +842,19 @@ end
 function G.Refresh()
     local f = G.frame
     if not (f and f:IsShown()) then return end
-    local _, house = G.Nets(Red.State())
-    f.chips:SetText(("Your chips: |cffffd100%s|r    The house is %s %s"):format(Chips.Text(G.Available()),
-        house >= 0 and "up" or "down", Chips.Text(math.abs(house))))
+    -- While the wheel or the reels are moving, nothing on screen gives the result away.
+    if not anim then
+        local _, house = G.Nets(Red.State())
+        f.chips:SetText(("Your chips: |cffffd100%s|r    The house is %s %s"):format(G.ChipIcons(G.Available()),
+            house >= 0 and "up" or "down", Chips.Text(math.abs(house))))
+        local lines = G.Feed()
+        f.feed:SetText(#lines > 0 and ("On the floor: " .. table.concat(lines, "  ")) or "Big wins by guildmates show here.")
+    end
     for name, b in pairs(f.tabs) do b:SetEnabled(name ~= game) end
     f.roulette:SetShown(game == "Roulette")
     f.slots:SetShown(game == "Slots")
     f.blackjack:SetShown(game == "Blackjack")
     f.holdem:SetShown(game == "Hold'em")
-    local function cards(list, hide)
-        local out = {}
-        for i, c in ipairs(list) do
-            local red = c.s == 2 or c.s == 3
-            out[i] = (hide and i > 1) and "??" or ((red and "|cffff5050" or "|cffffffff") .. K.Name(c) .. "|r")
-        end
-        return table.concat(out, "  ")
-    end
     local function outcome(staked, back)
         local won = back - staked
         return won > 0 and ("|cff40ff40You won " .. Chips.Text(won) .. "|r") or won == 0 and "A push: your chips come back"
@@ -618,19 +863,23 @@ function G.Refresh()
     if game == "Blackjack" then
         local t, hand = f.blackjack, G.Blackjack()
         local playing = hand ~= nil and hand.phase == "play"
+        local dealer, first, second = t.spots[1], t.spots[2], t.spots[3]
         if hand then
-            t.lines[1]:SetText("Dealer: " .. cards(hand.dealer, playing) .. (playing and "" or ("   (" .. (K.Total(hand.dealer)) .. ")")))
-            for i = 1, 2 do
+            dealer.label:SetText(playing and "Dealer" or ("Dealer  (" .. (K.Total(hand.dealer)) .. ")"))
+            lay(dealer, playing and { hand.dealer[1], "back" } or hand.dealer, hand)
+            for i, sp in ipairs({ first, second }) do
                 local x = hand.hands[i]
-                t.lines[i + 1]:SetText(x and ((playing and hand.at == i and "> " or "") .. (#hand.hands > 1 and ("Hand " .. i .. ": ") or "You: ")
-                    .. cards(x.cards) .. "   (" .. (K.Total(x.cards)) .. ")   " .. Chips.Text(x.bet)) or "")
+                sp.label:SetText(x and ((playing and hand.at == i and "|cffffd100>|r " or "") .. (#hand.hands > 1 and ("Hand " .. i) or "You")
+                    .. "  (" .. (K.Total(x.cards)) .. ")   " .. Chips.Text(x.bet)) or "")
+                lay(sp, x and x.cards or {}, hand)
             end
-            t.lines[4]:SetText(playing and "Your move" or outcome(hand.staked, hand.back))
+            t.result:SetText(playing and "Your move" or outcome(hand.staked, hand.back))
         else
-            t.lines[1]:SetText("Dealer:")
-            t.lines[2]:SetText("You:")
-            t.lines[3]:SetText("")
-            t.lines[4]:SetText("Set a stake and deal.")
+            dealer.label:SetText("Dealer")
+            first.label:SetText("You")
+            second.label:SetText("")
+            for _, sp in ipairs(t.spots) do lay(sp, {}) end
+            t.result:SetText("Set a stake and deal.")
         end
         t.buttons.Deal:SetEnabled(not playing)
         t.buttons.Hit:SetEnabled(playing)
@@ -640,29 +889,38 @@ function G.Refresh()
     elseif game == "Hold'em" then
         local t, hand = f.holdem, G.Holdem()
         local playing = hand ~= nil and hand.phase == "flop"
+        local dealer, board, you = t.spots[1], t.spots[2], t.spots[3]
         if hand then
-            t.lines[1]:SetText("Dealer: " .. (playing and "??  ??" or cards(hand.dealer)) .. (hand.theirs and ("   " .. hand.theirs) or ""))
-            t.lines[2]:SetText("Board: " .. cards(hand.board))
-            t.lines[3]:SetText("You: " .. cards(hand.player) .. (hand.mine and ("   " .. hand.mine) or "") .. "   ante " .. Chips.Text(hand.ante))
-            t.lines[4]:SetText(playing and ("Call for " .. Chips.Text(hand.ante * 2) .. " or fold")
+            dealer.label:SetText("Dealer" .. (hand.theirs and (": " .. hand.theirs) or ""))
+            lay(dealer, playing and { "back", "back" } or hand.dealer, hand)
+            board.label:SetText("Board")
+            lay(board, hand.board, hand)
+            you.label:SetText("You" .. (hand.mine and (": " .. hand.mine) or "") .. "   ante " .. Chips.Text(hand.ante))
+            lay(you, hand.player, hand)
+            t.result:SetText(playing and ("Call for " .. Chips.Text(hand.ante * 2) .. " or fold")
                 or hand.how == "fold" and ("|cffff6040You folded. The house takes " .. Chips.Text(hand.ante) .. "|r")
                 or ((hand.how == "nofit" and "The dealer doesn't qualify. " or "") .. outcome(hand.staked, hand.back)))
         else
-            t.lines[1]:SetText("Dealer:")
-            t.lines[2]:SetText("Board:")
-            t.lines[3]:SetText("You:")
-            t.lines[4]:SetText("Set your ante as the stake and deal.")
+            dealer.label:SetText("Dealer")
+            board.label:SetText("Board")
+            you.label:SetText("You")
+            for _, sp in ipairs(t.spots) do lay(sp, {}) end
+            t.result:SetText("Set your ante as the stake and deal.")
         end
         t.buttons.Deal:SetEnabled(not playing)
         t.buttons.Call:SetEnabled(playing)
         t.buttons.Fold:SetEnabled(playing)
     elseif game == "Roulette" then
         local r = f.roulette
-        if lastSpin then
+        local spinning = anim ~= nil
+        if spinning then
+            r.result:SetText("No more bets...")
+        elseif lastSpin then
             local won = lastSpin.back - lastSpin.staked
             r.result:SetText(("%s%s|r   %s"):format(COLOR[G.PocketColor(lastSpin.pocket)], lastSpin.pocket,
                 won > 0 and ("|cff40ff40You won " .. Chips.Text(won) .. "|r") or won == 0 and "You broke even"
                 or ("|cffff6040The house takes " .. Chips.Text(-won) .. "|r")))
+            placeWheel(r, lastSpin.pocket, 1)
         else
             r.result:SetText("Place your bets")
         end
@@ -673,23 +931,26 @@ function G.Refresh()
         end
         r.bets:SetText(#parts > 0 and ("On the table (" .. Chips.Text(total) .. "): " .. table.concat(parts, ", "))
             or "Nothing on the table. Set a stake, then click what to bet on. Click again to add more.")
-        r.spin:SetEnabled(#bets > 0)
+        r.spin:SetEnabled(#bets > 0 and not spinning)
+        r.clear:SetEnabled(not spinning)
+        for _, b in ipairs(r.betButtons) do b:SetEnabled(not spinning) end
     else
         local s = f.slots
-        for i = 1, 3 do
-            local sym = lastPull and lastPull.reels[i]
-            s.reels[i]:SetText(sym and ((REEL_COLOR[sym] or "") .. sym .. "|r") or "?")
-        end
-        if lastPull then
-            local won = lastPull.back - lastPull.staked
-            s.result:SetText(won > 0 and ("|cff40ff40You won " .. Chips.Text(won) .. "|r") or ("|cffff6040The house takes " .. Chips.Text(-won) .. "|r"))
+        local rolling = anim ~= nil
+        if rolling then
+            s.result:SetText("Rolling...")
         else
-            s.result:SetText("Set a stake and pull.")
+            for i = 1, 3 do setSymbol(s.reels[i], lastPull and lastPull.reels[i]) end
+            if lastPull then
+                local won = lastPull.back - lastPull.staked
+                s.result:SetText(won > 0 and ("|cff40ff40You won " .. Chips.Text(won) .. "|r") or ("|cffff6040The house takes " .. Chips.Text(-won) .. "|r"))
+            else
+                s.result:SetText("Set a stake and pull.")
+            end
         end
+        s.pull:SetEnabled(not rolling)
     end
     f.status:SetText(note and ("|cffffd100" .. note .. "|r") or "Chips are play chips: they never turn back into gold. The house is the guild.")
-    local lines = G.Feed()
-    f.feed:SetText(#lines > 0 and ("On the floor: " .. table.concat(lines, "  ")) or "Big wins by guildmates show here.")
 end
 
 function G.Toggle()

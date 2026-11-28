@@ -1,7 +1,7 @@
 -- Blind Tiger: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "2.0.0"
+ns.VERSION = "2.1.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")

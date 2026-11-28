@@ -50,10 +50,12 @@ Everything syncs between guild members inside the game. There is no website, no 
 
 **The games floor.** Play your chips against the house, and the house is the guild:
 
-- Roulette, on the American wheel
-- Slots, with a 100-times jackpot for three Tigers
-- Blackjack, with doubling and splitting
+- Roulette, on a spinning American wheel
+- Slots, with rolling reels and a 100-times jackpot for three Tigers
+- Blackjack, with doubling and splitting, dealt in real playing cards
 - Hold'em against the dealer
+
+The games play in pictures, and all of the art is Blind Tiger's own.
 
 Every game is tilted a little toward the house by its rules, and the rules are printed in the window. Nothing is rigged per hand. Big wins show on every guildmate's floor.
 

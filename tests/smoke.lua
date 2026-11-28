@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetAlpha", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
+    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetAlpha", "SetRotation", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
     M[name] = noop
 end
 -- Secure buttons and the frames that hold them are locked while their owner
@@ -2507,6 +2507,66 @@ check(clickText(gm, "Play games") and gm.ns.Casino.frame:IsShown() and clickText
 run(gm, "close floor", function() gm.ns.Casino.frame:Hide() end)
 run(gm, "close chips", function() gm.ns.Chips.frame:Hide() end)
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
+
+-- The floor in pictures: the result is settled at the click, and the moving wheel, reels and cards only show it.
+local floorBefore
+run(member, "open the floor", function()
+    local G = member.ns.Casino
+    G.ANIMATE = true
+    G.Toggle()
+    floorBefore = G.frame.chips:GetText()
+    check(floorBefore:find("chip:13:13", 1, true) ~= nil, "the chip count is shown with chip pictures")
+    script(member, 3)                                    -- the third pocket is 1, a red number
+end)
+check(clickText(member, "Red") and clickText(member, "Spin"), "a bet and a spin from the window")
+run(member, "the wheel turns", function()
+    local G = member.ns.Casino
+    local f = G.frame
+    check(G.Moving() and f.roulette.result:GetText() == "No more bets..." and f.chips:GetText() == floorBefore
+        and not f.roulette.spin:IsEnabled(), "while the wheel turns nothing gives the result away, and no second spin")
+    G.Tick(1)
+    check(G.Moving(), "the wheel takes its time")
+    G.Tick(5)
+    check(not G.Moving() and f.roulette.result:GetText():find("You won 1s", 1, true) ~= nil and f.chips:GetText() ~= floorBefore
+        and f.roulette.spin:IsEnabled() and f.roulette.ball:IsShown(), "when it stops the ball is in the pocket and the win shows")
+    script(member, 20, 20, 20)                           -- three Lemons
+end)
+check(clickText(member, "Slots") and clickText(member, "Pull"), "a pull from the window")
+run(member, "the reels roll", function()
+    local G = member.ns.Casino
+    local f = G.frame
+    check(G.Moving() and f.slots.result:GetText() == "Rolling..." and not f.slots.pull:IsEnabled(), "the reels roll before they show")
+    G.Tick(0.8)
+    check(G.Moving() and f.slots.reels[1].sym == "Lemon", "the first reel stops first")
+    G.Tick(1)
+    check(not G.Moving() and f.slots.reels[3].sym == "Lemon" and f.slots.result:GetText():find("You won 8s", 1, true) ~= nil, "three Lemons pay 9 for 1")
+    script(member, 20, 20, 4)
+end)
+check(clickText(member, "Pull") and clickText(member, "Blackjack"), "leaving a game mid-roll")
+run(member, "cards on the table", function()
+    local G = member.ns.Casino
+    check(not G.Moving(), "changing tables ends the roll; the result already counted")
+    script(member, 9, 1, 8, 1, 5, 1, 6, 1, 4, 1, 9, 1)   -- you 10 and 6; the dealer 9 with a 7 under; you draw a 5; the dealer a 10
+end)
+check(clickText(member, "Deal"), "a deal from the window")
+run(member, "the deal", function()
+    local t = member.ns.Casino.frame.blackjack
+    check(t.spots[1].cards[1].key == "9s" and t.spots[1].cards[2].key == "back" and t.spots[2].cards[1].key == "10s" and t.spots[2].cards[2].key == "6s"
+        and t.spots[2].cards[1]:IsShown() and not t.spots[2].cards[3]:IsShown(), "your cards face up, the dealer's second card face down")
+    check(t.spots[2].cards[2].a == 0, "dealt cards start unseen and fade in")
+    member.ns.Casino.Tick(1)
+    check(t.spots[2].cards[2].a == 1, "and are fully there a moment later")
+end)
+check(clickText(member, "Hit"), "a hit from the window")
+run(member, "the showdown", function()
+    local G = member.ns.Casino
+    local t = G.frame.blackjack
+    check(t.spots[1].cards[2].key == "7s" and t.spots[1].cards[3].key == "10s" and t.spots[2].cards[3].key == "5s" and t.result:GetText():find("You won 1s", 1, true) ~= nil,
+        "the dealer's cards turn over at the end")
+    G.rng = math.random
+    G.frame:Hide()
+    G.ANIMATE = false
+end)
 GROUPS[gm.guid], GROUPS[officer.guid], GROUPS[member.guid], LEADERS[gm.guid], LEADERS[officer.guid], LEADERS[member.guid] =
     partyGroups[1], partyGroups[2], partyGroups[3], partyGroups[4], partyGroups[5], partyGroups[6]
 

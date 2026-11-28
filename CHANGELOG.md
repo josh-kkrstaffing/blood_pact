@@ -1,13 +1,21 @@
 # Changelog
 
+## 2.1.0
+
+- The games floor now plays in pictures. All of the art is Blind Tiger's own, drawn for the addon
+- Roulette: a wheel that spins and a ball that drops into the winning pocket
+- Slots: three reels that roll and stop one at a time, with the Tiger, Seven, Bar, Bell, Cherry and Lemon as symbols, and a pay table in pictures
+- Blackjack and Hold'em: real playing cards dealt onto green felt. The dealer's hidden cards lie face down and turn over at the end
+- Your chip count shows gold, silver and copper chips
+- The result is still settled the moment you click. The moving wheel, reels and cards only show it, and nothing on screen gives it away until they stop
+- The rules, payouts and house edges are unchanged
+
 ## 2.0.0
 
 - The addon is now Blind Tiger, an old word for a speakeasy. Open it with /tiger or /blindtiger
 - This is a fresh start: Blind Tiger keeps its own saved data and does not read or sync with the older addon. DKP, raids and settings begin empty
 - Blind Tiger is for guilds only, and says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 - New branding from the guild's own artwork: the gold one-eyed tiger. Its face marks the title bar, every pop-up window and the addon list; the full emblem is on the About page and sits faintly behind the games floor
-- Guildmates still on Blind Tiger 1.x keep syncing with Blind Tiger
-- Blind Tiger is for guilds only, and now says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 
 - New: the games floor. Open it with "Play games" in the Chips window. You play your chips against the house, and the house is the guild
 - Four games, each against the house:
