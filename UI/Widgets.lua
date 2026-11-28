@@ -51,13 +51,13 @@ local function font(name, file, size, color, base)
 end
 
 W.F = {
-    title     = font("BloodPactFontTitle", TITLE, 15, W.C.text, "GameFontNormalLarge"),
-    header    = font("BloodPactFontHeader", BODY, 14, W.C.gold, "GameFontNormal"),
-    headerSm  = font("BloodPactFontHeaderSmall", BODY, 13, W.C.gold, "GameFontNormalSmall"),
-    body      = font("BloodPactFontBody", BODY, 14, W.C.text, "GameFontHighlight"),
-    bodySm    = font("BloodPactFontBodySmall", BODY, 13, W.C.text, "GameFontHighlightSmall"),
-    muted     = font("BloodPactFontMuted", BODY, 12, W.C.muted, "GameFontDisableSmall"),
-    disabled  = font("BloodPactFontDisabled", BODY, 13, W.C.muted, "GameFontDisable"),
+    title     = font("SpeakeasyFontTitle", TITLE, 15, W.C.text, "GameFontNormalLarge"),
+    header    = font("SpeakeasyFontHeader", BODY, 14, W.C.gold, "GameFontNormal"),
+    headerSm  = font("SpeakeasyFontHeaderSmall", BODY, 13, W.C.gold, "GameFontNormalSmall"),
+    body      = font("SpeakeasyFontBody", BODY, 14, W.C.text, "GameFontHighlight"),
+    bodySm    = font("SpeakeasyFontBodySmall", BODY, 13, W.C.text, "GameFontHighlightSmall"),
+    muted     = font("SpeakeasyFontMuted", BODY, 12, W.C.muted, "GameFontDisableSmall"),
+    disabled  = font("SpeakeasyFontDisabled", BODY, 13, W.C.muted, "GameFontDisable"),
 }
 
 -- Older calls ask for Blizzard font names; map them to ours.

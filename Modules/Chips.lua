@@ -254,7 +254,7 @@ local W = ns.W
 local helping = false
 
 local function build()
-    local f = CreateFrame("Frame", "BloodPactChips", UIParent)
+    local f = CreateFrame("Frame", "SpeakeasyChips", UIParent)
     f:SetSize(420, 380)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)

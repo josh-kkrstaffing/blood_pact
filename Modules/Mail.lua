@@ -87,7 +87,7 @@ function Mail.Body(item, n, left, crafter)
     if n < left then
         text = text .. (" That is %d of the %d still owed; the rest will follow."):format(n, left)
     end
-    text = text .. " When you have it, type /bp, open Professions > Orders and press \"I received it\"."
+    text = text .. " When you have it, type /spk, open Professions > Orders and press \"I received it\"."
     return text:sub(1, Mail.BODY_MAX)
 end
 

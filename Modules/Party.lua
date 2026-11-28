@@ -259,7 +259,7 @@ local W = ns.W
 local helping = false
 
 local function build()
-    local f = CreateFrame("Frame", "BloodPactParty", UIParent)
+    local f = CreateFrame("Frame", "SpeakeasyParty", UIParent)
     f:SetSize(340, 360)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)

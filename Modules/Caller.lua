@@ -264,7 +264,7 @@ local W = ns.W
 local overlay
 
 local function buildOverlay()
-    local f = CreateFrame("Button", "BloodPactCaller", UIParent)
+    local f = CreateFrame("Button", "SpeakeasyCaller", UIParent)
     f:SetSize(340, 86)
     f:SetFrameStrata("HIGH")
     f:SetMovable(true)

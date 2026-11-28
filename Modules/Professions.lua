@@ -182,7 +182,7 @@ end
 ---------------------------------------------------------------------------
 -- Game side: read my skills with whichever API this client has
 ---------------------------------------------------------------------------
--- Returns the skills and a note per API about what it gave, for /bp prof.
+-- Returns the skills and a note per API about what it gave, for /spk prof.
 function P.Read()
     local skills, notes = {}, {}
     local function note(api, text) notes[#notes + 1] = api .. ": " .. text end
@@ -277,7 +277,7 @@ function P.Publish(force)
     return false
 end
 
--- /bp prof: read now, share now, and say what the game gave us. When the
+-- /spk prof: read now, share now, and say what the game gave us. When the
 -- Professions tab stays empty for someone, this output shows why.
 function P.Diagnose()
     local skills, notes = P.Read()
@@ -300,7 +300,7 @@ function P.Diagnose()
         local have = st and st.profs[ns.MyGUID()]
         ns.Print(sharedNow and (ns.Comm.QueueLength() > 0 and "Shared. It reaches the guild when the game lets addon messages through (not inside an instance or battleground)."
             or "Shared with the guild.") or (have and "Already shared; nothing changed."
-            or ("Not shared. Role: %s. Guild data: %s. Type /bp status and send the lines to the addon's author."):format(
+            or ("Not shared. Role: %s. Guild data: %s. Type /spk status and send the lines to the addon's author."):format(
                 tostring(ns.RBAC.RoleOf(ns.MyGUID()) or "none yet"), ns.G() and "loaded" or "not loaded")))
     end
 end
@@ -970,7 +970,7 @@ end, function(p)
     for _ in pairs(ns.roster.byGUID) do total = total + 1 end
     local line = shared .. " of " .. total .. " members have shared their professions."
     if not ns.mock and not profs[ns.MyGUID()] then
-        line = line .. " Yours aren't shared yet: type /bp prof."
+        line = line .. " Yours aren't shared yet: type /spk prof."
     elseif not ns.mock and next(st.recipes[ns.MyGUID()] or {}) == nil then
         line = line .. " Your recipes aren't shared yet: hover the button on the right."
     end

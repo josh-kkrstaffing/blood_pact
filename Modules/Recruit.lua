@@ -557,7 +557,7 @@ ns.On("CHAT_MSG_WHISPER", function(text, sender, _, _, _, _, _, _, _, _, _, guid
     if (guid and ns.roster.byGUID[guid]) or ns.GUIDForName(U.ShortName(sender)) then return end
     local _, new = R.AddReply(R.replies, sender, text:match("^%s*(.-)%s*$"), ns.Now())
     if not new then return end
-    ns.Print(("%s asked for a guild invite. Type /bp, open Recruit and click their name."):format(U.Safe(U.ShortName(sender), 40)))
+    ns.Print(("%s asked for a guild invite. Type /spk, open Recruit and click their name."):format(U.Safe(U.ShortName(sender), 40)))
     if ns.UI and ns.UI.IsOpen and ns.UI.IsOpen() then ns.UI.RefreshSoon() end
 end)
 

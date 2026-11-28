@@ -6,7 +6,7 @@ local _, ns = ...
 local R = {}
 ns.RBAC = R
 
--- Developer character GUIDs. Run /bp whoami on each character and paste here.
+-- Developer character GUIDs. Run /spk whoami on each character and paste here.
 R.ROOT_ADMINS = {
     "Player-6930-004DE880",   -- Binky Bee (developer)
 }

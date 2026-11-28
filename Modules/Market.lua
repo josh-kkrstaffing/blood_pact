@@ -738,7 +738,7 @@ local HEADS = { { "slot", "Slot", 12, 74 }, { "name", "Item", 88, 214 }, { "scor
     { "have", "You have", 380, 70 }, { "up", "Upgrade", 452, 154 }, { "cost", "Cost", 608, 100 } }
 
 local function build()
-    local f = CreateFrame("Frame", "BloodPactMarket", UIParent)
+    local f = CreateFrame("Frame", "SpeakeasyMarket", UIParent)
     f:SetSize(720, 360)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetToplevel(true)

@@ -1,11 +1,12 @@
 # Changelog
 
-## 1.14.0
+## 2.0.0
 
 - The addon has a new name: Speakeasy. It was called Blood Pact, which is still the name of the guild that makes it
-- Nothing is lost in the rename: your DKP, raids, settings and chips carry over, and guildmates on older versions still sync
-- /bp still opens it. /speakeasy and /spk work too
-- In your AddOns folder it is still the BloodPact folder, so the update lands in place
+- Your data carries over. The update installs two folders: Speakeasy, and a small "Blood Pact data carry-over" helper that hands your saved DKP, raids, settings and chips to Speakeasy the first time you log in. After that the helper does nothing and can be switched off
+- The command is now /spk (or /speakeasy)
+- Guildmates still on Blood Pact 1.x keep syncing with Speakeasy
+- Speakeasy is for guilds only, and now says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 
 ## 1.13.0
 

@@ -127,6 +127,6 @@ ns.On("PLAYER_LOGIN", function()
     C_Timer.After(30, function()
         if not ns.RBAC.ICan("roster") or not ns.roster.loaded then return end
         local n = #O.Current()
-        if n > 0 then ns.Print(("%d officer task%s waiting. Type /bp, then Roster > Officer tasks."):format(n, n == 1 and "" or "s")) end
+        if n > 0 then ns.Print(("%d officer task%s waiting. Type /spk, then Roster > Officer tasks."):format(n, n == 1 and "" or "s")) end
     end)
 end)

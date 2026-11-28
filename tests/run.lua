@@ -12,7 +12,7 @@ ns.G = function() return nil end   -- tests pass stores explicitly
 
 local function load(path)
     local chunk = assert(loadfile(path))
-    chunk("BloodPact", ns)
+    chunk("Speakeasy", ns)
 end
 load("Core/Util.lua")
 load("Core/Time.lua")
@@ -689,14 +689,15 @@ test("raid: member can't take attendance; sign-up shows who was there", function
     eq(by["Player-1-MEM1"].showed, nil)
 end)
 
-test("/bp and /bloodpact both open the window", function()
+test("/spk and /speakeasy both open the window", function()
     rawset(_G, "SlashCmdList", {})
     local opened = 0
     ns.UI.Toggle = function() opened = opened + 1 end
     load("Core/Commands.lua")
-    eq(rawget(_G, "SLASH_BLOODPACT1"), "/bp")
-    eq(rawget(_G, "SLASH_BLOODPACT2"), "/bloodpact")
-    local handler = rawget(_G, "SlashCmdList").BLOODPACT
+    eq(rawget(_G, "SLASH_SPEAKEASY1"), "/spk")
+    eq(rawget(_G, "SLASH_SPEAKEASY2"), "/speakeasy")
+    eq(rawget(_G, "SLASH_SPEAKEASY3"), "/bp")
+    local handler = rawget(_G, "SlashCmdList").SPEAKEASY
     handler("")
     handler("   ")
     eq(opened, 2)
@@ -1459,7 +1460,7 @@ test("mail: which stacks to attach, and what the letter says", function()
     eq(M.Subject("Elixir of Minor Defense", 5), "Elixir of Minor Defense x5")
     eq(#M.Subject(("long "):rep(40), 3), M.SUBJECT_MAX)
     local body = M.Body("Runed Copper Rod", 3, 3, "Binky Bee")
-    eq(body, "Speakeasy order: here is your Runed Copper Rod x3, made by Binky Bee. When you have it, type /bp, open Professions > Orders and press \"I received it\".")
+    eq(body, "Speakeasy order: here is your Runed Copper Rod x3, made by Binky Bee. When you have it, type /spk, open Professions > Orders and press \"I received it\".")
     eq(M.Body("Rod", 12, 15, "Bee"):find("That is 12 of the 15 still owed; the rest will follow.", 1, true) ~= nil, true)
     eq(#M.Body(("long "):rep(200), 1, 1, "Bee") <= M.BODY_MAX, true)
 end)

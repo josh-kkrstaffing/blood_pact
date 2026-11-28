@@ -420,7 +420,7 @@ end
 -- Messages between games (whispers only, never the guild channel)
 ---------------------------------------------------------------------------
 local function alertNew(t)
-    ns.Print(("New ticket from %s: %s%s. Type /bp and open Tickets."):format(U.Safe(t.byName or nameOf(t.by), 40),
+    ns.Print(("New ticket from %s: %s%s. Type /spk and open Tickets."):format(U.Safe(t.byName or nameOf(t.by), 40),
         T.CAT_LABEL[t.cat], t.about ~= "" and (", about " .. U.Safe(t.about, 48)) or ""))
 end
 
@@ -554,7 +554,7 @@ local function tick()
         T.Prune(store(), ns.Now())
         if T.IAmStaff() then
             local c = T.Counts(store(), ns.MyGUID())
-            if c.new > 0 then ns.Print(("%d new ticket%s waiting. Type /bp and open Tickets."):format(c.new, c.new == 1 and " is" or "s are")) end
+            if c.new > 0 then ns.Print(("%d new ticket%s waiting. Type /spk and open Tickets."):format(c.new, c.new == 1 and " is" or "s are")) end
         end
     end
     if GetTime() - lastDeliver > 60 then T.Deliver() end

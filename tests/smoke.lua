@@ -181,11 +181,11 @@ local OPTIONAL = {}   -- globals the addon only probes for; fine to be missing
 for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerNumSlots", "GetContainerItemLink",
     "BANK_CONTAINER", "NUM_BAG_SLOTS", "NUM_BANKBAGSLOTS", "Questie", "ERR_GUILD_JOIN_S", "ERR_GUILD_LEAVE_S",
     "ERR_GUILD_REMOVE_SS", "ERR_GUILD_PROMOTE_SSS", "ERR_GUILD_DEMOTE_SSS", "ERR_CHAT_PLAYER_NOT_FOUND_S",
-    "ChatFrame_AddMessageEventFilter", "InviteUnit", "SendChatMessage", "BloodPactDB", "RaidNotice_AddMessage",
+    "ChatFrame_AddMessageEventFilter", "InviteUnit", "SendChatMessage", "SpeakeasyDB", "BloodPactDB", "RaidNotice_AddMessage",
     "RaidWarningFrame", "ChatTypeInfo", "SOUNDKIT", "PlaySound", "PixelUtil", "GameFontNormalLarge", "GameFontNormal",
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
-    "BloodPactFontTitle", "BloodPactFontHeader", "BloodPactFontHeaderSmall", "BloodPactFontBody",
-    "BloodPactFontBodySmall", "BloodPactFontMuted", "BloodPactFontDisabled", "os", "C_Item", "GetSpellInfo",
+    "SpeakeasyFontTitle", "SpeakeasyFontHeader", "SpeakeasyFontHeaderSmall", "SpeakeasyFontBody",
+    "SpeakeasyFontBodySmall", "SpeakeasyFontMuted", "SpeakeasyFontDisabled", "os", "C_Item", "GetSpellInfo",
     "ChatEdit_GetActiveWindow", "ChatFrame_OpenChat", "CreateColor", "IsMetaKeyDown",
     "CharacterFrame", "PVPFrame", "PVPUIFrame", "IsInInstance", "UnitBuff", "issecretvalue",
     "PawnGetItemData", "PawnIsItemAnUpgrade", "PawnIsReady", "PawnCanItemHaveStats", "PawnBigUpgradeThreshold" }) do
@@ -456,7 +456,7 @@ local function tradeWindow() return TRADE[ctx.guid] end
 -- Auctionator's public price API: one reagent has an auction price, one none.
 G.Auctionator = { API = { v1 = {
     GetAuctionPriceByItemID = function(caller, item)
-        assert(caller == "BloodPact", "Auctionator wants the caller's name")
+        assert(caller == "Speakeasy", "Auctionator wants the caller's name")
         return (item == 10940 and 150) or (item == 6218 and 12345) or nil
     end,
     GetVendorPriceByItemID = function() return nil end,
@@ -667,7 +667,7 @@ G.C_ChatInfo = {
         -- Inside a battleground the game refuses addon chat: no error, just a blocked-action event.
         if CHATLOCK[ctx.guid] then
             chatRefused = chatRefused + 1
-            fire(ctx, "ADDON_ACTION_BLOCKED", "BloodPact", "UNKNOWN()")
+            fire(ctx, "ADDON_ACTION_BLOCKED", "Speakeasy", "UNKNOWN()")
             return
         end
         guildChat[#guildChat + 1] = kind .. ":" .. tostring(target) .. ":" .. msg
@@ -697,7 +697,7 @@ G.C_ChatInfo = {
 -- Loading the addon the way the game does: the files in the .toc, in order
 ---------------------------------------------------------------------------
 local FILES = {}
-for line in io.lines("BloodPact.toc") do
+for line in io.lines("Speakeasy.toc") do
     line = line:gsub("\r", "")
     if line ~= "" and line:sub(1, 1) ~= "#" then FILES[#FILES + 1] = (line:gsub("\\", "/")) end
 end
@@ -708,23 +708,30 @@ local function newClient(i)
         online = true }
     clients[c.guid] = c
     ctx = c
-    rawset(G, "BloodPactDB", nil)
+    rawset(G, "SpeakeasyDB", nil)
+    -- The third client still has saved data from when the addon was called Blood Pact.
+    rawset(G, "BloodPactDB", i == 3 and { schema = 1, guilds = {}, ui = { autoBossAward = true, progression = false }, fromBloodPact = true } or nil)
     for _, f in ipairs(FILES) do
         local chunk, err = loadfile(f)
         if not chunk then error(err) end
-        local ok, e = pcall(chunk, "BloodPact", c.ns)
+        local ok, e = pcall(chunk, "Speakeasy", c.ns)
         if not ok then error("loading " .. f .. ": " .. tostring(e)) end
     end
-    c.slash = G.SlashCmdList.BLOODPACT
-    fire(c, "ADDON_LOADED", "BloodPact")
+    c.slash = G.SlashCmdList.SPEAKEASY
+    fire(c, "ADDON_LOADED", "Speakeasy")
+    if i == 3 then
+        assert(c.ns.db.fromBloodPact and c.ns.db.carriedOver and rawget(G, "BloodPactDB") == nil, "saved Blood Pact data carries over to Speakeasy once")
+    else
+        assert(not c.ns.db.carriedOver, "a fresh install starts clean")
+    end
     fire(c, "PLAYER_LOGIN")
     ctx = nil
     return c
 end
 
-local function slash(c, text) inCtx(c, "/bp " .. text, c.slash, text) end
+local function slash(c, text) inCtx(c, "/spk " .. text, c.slash, text) end
 local function open(c)
-    if not c.ns.UI.IsOpen() then inCtx(c, "/bp", c.slash, "") end
+    if not c.ns.UI.IsOpen() then inCtx(c, "/spk", c.slash, "") end
     inCtx(c, "open", function() assert(c.ns.UI.IsOpen(), "the window did not open") end)
 end
 local function run(c, where, fn, ...) inCtx(c, where, fn, ...) end
@@ -772,14 +779,14 @@ end
 local gm = newClient(1)
 local officer = newClient(2)
 advance(5)
-check(said(gm, "loaded. Type /bp"), "login message")
-check(said(gm, "Made by Kitch, of the Blood Pact guild, US East PvP Horde. Type /bp about to find us."), "the first login says who makes the addon")
+check(said(gm, "loaded. Type /spk"), "login message")
+check(said(gm, "Made by Kitch, of the Blood Pact guild, US East PvP Horde. Type /spk about to find us."), "the first login says who makes the addon")
 check(gm.ns.roster.loaded and gm.ns.roster.complete, "roster loads and is complete")
 check(gm.ns.RBAC.RoleOf(gm.guid) == "gm" and officer.ns.RBAC.RoleOf(officer.guid) == "officer", "roles from ranks")
 
 -- 2. Open the window, visit every tab, press everything (real guild, not mock).
 open(gm)
-check(gm.ns.UI.IsOpen(), "the first /bp opens the window")
+check(gm.ns.UI.IsOpen(), "the first /spk opens the window")
 slash(gm, "whoami")
 slash(gm, "status")
 advance(1)
@@ -979,8 +986,8 @@ slash(gm, "prof")
 slash(member, "prof")
 run(gm, "prof command", function()
     check(said(gm, "Your professions: Enchanting 280/300, Tailoring 300/300, Cooking 225/300, First Aid 300/300, Fishing 40/75"),
-        "/bp prof shows what the game reported")
-    check(said(gm, "Already shared"), "/bp prof says when nothing changed")
+        "/spk prof shows what the game reported")
+    check(said(gm, "Already shared"), "/spk prof says when nothing changed")
 end)
 
 -- Recipes: the GM opens Enchanting; the recipes they know reach the guild.
@@ -1015,7 +1022,7 @@ run(officer, "recipes arrive", function()
     check(#crafters == 1 and crafters[1].guid == gm.guid, "the crafter is listed under Enchanting")
 end)
 slash(gm, "recipes")
-check(said(gm, "Open one of your profession windows first."), "/bp recipes explains itself with no window open")
+check(said(gm, "Open one of your profession windows first."), "/spk recipes explains itself with no window open")
 
 -- PvP rank: read by each player's own addon and shown on everyone's roster.
 advance(150)
@@ -1030,7 +1037,7 @@ run(member, "pvp ranks", function()
     check(row and row.pvp and member.ns.PvP.Icon(row.pvp.r) == "Interface\\PvPRankBadges\\PvPRank07"
         and member.ns.PvP.Title(row.pvp.r, "Horde") == "Blood Guard", "the roster row carries the rank badge and its title")
 end)
-check(said(gm, "Your PvP rank: 7, Blood Guard."), "/bp pvp shows what the game reported")
+check(said(gm, "Your PvP rank: 7, Blood Guard."), "/spk pvp shows what the game reported")
 
 -- Crafting orders: a Member orders from the GM (who shared Enchanting recipes).
 local orderId, wantedId
@@ -1122,7 +1129,7 @@ local rodId
 run(member, "order rods", function() rodId = assert(member.ns.Orders.Create(7421, "Enchanting", 3, "crafter", "", gm.guid)).id end)
 advance(10)
 slash(gm, "mail")
-check(said(gm, "Open a mailbox first."), "/bp mail explains itself away from a mailbox")
+check(said(gm, "Open a mailbox first."), "/spk mail explains itself away from a mailbox")
 run(gm, "accept rods", function() assert(gm.ns.Orders.Update(rodId, "accept", 24)) end)
 advance(10)
 -- In the GM's bags: stacks of 2 and 1, a stack of 5 (too many), and a bound one.
@@ -1264,7 +1271,7 @@ local function queueNames(c)
     return table.concat(names, ",")
 end
 slash(officer, "summon")
-check(said(officer, "Only a warlock gets a summon queue."), "/bp summon tells a non-warlock how to ask instead")
+check(said(officer, "Only a warlock gets a summon queue."), "/spk summon tells a non-warlock how to ask instead")
 chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
 chat(officer, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)
 chat(gm, "CHAT_MSG_PARTY", "123", "Pip", MEMBER)                       -- asking twice
@@ -1572,7 +1579,7 @@ advance(2)
 run(gm, "replies", function()
     local R = gm.ns.Recruit
     check(#R.replies == 1 and R.replies[1].name == MOLDY .. REALM, "a whispered 'inv' from outside the guild is listed once")
-    check(said(gm, MOLDY .. " asked for a guild invite. Type /bp, open Recruit and click their name."), "the recruiter is told in chat")
+    check(said(gm, MOLDY .. " asked for a guild invite. Type /spk, open Recruit and click their name."), "the recruiter is told in chat")
     check(#member.ns.Recruit.replies == 0, "members who can't recruit get no list")
     check(rp.h3:GetText() == "3. They replied (1). Click a name to copy their guild invite", "step 3 shows who is waiting")
 end)
@@ -1900,7 +1907,7 @@ advance(8)
 run(gm, "ticket arrives", function()
     local t = gm.ns.Tickets.Store()[ticketId]
     check(t ~= nil and t.by == MEMBER and t.status == "new" and t.about == "Vela" and t.cat == "lang", "a Team Captain or above receives the ticket")
-    check(said(gm, "New ticket from Pip: Language or harassment, about Vela. Type /bp and open Tickets."), "and is told a ticket came in")
+    check(said(gm, "New ticket from Pip: Language or harassment, about Vela. Type /spk and open Tickets."), "and is told a ticket came in")
 end)
 run(officer, "every staff member has it", function()
     check(officer.ns.Tickets.Store()[ticketId] ~= nil, "the other staff online get it too")
@@ -2097,7 +2104,7 @@ end)
 advance(5)
 
 slash(member, "status")
-check(said(member, "| role member | guild key ") and said(member, "Saved guild data: "), "/bp status prints the troubleshooting lines")
+check(said(member, "| role member | guild key ") and said(member, "Saved guild data: "), "/spk status prints the troubleshooting lines")
 
 -- Inviting from the Roster: to a party, to a raid when the party is full, or through the leader.
 run(gm, "roster invite", function()
@@ -2743,8 +2750,8 @@ end)
 
 -- About: who makes it and where to join.
 slash(member, "about")
-check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/bp about gives the Discord link")
-check(said(member, "Made by Kitch, of the Blood Pact guild, US East PvP Horde."), "/bp about says who made it")
+check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/spk about gives the Discord link")
+check(said(member, "Made by Kitch, of the Blood Pact guild, US East PvP Horde."), "/spk about says who made it")
 run(member, "credit in the window", function()
     open(member)
     local places, visible = 0, 0
@@ -2756,7 +2763,7 @@ run(member, "credit in the window", function()
     end
     check(visible >= 1, "the window's corner says who made it")
     check(places == 2, "and so does the About page")
-    check(member.ns.VERSION:match("^1%.") ~= nil, "this is a 1.x release")
+    check(member.ns.VERSION:match("^2%.") ~= nil, "this is a 2.x release")
 end)
 run(member, "about panel", function()
     local seen = false

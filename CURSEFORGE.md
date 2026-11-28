@@ -1,12 +1,14 @@
 Made by **Kitch**, of the Blood Pact guild, US East PvP Horde, on WoW Forever. Looking for a guild, or want to follow the addon? Join our Discord: https://discord.gg/hfCKk6kED
 
+**For guilds only.** Speakeasy works inside one guild and shares only with its members. Its games use play chips among guildmates and are not for the public.
+
 # Speakeasy
 
 Speakeasy is a free, open-source guild management addon for World of Warcraft: Forever (client 1.60.1). It gives a guild one shared window for recruiting, the roster, professions and crafting orders, gear readiness, raids, summons, DKP and loot, and player tickets.
 
 Everything syncs between guild members inside the game. There is no website, no account, no companion app and no outside server: your guild's data stays in your guild.
 
-Open it with `/bp` or `/bloodpact`.
+Open it with `/spk` or `/bloodpact`.
 
 ## What's in it
 

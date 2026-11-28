@@ -101,7 +101,7 @@ local W = ns.W
 local raidId, shown, lastNote
 
 local function build()
-    local f = CreateFrame("Frame", "BloodPactDrink", UIParent)
+    local f = CreateFrame("Frame", "SpeakeasyDrink", UIParent)
     f:SetSize(520, 330)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)

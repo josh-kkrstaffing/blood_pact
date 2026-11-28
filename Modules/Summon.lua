@@ -186,12 +186,12 @@ local function onMessage(msg, _, sguid)
         for _, w in ipairs(S.Warlocks(ns.roster.byGUID)) do
             if w.guid == me then near = #w.near end
         end
-        alert(("%s asks for a summon%s. %d guildmate%s in your zone. Type /bp and open Summon."):format(
+        alert(("%s asks for a summon%s. %d guildmate%s in your zone. Type /spk and open Summon."):format(
             who, data.note and (" (" .. U.Safe(data.note, 60) .. ")") or "", near, near == 1 and "" or "s"))
     elseif what == "claimed" then
         alert(who .. " is inviting you for a summon. Accept the group invite.")
     elseif what == "call" and data.zone == myZone() then
-        alert(("%s needs %d people to click a summoning portal in %s. Type /bp and open Summon."):format(
+        alert(("%s needs %d people to click a summoning portal in %s. Type /spk and open Summon."):format(
             who, S.HELPERS, U.Safe(data.zone, 48)))
     elseif what == "offer" then
         alert(who .. " will help click your summoning portal.")

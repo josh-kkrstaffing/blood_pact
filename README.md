@@ -2,6 +2,8 @@
 
 Made by **Kitch**, of the **Blood Pact** guild, US East PvP Horde, on WoW Forever. Looking for a guild or want to follow the addon? Join us on Discord: https://discord.gg/hfCKk6kED
 
+**For guilds only.** Speakeasy works inside one guild and shares only with its members. Its games use play chips among guildmates and are not for the public.
+
 Guild management for **World of Warcraft: Forever**: DKP and loot, raid sign-ups, roster, professions and crafting orders, BiS check, warlock summons, recruiting and tickets. Free, open source, and no website or account needed.
 
 > Speakeasy is a fan-made addon. It is not made, endorsed, sponsored or supported by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.
@@ -21,13 +23,13 @@ Roster > Statics holds the guild's fixed 10-player raid teams, one per Team Capt
 
 Crafting orders stay inside the guild. Orders > New order lists every recipe the guild has shared, by profession, so you can order without finding a crafter first; Wanted orders show in To craft for every crafter who has shared that recipe. If you have the Auctionator addon, recipes and orders show an estimated material cost from its last auction scan (Speakeasy never scans or buys anything itself). Press Order on any recipe in a crafter's list to ask that crafter, or Post as Wanted to ask any guild crafter who has shared the recipe. The crafter accepts with a promised turnaround (2, 8, 24 or 48 hours), marks it ready, and the member who asked confirms delivery; everyone sees the status. Orders travel only on the guild's addon channel, the one whisper goes to a guild member from the player's own click, and the item is handed over by the players themselves. At a mailbox, Speakeasy lists the orders you have accepted and fills in the game's Send Mail form for one of them (the member who ordered, the item as the subject, a message, and the items from your bags); you check it and press Send, and the game takes the postage. Speakeasy never sends mail on its own. Once the full amount is mailed the order reads In transit for the whole guild, and it is complete when the member who ordered confirms they have it.
 
-PvP rank shows on the Roster as the game's own rank badge to the left of each name; hover a row for the rank's number and title. The guild roster doesn't carry PvP rank, so each player's addon reads their own and shares it when it changes. `/bp pvp` does it on demand.
+PvP rank shows on the Roster as the game's own rank badge to the left of each name; hover a row for the rank's number and title. The guild roster doesn't carry PvP rank, so each player's addon reads their own and shares it when it changes. `/spk pvp` does it on demand.
 
 Loot history comes from the loot charges officers record in Raid & Loot. Select a member in the Roster and press Loot to see what they've received (linked alts count together), or open Raid & Loot > Loot history for the guild's loot night by night, visible to every member. Item names, icons and the stats tooltip are the game's own, looked up by item id; nothing is bundled or downloaded. Only loot charged through Speakeasy with the item attached is listed.
 
-The Professions tab lists the guild by profession: pick one on the left and see who has it on the right, with their skill level and a bar against their current cap. Only a player's own client can read their skills, so each player's addon reads them (two professions plus First Aid, Cooking and Fishing) and shares them with the guild when they change. Press Level to flip the order; filter by player name, online only, or alts. The profession icons are the game's own; none are bundled. If your own professions don't show, type `/bp prof`.
+The Professions tab lists the guild by profession: pick one on the left and see who has it on the right, with their skill level and a bar against their current cap. Only a player's own client can read their skills, so each player's addon reads them (two professions plus First Aid, Cooking and Fishing) and shares them with the guild when they change. Press Level to flip the order; filter by player name, online only, or alts. The profession icons are the game's own; none are bundled. If your own professions don't show, type `/spk prof`.
 
-Click a crafter to see the recipes they know. The game shows a character's recipes only to that character, and only while the profession window is open, so each player opens each profession once and Speakeasy records and shares the list (recipe ids only; names come from each viewer's own game). Newly learned recipes are added the next time the window is open. `/bp recipes` does it on demand.
+Click a crafter to see the recipes they know. The game shows a character's recipes only to that character, and only while the profession window is open, so each player opens each profession once and Speakeasy records and shares the list (recipe ids only; names come from each viewer's own game). Newly learned recipes are added the next time the window is open. `/spk recipes` does it on demand.
 
 Activity counts per player: a main is active if any of their alts was online, or they signed up for or attended a raid. The Officer tasks view lists cleanup candidates, Initiates who meet the guild's promotion rule, alts whose rank doesn't match their main, and new members to check for alts. Officers claim tasks and mark them done for everyone. WoW Forever doesn't let addons change ranks or remove members, so each task copies the command for an officer to run by hand.
 
@@ -35,7 +37,7 @@ Activity counts per player: a main is active if any of their alts was online, or
 
 WoW Forever has no summoning stones, so a warlock's Ritual of Summoning is the only summon, and it needs the warlock plus two more group members to click the portal. The Summon tab lists the guild's online warlocks with how many guildmates are in each one's zone. Anyone can ask for a summon; warlocks with the addon are alerted. The warlock picks the request and presses one button to invite the asker and up to two guildmates from their zone, or calls for clickers. Every invite and message is a click by a player. A warlock who is in a group they don't lead can't invite, so the same click asks the group's leader to do it, with one whisper.
 
-Warlocks also get a summon queue. Anyone types `123` in raid, party or guild chat, or whispers it to the warlock, and their name joins a small list on the warlock's screen. Clicking a name casts Ritual of Summoning on that player through the game's own secure button (one click, one cast); right-click targets them. Only guild members and people already in the warlock's group are listed. The warlock can change the keyword, and `/bp summon` opens the list. Speakeasy reads the keyword from chat the player already sees; it sends nothing in reply.
+Warlocks also get a summon queue. Anyone types `123` in raid, party or guild chat, or whispers it to the warlock, and their name joins a small list on the warlock's screen. Clicking a name casts Ritual of Summoning on that player through the game's own secure button (one click, one cast); right-click targets them. Only guild members and people already in the warlock's group are listed. The warlock can change the keyword, and `/spk summon` opens the list. Speakeasy reads the keyword from chat the player already sees; it sends nothing in reply.
 
 Warlocks of Team Captain rank and above also get two summon messages, sent only while they cast their own Ritual of Summoning: a whisper to the player being summoned, and, if the portal is still short of clickers a few seconds after it appears, one line in raid or party chat naming the group members standing nearby who aren't clicking. Both texts can be edited and each has an off switch (Messages, at the top of the summon queue).
 
@@ -104,10 +106,10 @@ Speakeasy sends **no data outside the game**. It has no website, server or datab
 
 ## Commands
 
-- `/bp` opens the window (also in the addon compartment menu).
-- `/bp whoami` shows your character ID and role.
-- `/bp mock on` starts a solo test mode with 19 fake guildmates. Try `/bp mock boss`, `/bp mock award` and `/bp mock forge`, then `/bp mock off`. Mock data never leaves your client.
-- `/bp status` shows sync details.
+- `/spk` opens the window (also in the addon compartment menu).
+- `/spk whoami` shows your character ID and role.
+- `/spk mock on` starts a solo test mode with 19 fake guildmates. Try `/spk mock boss`, `/spk mock award` and `/spk mock forge`, then `/spk mock off`. Mock data never leaves your client.
+- `/spk status` shows sync details.
 
 ## Tests
 

@@ -1,4 +1,8 @@
-package-as: BloodPact
+package-as: Speakeasy
+
+# The old folder name, kept as a tiny helper so saved data carries over the rename.
+move-folders:
+  Speakeasy/Carryover: BloodPact
 
 ignore:
   - tests

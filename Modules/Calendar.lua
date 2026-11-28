@@ -42,7 +42,7 @@ function C.Add(r)
     local ok, err = pcall(function()
         api.CreateGuildSignUpEvent()
         api.EventSetTitle(r.title)
-        api.EventSetDescription(("%s - %s. Sign up here or in Speakeasy (/bp)."):format(r.raid, r.prog and "progression" or "farm"))
+        api.EventSetDescription(("%s - %s. Sign up here or in Speakeasy (/spk)."):format(r.raid, r.prog and "progression" or "farm"))
         if api.EventSetType and Enum and Enum.CalendarEventType and Enum.CalendarEventType.Raid then
             api.EventSetType(Enum.CalendarEventType.Raid)
         end

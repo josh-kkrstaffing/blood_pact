@@ -1,0 +1,9 @@
+## Interface: 16001
+## Title: Speakeasy: Blood Pact data carry-over
+## Notes: Speakeasy used to be called Blood Pact. This small helper hands your saved Blood Pact data to Speakeasy the first time you log in. After that you can switch it off or delete it.
+## Author: Kitch (Blood Pact guild, US East PvP Horde)
+## Version: 2.0.0
+## SavedVariables: BloodPactDB
+## X-License: MIT
+
+Carryover.lua

@@ -6,7 +6,7 @@ local _, ns = ...
 local C = {}
 ns.Comm = C
 
-C.PREFIX = "BloodPact"
+C.PREFIX = "BloodPact"   -- the addon channel name from before the rename: old and new versions must share it to sync
 local CHUNK = 220            -- payload bytes per message, leaving room for the header
 local MAX_PARTS = 64         -- largest payload we accept: 64 * 220 bytes
 local REASSEMBLY_TIMEOUT = 60
@@ -90,7 +90,7 @@ local function pump()
             -- Some builds throw instead of returning a code during lockdown.
             local called, result = pcall(C_ChatInfo.SendAddonMessage, C.PREFIX, item.msg, item.dist, target)
             if not called then
-                C.lastError = tostring(result):sub(1, 120)      -- shown by /bp status, to tell a real error from the lockdown
+                C.lastError = tostring(result):sub(1, 120)      -- shown by /spk status, to tell a real error from the lockdown
                 result = RESULT_LOCKDOWN
             end
             if result == true or result == nil then result = RESULT_OK end

@@ -2,24 +2,23 @@
 local _, ns = ...
 
 local function help()
-    ns.Print("/bp or /bloodpact - open or close the window")
-    ns.Print("/bp whoami - show your character GUID and role")
-    ns.Print("/bp sync - announce your data to the guild now")
-    ns.Print("/bp mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
-    ns.Print("/bp status - sync and message queue details")
-    ns.Print("/bp about - who makes Speakeasy and how to join us")
-    ns.Print("/bp prof - read your professions now, share them, and show what the game reported")
-    ns.Print("/bp recipes - with a profession window open: record and share its recipes now")
-    ns.Print("/bp pvp - read your PvP rank now, share it, and show what the game reported")
-    ns.Print("/bp mail - at a mailbox: list the crafting orders you can mail")
-    ns.Print("/bp summon - warlocks: open the summon queue (people type 123 to join it)")
+    ns.Print("/spk or /bloodpact - open or close the window")
+    ns.Print("/spk whoami - show your character GUID and role")
+    ns.Print("/spk sync - announce your data to the guild now")
+    ns.Print("/spk mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
+    ns.Print("/spk status - sync and message queue details")
+    ns.Print("/spk about - who makes Speakeasy and how to join us")
+    ns.Print("/spk prof - read your professions now, share them, and show what the game reported")
+    ns.Print("/spk recipes - with a profession window open: record and share its recipes now")
+    ns.Print("/spk pvp - read your PvP rank now, share it, and show what the game reported")
+    ns.Print("/spk mail - at a mailbox: list the crafting orders you can mail")
+    ns.Print("/spk summon - warlocks: open the summon queue (people type 123 to join it)")
 end
 
-SLASH_BLOODPACT1 = "/bp"
-SLASH_BLOODPACT2 = "/bloodpact"
-SLASH_BLOODPACT3 = "/speakeasy"
-SLASH_BLOODPACT4 = "/spk"
-SlashCmdList.BLOODPACT = function(input)
+SLASH_SPEAKEASY1 = "/spk"
+SLASH_SPEAKEASY2 = "/speakeasy"
+SLASH_SPEAKEASY3 = "/bp"          -- the old command, kept quietly for habit
+SlashCmdList.SPEAKEASY = function(input)
     local cmd, rest = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = (cmd or ""):lower()
     if cmd == "" then
@@ -73,6 +72,6 @@ SlashCmdList.BLOODPACT = function(input)
 end
 
 -- Named in the TOC as AddonCompartmentFunc.
-function BloodPact_OnCompartmentClick()
+function Speakeasy_OnCompartmentClick()
     ns.UI.Toggle()
 end

@@ -1,7 +1,7 @@
 -- Speakeasy: addon bootstrap, event dispatch, saved data, guild roster cache.
 local ADDON, ns = ...
 ns.ADDON = ADDON
-ns.VERSION = "1.14.0"
+ns.VERSION = "2.0.0"
 
 local handlers = {}
 local frame = CreateFrame("Frame")
@@ -73,8 +73,15 @@ end
 
 ns.On("ADDON_LOADED", function(name)
     if name ~= ADDON then return end
-    BloodPactDB = BloodPactDB or {}
-    local db = BloodPactDB
+    -- Carry-over from before the rename: the small "BloodPact" addon that ships
+    -- alongside loads the old saved data, and Speakeasy adopts it once.
+    if SpeakeasyDB == nil and type(BloodPactDB) == "table" then
+        SpeakeasyDB = BloodPactDB
+        SpeakeasyDB.carriedOver = true
+        BloodPactDB = nil
+    end
+    SpeakeasyDB = SpeakeasyDB or {}
+    local db = SpeakeasyDB
     db.schema = db.schema or 1
     db.guilds = db.guilds or {}
     db.ui = db.ui or { autoBossAward = true, progression = false }
@@ -154,27 +161,30 @@ function ns.NameForGUID(guid)
 end
 
 -- Who makes this addon, and where to find them. Shown in the About panel,
--- by /bp about, and once in chat the first time the addon runs.
+-- by /spk about, and once in chat the first time the addon runs.
 ns.ABOUT = {
     author = "Kitch",
     guild = "Blood Pact",
     home = "US East PvP Horde",
     discord = "https://discord.gg/hfCKk6kED",
 }
+-- Speakeasy is a guild's own tool. Said in the About panel, on CurseForge and in the readme.
+ns.GUILDS_ONLY = "For guilds only: Speakeasy works inside one guild and shares only with its members. Its games use play chips among guildmates and are not for the public."
 function ns.AboutLines()
     local a = ns.ABOUT
     return {
         "Speakeasy v" .. ns.VERSION .. ", a free guild management addon for WoW Forever.",
         ("Made by %s, of the %s guild, %s."):format(a.author, a.guild, a.home),
+        ns.GUILDS_ONLY,
         "Join us on Discord: " .. a.discord,
     }
 end
 
 ns.On("PLAYER_LOGIN", function()
-    ns.Print("v" .. ns.VERSION .. " loaded. Type /bp or /speakeasy to open.")
+    ns.Print("v" .. ns.VERSION .. " loaded. Type /spk or /speakeasy to open.")
     if ns.db and ns.db.ui and not ns.db.ui.aboutSeen then
         ns.db.ui.aboutSeen = true
-        ns.Print(("Made by %s, of the %s guild, %s. Type /bp about to find us."):format(ns.ABOUT.author, ns.ABOUT.guild, ns.ABOUT.home))
+        ns.Print(("Made by %s, of the %s guild, %s. Type /spk about to find us."):format(ns.ABOUT.author, ns.ABOUT.guild, ns.ABOUT.home))
     end
     if C_GuildInfo and C_GuildInfo.GuildRoster then C_GuildInfo.GuildRoster() end
 end)

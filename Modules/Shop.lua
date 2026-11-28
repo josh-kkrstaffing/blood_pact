@@ -213,7 +213,7 @@ local W = ns.W
 local helping = false
 
 local function build()
-    local f = CreateFrame("Frame", "BloodPactShop", UIParent)
+    local f = CreateFrame("Frame", "SpeakeasyShop", UIParent)
     f:SetSize(560, 330)
     f:SetFrameStrata("FULLSCREEN_DIALOG")
     f:SetToplevel(true)

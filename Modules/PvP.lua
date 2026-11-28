@@ -2,7 +2,7 @@
 -- The guild roster doesn't carry PvP rank, so each player's own addon reads
 -- theirs and shares the number (0 to 14) with the guild when it changes.
 -- WoW Forever tracks rank as a 0-14 bar; older clients have UnitPVPRank.
--- Both are tried. /bp pvp shows what the game reported.
+-- Both are tried. /spk pvp shows what the game reported.
 local _, ns = ...
 local V = {}
 ns.PvP = V
@@ -50,7 +50,7 @@ end
 ---------------------------------------------------------------------------
 -- Game side
 ---------------------------------------------------------------------------
--- -> my rank (0-14) or nil when the game wouldn't say, plus notes for /bp pvp.
+-- -> my rank (0-14) or nil when the game wouldn't say, plus notes for /spk pvp.
 function V.Read()
     local notes, rank = {}, nil
     if type(UnitPVPRank) == "function" then
@@ -96,7 +96,7 @@ function V.MyFaction()
     return ok and faction or "Horde"
 end
 
--- /bp pvp
+-- /spk pvp
 function V.Diagnose()
     local rank, notes = V.Read()
     if rank == nil then
@@ -144,9 +144,9 @@ V.HOWTO = {
     "1. Open your character sheet (Character).",
     "2. Click the Player vs. Player tab so the game loads your rank.",
     "3. Speakeasy reads your rank and shares it with the guild a moment later.",
-    "You can also type /bp pvp to share it right away.",
+    "You can also type /spk pvp to share it right away.",
 }
-V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Speakeasy shares it a moment later (or type /bp pvp)."
+V.HOWTO_SHORT = "To share your PvP rank: open Character > Player vs. Player. Speakeasy shares it a moment later (or type /spk pvp)."
 
 -- Opening the character sheet or its PvP tab: read the rank and share it soon.
 local function hookShow(frame)

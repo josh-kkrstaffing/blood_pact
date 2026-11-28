@@ -154,7 +154,7 @@ saveLayout = function()
 end
 
 local function build()
-    frame = CreateFrame("Frame", "BloodPactMainFrame", UIParent)
+    frame = CreateFrame("Frame", "SpeakeasyMainFrame", UIParent)
     local saved = ns.db.ui.frame
     -- A new window opens at a comfortable size; a saved one comes back as it was
     -- (the open tab then grows it if it needs more room).
@@ -182,7 +182,7 @@ local function build()
     bar:RegisterForDrag("LeftButton")
     bar:SetScript("OnDragStart", function() frame:StartMoving() end)
     bar:SetScript("OnDragStop", function() frame:StopMovingOrSizing(); saveLayout() end)
-    tinsert(UISpecialFrames, "BloodPactMainFrame")
+    tinsert(UISpecialFrames, "SpeakeasyMainFrame")
 
     local title = W.Text(bar, "SPEAKEASY", "GameFontNormalLarge")
     title:SetPoint("LEFT", 14, 0)
@@ -324,7 +324,7 @@ function UI.Toggle()
             ns.Print("The window couldn't open: " .. tostring(err))
             return
         end
-        -- A new frame starts out shown, so the first /bp opens it.
+        -- A new frame starts out shown, so the first /spk opens it.
         frame:Show()
         UI.Refresh()
         return
