@@ -14,7 +14,7 @@ local U, RBAC, Red = ns.U, ns.RBAC, ns.Reducer
 
 P.COOLDOWN = 10        -- seconds between presses
 P.MAX_LINE = 60
-P.DEFAULT = { "Take a drink!", "Take a shot!", "Take a puff!", "Bottoms up!", "Cheers, Blood Pact!", "Holler and swaller!" }
+P.DEFAULT = { "Take a drink!", "Take a shot!", "Take a puff!", "Bottoms up!", "Cheers, Blind Tiger!", "Holler and swaller!" }
 P.HOWTO = {
     "Party is for raid nights. The raid leader and assists press it; the whole raid sees a raid warning with the line, the same as typing /rw.",
     "It works in a five-player party too: the party leader presses it. The line goes to party chat, and party members with Blind Tiger also get the big on-screen text.",

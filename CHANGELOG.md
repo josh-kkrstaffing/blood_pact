@@ -2,11 +2,11 @@
 
 ## 2.0.0
 
-- The addon has a new name: Blind Tiger. It was called Blood Pact, which is still the name of the guild that makes it
-- Your data carries over. The update installs two folders: BlindTiger, and a small "Blood Pact data carry-over" helper that hands your saved DKP, raids, settings and chips to Blind Tiger the first time you log in. After that the helper does nothing and can be switched off
-- The command is now /tiger (or /blindtiger)
+- The addon is now Blind Tiger, an old word for a speakeasy. Open it with /tiger or /blindtiger
+- This is a fresh start: Blind Tiger keeps its own saved data and does not read or sync with the older addon. DKP, raids and settings begin empty
+- Blind Tiger is for guilds only, and says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 - New branding from the guild's own artwork: the gold one-eyed tiger. Its face marks the title bar, every pop-up window and the addon list; the full emblem is on the About page and sits faintly behind the games floor
-- Guildmates still on Blood Pact 1.x keep syncing with Blind Tiger
+- Guildmates still on Blind Tiger 1.x keep syncing with Blind Tiger
 - Blind Tiger is for guilds only, and now says so in About: it works inside one guild, shares only with its members, and its games use play chips among guildmates
 
 - New: the games floor. Open it with "Play games" in the Chips window. You play your chips against the house, and the house is the guild
@@ -50,7 +50,7 @@
 ## 1.11.0
 
 - New Party button in the title bar, on every tab. The raid leader or an assist presses it and the raid gets a raid warning such as "Take a drink!", the same as /rw, so everyone sees it with or without the addon
-- Raiders with Blood Pact also hear the line spoken. "Play party sounds" turns that off for you
+- Raiders with Blind Tiger also hear the line spoken. "Play party sounds" turns that off for you
 - A sound board of lines: Next plays them in order, Random picks one, or click a line. Team Captains and above can add lines and switch them off, and the list syncs to the guild
 - Word of the night: type the word and announce it to the raid
 - A ten-second cooldown, and only the raid leader and assists can press it
@@ -84,7 +84,7 @@
 - BiS Check: new "Find upgrades for sale" button opens an auction house scan for your spec. It works for every class and spec, from the same pre-raid lists as the BiS Check tab
 - It looks up every item on your list that ranks above what you own, and shows the ones for sale with the cheapest buyout for each, biggest upgrade first
 - Set the least and the most gold you will pay for one item. Changing the range re-filters the results without a new scan
-- One Buy click buys one item at the price on the button. The game needs your own click for every purchase, so nothing is bought for you, and Blood Pact never bids
+- One Buy click buys one item at the price on the button. The game needs your own click for every purchase, so nothing is bought for you, and Blind Tiger never bids
 - Random-enchantment items ("of Shadow Wrath", "of Magic") are matched by their full name, so another enchantment of the same item is not offered
 - Quest rewards and Tier 0.5 pieces are skipped because they can't be sold
 - "How does this work?" in the window explains the steps
@@ -160,7 +160,7 @@
 
 - Professions: advertise your crafting in Trade chat. Open your own recipe list, press Link on up to four recipes, and "Post in Trade chat" sends a line such as "[Enchanting] 225/300 LFW in Undercity. Tips appreciated." with those recipes as clickable links
 - The city is filled in from where you are standing, and you can change the words after it
-- One post per click and no more than one a minute; Blood Pact never repeats it by itself. It needs the Trade channel, so it works in a city
+- One post per click and no more than one a minute; Blind Tiger never repeats it by itself. It needs the Trade channel, so it works in a city
 - Recipe links are long, so four of them go out as two chat lines
 
 ## 1.2.0
@@ -207,7 +207,7 @@
 
 ## 1.0.3
 
-- Roster: a "How do I share my PvP rank?" button at the bottom right. Hover it for the steps: open Character > Player vs. Player, and Blood Pact shares the rank a moment later (or type /bp pvp)
+- Roster: a "How do I share my PvP rank?" button at the bottom right. Hover it for the steps: open Character > Player vs. Player, and Blind Tiger shares the rank a moment later (or type /bp pvp)
 - Opening the character sheet or its Player vs. Player tab now reads your PvP rank and shares it a few seconds later
 - A member's details say "not shared yet (see the button below)" when their rank hasn't come in
 
@@ -218,12 +218,12 @@
 
 ## 1.0.1
 
-- Professions: a "How do I share my recipes?" button at the bottom of the Crafters view. Hover it for the steps: open Character > Professions, click the link bubble on each profession, and Blood Pact records the recipes and shares them with the guild
+- Professions: a "How do I share my recipes?" button at the bottom of the Crafters view. Hover it for the steps: open Character > Professions, click the link bubble on each profession, and Blind Tiger records the recipes and shares them with the guild
 - The footer says when your own recipes aren't shared yet, and an empty recipe list gives the same steps
 
 ## 1.0.0
 
-Blood Pact is out of beta. This is the first full release.
+Blind Tiger is out of beta. This is the first full release.
 
 - "Made by Kitch" now shows in the corner of the window, on the About page, in `/bp about` and in the game's addon list
 - Recruit stays Team Captain and above only: the zone scan checks the player's rank itself, on top of the tab being hidden
@@ -235,7 +235,7 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.26.2
 
-- Recruit: the game blocks a guild invite whose chat line an addon wrote ("blocked from an action only available to the Blizzard UI"), so Blood Pact no longer writes anything into the chat box for an invite
+- Recruit: the game blocks a guild invite whose chat line an addon wrote ("blocked from an action only available to the Blizzard UI"), so Blind Tiger no longer writes anything into the chat box for an invite
 - Click a name under "They replied" and the full invite, `/ginvite` plus the name spelled exactly, appears in a copy box, already selected. Press Ctrl+C, then in chat press Enter, Ctrl+V, Enter
 - After Ctrl+C the copy box lets go of the keyboard, so the next Enter opens chat, and the name is marked "copied"
 
@@ -269,7 +269,7 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.24.0
 
-- A new look: every Blood Pact window is a pane of dark glass that lets a little of the game world show through, with a pale haze that is brightest at the top, hairline edges and tinted buttons and fields
+- A new look: every Blind Tiger window is a pane of dark glass that lets a little of the game world show through, with a pale haze that is brightest at the top, hairline edges and tinted buttons and fields
 - A button in the title bar switches between Frosted (the default), Clear (more see-through) and Solid (as before). The game doesn't let addons blur what is behind a window, so this is translucent glass, not a true blur
 - Tabs now run in the order a guild does things: Recruit, Roster, Professions, BiS Check, Raids, Summon, Raid & Loot, Standings, Settings. The window reopens on the tab you used last
 - Sections that are only needed now and then fold away, and the lists around them take the room. A click on the section's bar opens it, and each character remembers which are open
@@ -287,14 +287,14 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.22.2
 
-- Inside battlegrounds and instances WoW Forever refuses chat sent by addons. Blood Pact now notices the refusal instead of reporting the message as sent
+- Inside battlegrounds and instances WoW Forever refuses chat sent by addons. Blind Tiger now notices the refusal instead of reporting the message as sent
 - Recruit: when a whisper is refused, the name is not marked "whispered"; a whisper to that player opens with your message already typed, and you press Enter to send it
-- While the game is refusing, Blood Pact stops trying (no more red "Interface action failed" errors) and tries again after you change zone
+- While the game is refusing, Blind Tiger stops trying (no more red "Interface action failed" errors) and tries again after you change zone
 - The same check covers the other chat buttons: order and summon whispers, "Post in guild chat", "Whisper sign-ups" and the summon messages each say when the game refused them
 
 ## 0.22.1
 
-- Summon messages: the window now sits above the main Blood Pact window, so the main window's buttons and text no longer show through it; a little more room between the two messages
+- Summon messages: the window now sits above the main Blind Tiger window, so the main window's buttons and text no longer show through it; a little more room between the two messages
 
 ## 0.22.0
 
@@ -302,7 +302,7 @@ Blood Pact is out of beta. This is the first full release.
 - Click the name and `/ginvite` with that name is written into your chat box; press Enter to send the invite. Accented and special letters never have to be typed
 - If you have already typed `/ginvite ` yourself, the click adds just the name where the cursor is
 - The name leaves the list when the player joins the guild; right-click removes it
-- Blood Pact still doesn't send guild invites itself: WoW Forever doesn't allow addons to
+- Blind Tiger still doesn't send guild invites itself: WoW Forever doesn't allow addons to
 
 ## 0.21.0
 
@@ -327,7 +327,7 @@ Blood Pact is out of beta. This is the first full release.
 - Recruit: click a name and that player is whispered the picked message (Social, Raiding or Crafting), one whisper per click. Right-click opens a whisper to type your own
 - A name you've whispered is marked "whispered" until you log out, and a second click doesn't send again; Shift-click sends it again on purpose
 - The picked message is marked, and an edit you make in the box stays there and is what gets sent
-- Blood Pact still never whispers or searches on its own: every search and every whisper is one click
+- Blind Tiger still never whispers or searches on its own: every search and every whisper is one click
 
 ## 0.18.0
 
@@ -349,9 +349,9 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.17.0
 
-- Mailing a crafting order: open a mailbox and Blood Pact lists the orders you've accepted, with how many of the item are in your bags
+- Mailing a crafting order: open a mailbox and Blind Tiger lists the orders you've accepted, with how many of the item are in your bags
 - Press "Fill in the mail" and the game's Send Mail form is filled in for you: the guild member who ordered, the item as the subject, a short message, and the items attached from your bags
-- You check it and press Send yourself; the game takes the postage then. Blood Pact never sends mail on its own
+- You check it and press Send yourself; the game takes the postage then. Blind Tiger never sends mail on its own
 - When the full amount has been mailed, the order is marked ready with the note "In your mailbox", and the member who ordered confirms when they have it
 - Only whole stacks are attached and never more than is owed; a stack that is too big is left for you to split by hand. Bound items are skipped. One mail carries up to 12 stacks, so a bigger order takes a second mail
 - `/bp mail` opens the list at a mailbox
@@ -362,8 +362,8 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.16.1
 
-- Summon: "Ask selected" now whispers the chosen warlock, so they see it even without Blood Pact (before, it only reached warlocks running the addon)
-- Summon: the status line says who was whispered, and that "Ask any warlock" reaches only warlocks running Blood Pact
+- Summon: "Ask selected" now whispers the chosen warlock, so they see it even without Blind Tiger (before, it only reached warlocks running the addon)
+- Summon: the status line says who was whispered, and that "Ask any warlock" reaches only warlocks running Blind Tiger
 
 ## 0.16.0
 
@@ -398,7 +398,7 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.13.0
 
-- About: an About button in the title bar (and `/bp about`) shows who makes Blood Pact, the Blood Pact guild on US East PvP Horde, with the Discord link ready to copy
+- About: an About button in the title bar (and `/bp about`) shows who makes Blind Tiger, the Blind Tiger guild on US East PvP Horde, with the Discord link ready to copy
 - The first time the addon runs it says so once in chat; never again after that
 - The addon list in game shows the same credit
 
@@ -420,7 +420,7 @@ Blood Pact is out of beta. This is the first full release.
 
 ## 0.10.0
 
-- Recipes: open a profession window once and Blood Pact records the recipes you know and shares them with the guild; after that only newly learned recipes are sent
+- Recipes: open a profession window once and Blind Tiger records the recipes you know and shares them with the guild; after that only newly learned recipes are sent
 - Professions tab: click a crafter to see their recipes for that profession, with search and the game's tooltip on hover; Back returns to the list
 - Each crafter row shows how many recipes they have shared
 - `/bp recipes` (with a profession window open) records and shares now, and says what the game listed
@@ -465,7 +465,7 @@ New
 - Raid dates and times can be typed the easy way: 12/9 and 8pm, 8:30pm or 20:00
 - The Raids tab shows your own answer, and past raids can't be signed up for
 - Decay takes two clicks, and the Guild Master can undo the last decay; cancelling a raid takes two clicks
-- A chat note when a guildmate runs a newer Blood Pact
+- A chat note when a guildmate runs a newer Blind Tiger
 
 Fixed
 - The first /bp could create the window and hide it again
@@ -498,7 +498,7 @@ Faster
 - New Roster tab: every member with rank, level, join date and last online; search by name
 - Guild log: joins, leaves, kicks, promotions and demotions, with who did it when the game says so
 - Rank history and alts for each member; Officers link and unlink alts by name
-- Changes are recorded live from the game's guild messages, and caught up after the fact by comparing the roster; history starts the first time a Team Captain or above runs Blood Pact
+- Changes are recorded live from the game's guild messages, and caught up after the fact by comparing the roster; history starts the first time a Team Captain or above runs Blind Tiger
 - Window is a little wider to fit the new tab
 - Activity per player: a main counts as active if any alt was online, or if they signed up or raided; Last on is colored Active, Watch, Inactive or Cleanup
 - Inactivity days start at ForeverGuildManager's published 30/60/90 and the Guild Master can change them in Settings
@@ -508,7 +508,7 @@ Faster
 - Officers see a chat line at login when tasks are waiting
 - Schedule in Eastern, Central, Mountain, Arizona, Pacific or your PC's time; everyone sees the raid in their own PC's time, with the scheduled zone beside it
 - Progression or farm checkbox per raid; boss kills that night pay the matching DKP
-- New raids are added to the in-game calendar as a guild sign-up event when your rank allows it, and your Blood Pact sign-up is copied to the calendar
+- New raids are added to the in-game calendar as a guild sign-up event when your rank allows it, and your Blind Tiger sign-up is copied to the calendar
 - Reminders on your own screen 30 and 15 minutes before raids you signed up for
 - Whisper sign-ups button for Team Captains and above (one click, never automatic)
 - Login message confirms the addon loaded; /bp explains if the window can't open
@@ -529,7 +529,7 @@ Faster
 
 ## 0.2.0
 
-- New BiS Check tab (everyone): compares your equipped gear, bags and bank with Blood Pact's ranked pre-raid list
+- New BiS Check tab (everyone): compares your equipped gear, bags and bank with Blind Tiger's ranked pre-raid list
 - Ranks your biggest upgrades first, shows where to get each item, and suggests a step-up item when BiS is far off
 - First list: Demonology Warlock. More specs coming
 - Questie is detected if installed (optional); its public API has no item lookups yet

@@ -181,7 +181,7 @@ local OPTIONAL = {}   -- globals the addon only probes for; fine to be missing
 for _, n in ipairs({ "ChatEdit_InsertLink", "ChatFrame_SendTell", "GetContainerNumSlots", "GetContainerItemLink",
     "BANK_CONTAINER", "NUM_BAG_SLOTS", "NUM_BANKBAGSLOTS", "Questie", "ERR_GUILD_JOIN_S", "ERR_GUILD_LEAVE_S",
     "ERR_GUILD_REMOVE_SS", "ERR_GUILD_PROMOTE_SSS", "ERR_GUILD_DEMOTE_SSS", "ERR_CHAT_PLAYER_NOT_FOUND_S",
-    "ChatFrame_AddMessageEventFilter", "InviteUnit", "SendChatMessage", "BlindTigerDB", "BloodPactDB", "RaidNotice_AddMessage",
+    "ChatFrame_AddMessageEventFilter", "InviteUnit", "SendChatMessage", "BlindTigerDB", "RaidNotice_AddMessage",
     "RaidWarningFrame", "ChatTypeInfo", "SOUNDKIT", "PlaySound", "PixelUtil", "GameFontNormalLarge", "GameFontNormal",
     "GameFontNormalSmall", "GameFontHighlight", "GameFontHighlightSmall", "GameFontDisableSmall", "GameFontDisable",
     "BlindTigerFontTitle", "BlindTigerFontHeader", "BlindTigerFontHeaderSmall", "BlindTigerFontBody",
@@ -535,7 +535,7 @@ G.GetNumGroupMembers = function()
     local g = GROUPS[ctx.guid]
     return g and (#g + (g.raid and 0 or 1)) or 0
 end
-G.GetGuildInfo = function() return "Blood Pact" end
+G.GetGuildInfo = function() return "Night Shift" end
 G.GetNormalizedRealmName = function() return "Normal" end
 local CHANNELS = {}
 G.GetChannelList = function() return unpack(CHANNELS[ctx.guid] or {}) end
@@ -709,8 +709,6 @@ local function newClient(i)
     clients[c.guid] = c
     ctx = c
     rawset(G, "BlindTigerDB", nil)
-    -- The third client still has saved data from when the addon was called Blood Pact.
-    rawset(G, "BloodPactDB", i == 3 and { schema = 1, guilds = {}, ui = { autoBossAward = true, progression = false }, fromBloodPact = true } or nil)
     for _, f in ipairs(FILES) do
         local chunk, err = loadfile(f)
         if not chunk then error(err) end
@@ -719,11 +717,6 @@ local function newClient(i)
     end
     c.slash = G.SlashCmdList.BLINDTIGER
     fire(c, "ADDON_LOADED", "BlindTiger")
-    if i == 3 then
-        assert(c.ns.db.fromBloodPact and c.ns.db.carriedOver and rawget(G, "BloodPactDB") == nil, "saved Blood Pact data carries over to Blind Tiger once")
-    else
-        assert(not c.ns.db.carriedOver, "a fresh install starts clean")
-    end
     fire(c, "PLAYER_LOGIN")
     ctx = nil
     return c
@@ -780,7 +773,7 @@ local gm = newClient(1)
 local officer = newClient(2)
 advance(5)
 check(said(gm, "loaded. Type /tiger"), "login message")
-check(said(gm, "Made by Kitch, of the Blood Pact guild, US East PvP Horde. Type /tiger about to find us."), "the first login says who makes the addon")
+check(said(gm, "Made by Kitch. Type /tiger about to find us."), "the first login says who makes the addon")
 check(gm.ns.roster.loaded and gm.ns.roster.complete, "roster loads and is complete")
 check(gm.ns.RBAC.RoleOf(gm.guid) == "gm" and officer.ns.RBAC.RoleOf(officer.guid) == "officer", "roles from ranks")
 
@@ -1528,7 +1521,7 @@ clickText(gm, "Social")                                    -- an earlier pass le
 local tellsBefore = #guildChat
 check(clickRow(gm, "Newbie One-Normal"), "a name in the list can be clicked")
 local tell = guildChat[#guildChat] or ""
-check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Blood Pact is recruiting on WoW Forever.", 1, true) == 1,
+check(#guildChat == tellsBefore + 1 and tell:find("WHISPER:Newbie One:Hey! Night Shift is recruiting on WoW Forever.", 1, true) == 1,
     "one click whispers that player the Social message")
 clickRow(gm, "Newbie One-Normal")
 check(#guildChat == tellsBefore + 1, "a second click on the same name doesn't whisper again")
@@ -1541,7 +1534,7 @@ check(#guildChat == tellsBefore + 2, "right-click opens a whisper to type and se
 check(clickText(gm, "Raiding"), "another message can be picked")
 clickRow(gm, "Razor Hill Rex-Normal")
 tell = guildChat[#guildChat] or ""
-check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Blood Pact is building raid teams", 1, true) == 1,
+check(#guildChat == tellsBefore + 3 and tell:find("WHISPER:Razor Hill Rex:Night Shift is building raid teams", 1, true) == 1,
     "the whisper carries whichever message is picked")
 run(gm, "edited message", function()
     rp.box:SetText("Custom pitch for you")
@@ -1673,7 +1666,7 @@ clickRow(gm, "Moo Two-Normal")
 check(#guildChat == lockedTells and chatRefused == 1, "a whisper the game refuses is not sent")
 check(said(gm, "The game is blocking chat from addons here, as it does inside battlegrounds and instances. The message is typed in a whisper to Moo Two: press Enter to send it."),
     "the recruiter is told why, and the message is typed into a whisper for them")
-check(#typedTell == 1 and typedTell[1]:find("Hey! Blood Pact is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
+check(#typedTell == 1 and typedTell[1]:find("Hey! Night Shift is recruiting", 1, true) == 1, "the typed whisper carries the picked message")
 check(not said(gm, "The game blocked an action for addons (UNKNOWN())"), "the vague blocked-action line isn't shown for it")
 check(not said(gm, "Whispered Moo Two the Social message."), "and it isn't reported as whispered")
 clickRow(gm, "Moo Two-Normal")
@@ -1687,7 +1680,7 @@ end)
 CHATLOCK[gm.guid], typingIn[gm.guid] = nil, nil
 fire(gm, "PLAYER_ENTERING_WORLD")
 clickRow(gm, "Moo Two-Normal")
-check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Blood Pact is recruiting", 1, true) == 1,
+check(#guildChat == lockedTells + 1 and (guildChat[#guildChat] or ""):find("WHISPER:Moo Two:Hey! Night Shift is recruiting", 1, true) == 1,
     "after leaving, one click whispers again")
 clickText(gm, "Social")
 pressEverything(gm)
@@ -2829,7 +2822,7 @@ end)
 -- About: who makes it and where to join.
 slash(member, "about")
 check(said(member, "Join us on Discord: https://discord.gg/hfCKk6kED"), "/tiger about gives the Discord link")
-check(said(member, "Made by Kitch, of the Blood Pact guild, US East PvP Horde."), "/tiger about says who made it")
+check(said(member, "Made by Kitch."), "/tiger about says who made it")
 run(member, "credit in the window", function()
     open(member)
     local places, visible = 0, 0

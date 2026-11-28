@@ -2,7 +2,7 @@
 local _, ns = ...
 
 local function help()
-    ns.Print("/tiger or /bloodpact - open or close the window")
+    ns.Print("/tiger or /blindtiger - open or close the window")
     ns.Print("/tiger whoami - show your character GUID and role")
     ns.Print("/tiger sync - announce your data to the guild now")
     ns.Print("/tiger mock on|off|boss|award|forge|signups|attend|roster|summon|reset - solo test mode")
@@ -17,7 +17,6 @@ end
 
 SLASH_BLINDTIGER1 = "/tiger"
 SLASH_BLINDTIGER2 = "/blindtiger"
-SLASH_BLINDTIGER3 = "/bp"          -- the old command, kept quietly for habit
 SlashCmdList.BLINDTIGER = function(input)
     local cmd, rest = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = (cmd or ""):lower()

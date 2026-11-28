@@ -364,7 +364,7 @@ test("party: the sound board, who may press, and the rotation", function()
     eq(#lines, #P.DEFAULT); eq(lines[1], "Take a drink!")
     lines = P.Lines({ partyLines = { ["Take a puff!"] = { on = false, t = 5 }, ["For the Horde!"] = { on = true, t = 9 },
         ["Wipe it up!"] = { on = true, t = 7 }, ["Gone"] = { on = false, t = 8 } } })
-    eq(table.concat(lines, "|"), "Take a drink!|Take a shot!|Bottoms up!|Cheers, Blood Pact!|Holler and swaller!|Wipe it up!|For the Horde!")
+    eq(table.concat(lines, "|"), "Take a drink!|Take a shot!|Bottoms up!|Cheers, Blind Tiger!|Holler and swaller!|Wipe it up!|For the Horde!")
     eq(P.After(lines, nil), "Take a drink!"); eq(P.After(lines, "Take a drink!"), "Take a shot!")
     eq(P.After(lines, "For the Horde!"), "Take a drink!"); eq(P.After(lines, "not on the list"), "Take a drink!"); eq(P.After({}, "x"), nil)
     eq(P.CanPress(true, true, 99), true)
@@ -377,7 +377,7 @@ test("party: the sound board, who may press, and the rotation", function()
     assert(P.Said("that was my bad, sorry", "My Bad") and not P.Said("my badge", "my bad") and not P.Said(nil, "wind"))
     eq(P.Caught("Whyley", "Wind", "Take a shot!"), "Whyley said Wind. Take a shot!")
     eq(P.Caught(nil, "Wind", "Take a shot!"), "Take a shot!")
-    eq(P.Caught(string.rep("n", 40), "Wind", "Cheers, Blood Pact!"), "Cheers, Blood Pact!")     -- too long for a raid warning: the line alone
+    eq(P.Caught(string.rep("n", 40), "Wind", "Cheers, Blind Tiger!"), "Cheers, Blind Tiger!")     -- too long for a raid warning: the line alone
     for _, line in ipairs(P.DEFAULT) do assert(P.Clean(line) == line) end
     local ok = ns.Log.KINDS and ns.Log.KINDS.PARTY_LINE
     if ok then assert(ok[2]({ text = "Hi", on = true }) and not ok[2]({ text = "", on = true }) and not ok[2]({ text = "Hi" })) end
@@ -809,7 +809,6 @@ test("/tiger and /blindtiger both open the window", function()
     load("Core/Commands.lua")
     eq(rawget(_G, "SLASH_BLINDTIGER1"), "/tiger")
     eq(rawget(_G, "SLASH_BLINDTIGER2"), "/blindtiger")
-    eq(rawget(_G, "SLASH_BLINDTIGER3"), "/bp")
     local handler = rawget(_G, "SlashCmdList").BLINDTIGER
     handler("")
     handler("   ")

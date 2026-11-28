@@ -1,4 +1,0 @@
--- Blind Tiger used to be called Blood Pact, and lived in a folder named BloodPact.
--- The game keeps saved data per addon folder, so this folder stays for one
--- purpose: the game loads the old BloodPactDB here, and Blind Tiger (which loads
--- after it) adopts that data the first time it runs. Nothing else happens here.

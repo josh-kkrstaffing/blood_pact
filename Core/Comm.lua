@@ -6,7 +6,7 @@ local _, ns = ...
 local C = {}
 ns.Comm = C
 
-C.PREFIX = "BloodPact"   -- the addon channel name from before the rename: old and new versions must share it to sync
+C.PREFIX = "BlindTiger"
 local CHUNK = 220            -- payload bytes per message, leaving room for the header
 local MAX_PARTS = 64         -- largest payload we accept: 64 * 220 bytes
 local REASSEMBLY_TIMEOUT = 60

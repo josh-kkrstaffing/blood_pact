@@ -1,4 +1,4 @@
-# Launching Blood Pact on CurseForge
+# Launching Blind Tiger on CurseForge
 
 ## 1. Test in game (about 30 minutes)
 
@@ -11,7 +11,7 @@
 
 ## 2. Publish
 
-1. Sign in at curseforge.com and open the Author Console. Create a project: game World of Warcraft, name "Blood Pact", summary from the TOC Notes line, description from README.md, license MIT.
+1. Sign in at curseforge.com and open the Author Console. Create a project: game World of Warcraft, name "Blind Tiger", summary from the TOC Notes line, description from README.md, license MIT.
 2. Upload a zip of the `Blind Tiger` folder (the folder itself inside the zip). Choose the WoW Forever game version and release type "Release" (or "Beta" for a soft launch).
 3. CurseForge reviews new projects before they go public.
 

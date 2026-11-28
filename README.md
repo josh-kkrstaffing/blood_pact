@@ -1,6 +1,6 @@
 # Blind Tiger
 
-Made by **Kitch**, of the **Blood Pact** guild, US East PvP Horde, on WoW Forever. Looking for a guild or want to follow the addon? Join us on Discord: https://discord.gg/hfCKk6kED
+Made by **Kitch** for WoW Forever. Want to follow the addon? Join us on Discord: https://discord.gg/hfCKk6kED
 
 **For guilds only.** Blind Tiger works inside one guild and shares only with its members. Its games use play chips among guildmates and are not for the public.
 

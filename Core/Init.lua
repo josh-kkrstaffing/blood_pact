@@ -73,13 +73,6 @@ end
 
 ns.On("ADDON_LOADED", function(name)
     if name ~= ADDON then return end
-    -- Carry-over from before the rename: the small "BloodPact" addon that ships
-    -- alongside loads the old saved data, and Blind Tiger adopts it once.
-    if BlindTigerDB == nil and type(BloodPactDB) == "table" then
-        BlindTigerDB = BloodPactDB
-        BlindTigerDB.carriedOver = true
-        BloodPactDB = nil
-    end
     BlindTigerDB = BlindTigerDB or {}
     local db = BlindTigerDB
     db.schema = db.schema or 1
@@ -164,8 +157,6 @@ end
 -- by /tiger about, and once in chat the first time the addon runs.
 ns.ABOUT = {
     author = "Kitch",
-    guild = "Blood Pact",
-    home = "US East PvP Horde",
     discord = "https://discord.gg/hfCKk6kED",
 }
 -- Blind Tiger is a guild's own tool. Said in the About panel, on CurseForge and in the readme.
@@ -175,7 +166,7 @@ function ns.AboutLines()
     local a = ns.ABOUT
     return {
         "Blind Tiger v" .. ns.VERSION .. ", a free guild management addon for WoW Forever.",
-        ("Made by %s, of the %s guild, %s."):format(a.author, a.guild, a.home),
+        ("Made by %s."):format(a.author),
         ns.GUILDS_ONLY,
         "Join us on Discord: " .. a.discord,
     }
@@ -185,7 +176,7 @@ ns.On("PLAYER_LOGIN", function()
     ns.Print("v" .. ns.VERSION .. " loaded. Type /tiger or /blindtiger to open.")
     if ns.db and ns.db.ui and not ns.db.ui.aboutSeen then
         ns.db.ui.aboutSeen = true
-        ns.Print(("Made by %s, of the %s guild, %s. Type /tiger about to find us."):format(ns.ABOUT.author, ns.ABOUT.guild, ns.ABOUT.home))
+        ns.Print(("Made by %s. Type /tiger about to find us."):format(ns.ABOUT.author))
     end
     if C_GuildInfo and C_GuildInfo.GuildRoster then C_GuildInfo.GuildRoster() end
 end)
