@@ -1,124 +1,83 @@
-Made by **Kitch** for WoW Forever. Want to follow the addon? Join our Discord: https://discord.gg/hfCKk6kED
+# Blind Tiger
+
+**Your guild's back room for World of Warcraft: Forever.** One window runs the serious side of a guild (DKP, raids, roster, crafting, gear) and the fun side (a Party button, a Drink of the Night, and a games floor played in chips).
+
+"Blind tiger" is an old word for a speakeasy. Open it with `/tiger`.
 
 **For guilds only.** Blind Tiger works inside one guild and shares only with its members. Its games use play chips among guildmates and are not for the public.
 
-# Blind Tiger
+Everything syncs between guild members inside the game. There is no website, no account, no companion app and no outside server.
 
-Blind Tiger is a free, open-source guild management addon for World of Warcraft: Forever (client 1.60.1). It gives a guild one shared window for recruiting, the roster, professions and crafting orders, gear readiness, raids, summons, DKP and loot, and player tickets.
+## Run the guild
 
-Everything syncs between guild members inside the game. There is no website, no account, no companion app and no outside server: your guild's data stays in your guild.
+**Recruit.** Three shared recruiting messages, a finder for players without a guild, and one-click whispers. When someone replies "inv", their name is ready to copy for the invite.
 
-Open it with `/tiger` or `/blindtiger`.
+**Roster.** Every member with rank, class, level, join date and last seen. Sort any column, link alts to mains, and see a log of joins, leaves and promotions.
 
-## What's in it
+**Raids.** Schedule a raid, take sign-ups, and pick who gets a spot. Each sign-up shows the raider's gear readiness and consumable kit, so leaders see who is prepared before the pull.
 
-The tabs run in the order a guild does things.
+**Raid & Loot, and Standings.** DKP awarded and spent, logged for everyone to see. Mistakes are voided, never deleted.
 
-### Recruit (Team Captain and above)
+**Tickets.** Members can raise a concern privately with the guild's leaders.
 
-- Three shared recruiting messages: Social, Raiding and Crafting. Officers can edit them for the whole guild.
-- Find players without a guild in your own zone, in your faction's starting zones, or in every zone for a level range up to 60. One search per click; busy level bands are split up automatically.
-- Click a name to whisper that player the picked message. One click, one whisper.
-- When someone replies "inv", their name is listed spelled exactly as the game spells it, with the guild invite ready to copy and paste. Special letters never have to be typed.
+## Get ready to raid
 
-### Roster
+**BiS Check.** Pre-raid best-in-slot lists for every class and spec, taken from Wowhead's WoW Forever guides. It shows what you own, what to get next and where it drops.
 
-- Every member with rank, class, level, join date and last time online. Any column sorts, with a search box and an online-only filter.
-- A pie chart of the guild by class. Click a class to list only its members. Team Captains and above can message the online members of one class.
-- Statics: fixed 10-player raid teams, one per Team Captain, with each member's role and who is online.
-- PvP rank badge next to each name.
-- Main and alt linking, rank history for each member, and a guild log of joins, leaves, promotions and demotions.
-- Inactivity tracking (30, 60 and 90 days by default) and a shared officer task list for cleanup, promotions and alts.
-- Each member's loot history.
+**Upgrades for sale.** At the auction house, scan for items on your list that beat what you wear, set a gold range, and buy with one click per item. With the Pawn addon installed it can also find other usable upgrades.
 
-### Professions and crafting orders
+**Raid Kit.** The guild sets what consumables a raider should bring. The addon counts what is in your bags and bank and tells you what is missing before the ready check.
 
-- The guild listed by profession: who has it, their skill level, and the recipes they know.
-- Each player's addon reads their own skills and recipes and shares them with the guild.
-- Crafting orders that stay inside the guild: order from a specific crafter, or post a Wanted order any crafter with the recipe can take.
-- The crafter accepts with a promised turnaround of 2, 8, 24 or 48 hours. Orders move from To craft, to In transit, to Delivered.
-- At a mailbox, Blind Tiger fills in the mail for a finished order; you check it and press Send.
-- With the Auctionator addon installed, orders show an estimated material cost.
+**Call-outs.** Raid leaders write spoken call-outs for each boss. The addon reads them aloud during the fight.
 
-### BiS Check
+**Summon.** Ask a warlock for a summon, and warlocks see who is waiting and who can click the portal.
 
-- Ranked pre-raid best-in-slot lists for 28 specs across all 9 classes, with where each item comes from.
-- Compares the list with what you own and shows what is still missing.
-- Gives each player a readiness score that is shared with the guild and shown on raid sign-ups.
+## Craft and trade
 
-### Raids
+**Professions.** See every crafter in the guild and what they can make, with the cost to craft, the buy-it-now price, the profit and the vendor price side by side.
 
-- Schedule a raid with a title, date, time, size and time zone. Every member sees it in their own local time.
-- Members sign up as Tank, Healer or DPS, or answer Maybe or Can't.
-- Signing up asks for a spot. A Team Captain or above selects who gets one, up to the raid's size.
-- Reminders 30 and 15 minutes before the raid, and attendance taken on boss kills or with one click.
+**Crafting orders.** Order from a guildmate and track it to delivery. At a mailbox the addon fills in the mail for you to send.
 
-### Summon
+**Buy materials.** At the auction house, buy the reagents for up to 20 crafts, cheapest first, with a click per purchase.
 
-- Lists the guild's online warlocks and how many guildmates are in each one's zone.
-- Anyone can ask for a summon from the tab, or by typing `123` in raid, party or guild chat.
-- Warlocks get a summon queue: click a name in the list to cast Ritual of Summoning on that player.
-- Optional messages for warlocks of Team Captain rank and above: a whisper to the player being summoned, and a callout in raid chat for group members who aren't clicking the portal.
+## The fun side
 
-### Raid & Loot, and Standings
+**Party.** A button in the title bar sends the raid a line such as "Take a drink!". Set a word of the night, and whenever someone types it in raid chat the next line goes out on its own. Raiders with the addon hear it spoken.
 
-- Laid out as a raid night: on-time bonus at the start, loot charged to the winner, full-raid bonus at the end.
-- Boss kills can be awarded automatically while an Officer or above leads, with separate values for farm and progression nights.
-- Loot is charged at fixed prices in four tiers: best in slot, major upgrade, minor upgrade and off spec. The highest DKP wins ties.
-- Standings show every member's DKP balance and raid attendance. Alts share their main's balance.
-- Loot history night by night, visible to every member.
-- Mistakes are voided, not deleted, so the history stays honest.
+**Drink of the Night.** Whoever schedules a raid can give it a drink from a Nashville-flavoured menu, with the recipe on the sign-up screen. Two of the drinks are zero proof.
 
-### Tickets
+**Guild chips.** Donate gold to your guild bank and get play chips one for one. An Officer's addon confirms each donation from the bank's own money log. Chips are one-way: they never turn back into gold.
 
-- Any member can report a problem with a player: language or harassment, cheating, ninja looting, broken rules and more.
-- Team Captains and above work the reports from a queue: take it, add notes, resolve it with an outcome.
-- Tickets are private. They are sent only to Team Captains and above, and a ticket about one of them is never sent to that person. The reporter sees the status, never the staff notes.
+**The games floor.** Play your chips against the house, and the house is the guild:
 
-### Settings (Guild Master)
+- Roulette, on the American wheel
+- Slots, with a 100-times jackpot for three Tigers
+- Blackjack, with doubling and splitting
+- Hold'em against the dealer
 
-- Your guild's own DKP values, loot prices, decay, inactivity days and Initiate promotion rule.
-
-## The window
-
-- A dark glass look that lets a little of the game world show through, with three settings: Frosted, Clear and Solid.
-- Sections you rarely need fold away, and the window can be dragged small.
+Every game is tilted a little toward the house by its rules, and the rules are printed in the window. Nothing is rigged per hand. Big wins show on every guildmate's floor.
 
 ## Who can do what
 
-Permissions follow your guild ranks.
-
-| Role | In-game rank | Can |
-| --- | --- | --- |
-| Guild Master | Rank 1 (top) | Everything below, plus settings and decay |
-| Officer | Rank 2 | Award DKP, charge loot, undo, link alts, edit recruiting messages |
-| Team Captain | Rank 3 | Recruit, schedule raids and select sign-ups, work tickets |
-| Veteran, Member, Initiate | Ranks 4 to 6 | View everything shared, sign up for raids, place crafting orders, ask for summons, send tickets |
-
-Every player's addon checks every record against the guild roster before accepting it, so editing your own copy of the addon can't grant you anything in anyone else's game.
+Permissions follow your guild's own ranks. Members sign up, check their gear and play. Team Captains schedule raids and set the kit and call-outs. Officers award DKP and confirm chip donations. The Guild Master owns the settings.
 
 ## Fair play
 
-Blind Tiger never plays the game for you. It does not automate combat, movement or targeting. Searches, whispers, invites and summons each start from your own click or your own spell cast. WoW Forever does not let addons send guild invites, so invites are always sent by you.
+Blind Tiger never plays the game for you. It does not automate combat, movement or targeting. Every purchase, whisper, invite, summon and donation starts from your own click.
+
+Chips are play chips. They are not gold, cannot be cashed out, and are not traded between players. No real money is involved anywhere.
 
 ## Privacy
 
-Blind Tiger sends no data outside the game. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records are shared only with your guildmates over the game's own addon message channel and saved on your own computer.
-
-## Optional addon
-
-- **Auctionator**: adds an estimated material cost to crafting orders. Blind Tiger works without it.
+Blind Tiger sends no data outside the game. It has no website, server or database, and it collects no IP addresses, usage statistics or personal information. Guild records are shared only with your guildmates over the game's own addon channel and saved on your own computer.
 
 ## Good to know
 
 - Everyone in the guild who wants to share data needs the addon installed.
 - English game clients only for now.
+- Optional companions: Auctionator adds prices to crafting, and Pawn powers the wider upgrade scan. Blind Tiger works without either.
 - Raid best-in-slot lists will follow once the raid loot tables are published.
 
-## Feedback
-
-Found a bug or have an idea? Tell us on Discord: https://discord.gg/hfCKk6kED
-
-The code is on GitHub under the MIT License: https://github.com/josh-kkrstaffing/blood_pact
+Free and open source under the MIT License. Made by Kitch.
 
 *Blind Tiger is a fan-made addon. It is not made, endorsed, sponsored or supported by Blizzard Entertainment. World of Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.*
