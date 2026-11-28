@@ -127,6 +127,8 @@ L.KINDS = {
     -- Officer's confirmation after seeing the deposit in the bank's money log.
     CHIP_BUY = { "signup", function(d) return isInt(d.amt, 1, 1e10) end },
     CHIP_OK = { "award", function(d) return str(d.buy, 1, 80) end },
+    -- Chips the ADMIN assigns to a guild member outright, with no donation behind them.
+    CHIP_GRANT = { "devtools", function(d) return isGUID(d.to) and isInt(d.amt, 1, 1e10) end },
     -- A run of plays on the games floor, added up: chips staked and the net result.
     -- No game returns more than 100 times a stake, and nobody can lose more than they staked.
     CHIP_SESSION = { "signup", function(d)

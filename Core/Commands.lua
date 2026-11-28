@@ -3,7 +3,7 @@ local _, ns = ...
 
 local function help()
     ns.Print("/tiger or /blindtiger - open or close the window")
-    ns.Print("/tiger games - open the games floor")
+    ns.Print("/tiger casino - open the Casino: chips and the games")
     ns.Print("/tiger minimap - hide the minimap button, or bring it back")
     ns.Print("/tiger whoami - show your character GUID and role")
     ns.Print("/tiger sync - announce your data to the guild now")

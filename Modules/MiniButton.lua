@@ -1,5 +1,5 @@
 -- Blind Tiger: the minimap button. A small round tiger on the edge of the
--- minimap: click to open the window, right-click for the games floor, drag to
+-- minimap: click to open the window, right-click for the Casino, drag to
 -- move it round the edge. /tiger minimap hides it or brings it back.
 -- Written for this addon; it uses no button library.
 local _, ns = ...
@@ -90,7 +90,7 @@ local function build()
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:AddLine(ns.BRAND)
         GameTooltip:AddLine("Click to open or close the window.", 1, 1, 1)
-        GameTooltip:AddLine("Right-click for the games floor.", 1, 1, 1)
+        GameTooltip:AddLine("Right-click for the Casino.", 1, 1, 1)
         GameTooltip:AddLine("Drag to move. /tiger minimap hides it.", 0.6, 0.6, 0.6)
         GameTooltip:Show()
     end)

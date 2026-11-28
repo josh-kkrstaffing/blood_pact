@@ -9,6 +9,9 @@
 -- when an Officer's addon sees the matching deposit in the bank's money log,
 -- which happens on its own whenever an Officer opens the guild bank. A donor
 -- can't confirm their own chips.
+--
+-- The ADMIN can also assign chips to a guild member outright (Settings). Those
+-- are written to the guild's log under the ADMIN's name like everything else.
 local _, ns = ...
 local C = {}
 ns.Chips = C
@@ -107,6 +110,11 @@ function C.Balances(st)
         local row = out[b.who] or { ok = 0, pending = 0 }
         out[b.who] = row
         if b.ok then row.ok = row.ok + b.amt else row.pending = row.pending + b.amt end
+    end
+    for guid, amt in pairs(st and st.chipGrants or {}) do
+        local row = out[guid] or { ok = 0, pending = 0 }
+        out[guid] = row
+        row.ok = row.ok + amt
     end
     -- What the games floor has given or taken. Chips can't go below nothing.
     for guid, net in pairs(st and st.chipNets or {}) do
@@ -231,6 +239,27 @@ function C.Donate(gold, silver, copper)
     return true
 end
 
+-- Read the bank's money log now. Only works with the guild bank open.
+function C.ReadLog()
+    if not bankOpen then return nil, "Open the guild bank first. The money log is read there." end
+    askForLog()
+    return true
+end
+
+-- The ADMIN assigns chips to a guild member by name.
+function C.Grant(name, gold, silver, copper)
+    if not RBAC.ICan("devtools") then return nil, "Only the ADMIN can assign chips." end
+    name = tostring(name or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    if name == "" then return nil, "Type the guild member's name." end
+    local guid = ns.GUIDForName(name)
+    if not (guid and ns.roster.byGUID[guid]) then return nil, "No guild member is named " .. U.Safe(name, 30) .. "." end
+    local amount, why = C.Amount(gold, silver, copper)
+    if not amount then return nil, (why == "Type how much to donate.") and "Type how many chips to give." or why end
+    local e, err = ns.Log.New("CHIP_GRANT", { to = guid, amt = amount })
+    if not e then return nil, err end
+    return true, guid, amount
+end
+
 local function opened()
     bankOpen = true
     askForLog()
@@ -254,50 +283,45 @@ ns.On("GUILDBANK_UPDATE_MONEY", function() if bankOpen then askForLog() end end)
 ns.On("GUILDBANKLOG_UPDATE", onLog)
 
 ---------------------------------------------------------------------------
--- The window
+-- The chips page. It lives in the Casino window, beside the games.
 ---------------------------------------------------------------------------
 local W = ns.W
 local helping = false
+local WIDTH = 536
 
-local function build()
-    local f = CreateFrame("Frame", "BlindTigerChips", UIParent)
-    f:SetSize(420, 380)
-    f:SetFrameStrata("DIALOG")
-    f:SetToplevel(true)
-    f:SetMovable(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:SetClampedToScreen(true)
-    f:SetPoint("CENTER", UIParent, "CENTER", -200, 40)
-    f:EnableMouse(true)
-    W.Glass(f, true)
-    W.Title(f, "Guild chips")
-    W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
+-- Build the page inside the Casino window. -> the page's frame
+function C.BuildPanel(parent)
+    local f = CreateFrame("Frame", nil, parent)
+    f:SetSize(WIDTH, 330)
     f.help = W.Button(f, "How does this work?", 140, 20, function()
         helping = not helping
         C.Refresh()
     end)
-    f.help:SetPoint("TOPRIGHT", -34, -6)
-    W.Line(f, -32)
+    f.help:SetPoint("TOPRIGHT", 0, 0)
+    f.read = W.Button(f, "Read the bank log", 130, 20, function()
+        local ok, why = C.ReadLog()
+        lastNote = ok and "Reading the guild bank's money log..." or why
+        C.Refresh()
+    end)
+    f.read:SetPoint("TOPRIGHT", -146, 0)
 
     f.mine = W.Text(f, "", "GameFontNormalLarge")
-    f.mine:SetPoint("TOPLEFT", 12, -42)
-    f.mine:SetWidth(396)
+    f.mine:SetPoint("TOPLEFT", 0, -2)
+    f.mine:SetWidth(250)
     f.mine:SetJustifyH("LEFT")
     f.mine:SetWordWrap(false)
     f.minePending = W.Text(f, "", "GameFontHighlightSmall")
-    f.minePending:SetPoint("TOPLEFT", 12, -64)
-    f.minePending:SetWidth(396)
+    f.minePending:SetPoint("TOPLEFT", 0, -26)
+    f.minePending:SetWidth(WIDTH)
     f.minePending:SetJustifyH("LEFT")
     f.minePending:SetWordWrap(false)
 
     f.donateHead = W.Text(f, "Donate to the guild bank", "GameFontNormalSmall")
-    f.donateHead:SetPoint("TOPLEFT", 12, -90)
+    f.donateHead:SetPoint("TOPLEFT", 0, -50)
     f.boxes, f.labels = {}, {}
     for i, unit in ipairs({ "gold", "silver", "copper" }) do
         local box = W.Edit(f, 54, i == 1 and 6 or 2)
-        box:SetPoint("TOPLEFT", 12 + (i - 1) * 92, -108)
+        box:SetPoint("TOPLEFT", (i - 1) * 92, -68)
         local label = W.Text(f, unit, "GameFontHighlightSmall")
         label:SetPoint("LEFT", box, "RIGHT", 4, 0)
         f.boxes[i], f.labels[i] = box, label
@@ -307,55 +331,52 @@ local function build()
         if ok then for _, b in ipairs(f.boxes) do b:SetText("") end else lastNote = why end
         C.Refresh()
     end, "accent")
-    f.donate:SetPoint("TOPLEFT", 284, -108)
+    f.donate:SetPoint("TOPLEFT", 284, -68)
     f.status = W.Text(f, "", "GameFontHighlightSmall")
-    f.status:SetPoint("TOPLEFT", 12, -138)
-    f.status:SetWidth(396)
+    f.status:SetPoint("TOPLEFT", 0, -98)
+    f.status:SetWidth(WIDTH)
     f.status:SetJustifyH("LEFT")
     f.status:SetWordWrap(true)
 
     f.boardHead = W.Text(f, "Leaderboard", "GameFontNormalSmall")
-    f.boardHead:SetPoint("TOPLEFT", 12, -176)
+    f.boardHead:SetPoint("TOPLEFT", 0, -136)
     f.cols = {}
-    for i, h in ipairs({ { "Raider", 16, 150 }, { "Chips", 170, 110 }, { "Pending", 284, 110 } }) do
+    for i, h in ipairs({ { "Raider", 4, 200 }, { "Chips", 220, 140 }, { "Pending", 380, 140 } }) do
         local fs = W.Text(f, h[1], "GameFontDisableSmall")
-        fs:SetPoint("TOPLEFT", h[2], -194)
+        fs:SetPoint("TOPLEFT", h[2], -154)
         fs:SetWidth(h[3])
         fs:SetJustifyH("LEFT")
         f.cols[i] = fs
     end
-    f.board = W.List(f, 396, 130, 18, function(row, r)
-        f.board.Col(row, 1, 4, 150):SetText(U.Safe(r.name, 30))
-        f.board.Col(row, 2, 158, 110):SetText(C.Text(r.ok))
-        local p = f.board.Col(row, 3, 272, 110)
+    f.board = W.List(f, WIDTH, 126, 18, function(row, r)
+        f.board.Col(row, 1, 4, 200):SetText(U.Safe(r.name, 30))
+        f.board.Col(row, 2, 220, 140):SetText(C.Text(r.ok))
+        local p = f.board.Col(row, 3, 380, 140)
         p:SetText(r.pending > 0 and C.Text(r.pending) or "-")
         p:SetTextColor(W.C.muted[1], W.C.muted[2], W.C.muted[3])
     end)
-    f.board.scroll:SetPoint("TOPLEFT", 12, -210)
-    f.board.scroll:SetSize(396, 130)
-    f.games = W.Button(f, "Play games", 100, 20, function() ns.Casino.Toggle() end, "accent")
-    f.games:SetPoint("TOPRIGHT", -180, -6)
+    f.board.scroll:SetPoint("TOPLEFT", 0, -170)
+    f.board.scroll:SetSize(WIDTH, 126)
     f.foot = W.Text(f, "Chips are one-way: they can't be turned back into gold. Donations go to the guild.", "GameFontDisableSmall")
-    f.foot:SetPoint("BOTTOMLEFT", 12, 10)
-    f.foot:SetWidth(396)
+    f.foot:SetPoint("TOPLEFT", 0, -304)
+    f.foot:SetWidth(WIDTH)
     f.foot:SetJustifyH("LEFT")
     f.foot:SetWordWrap(false)
     f.helpText = W.Text(f, table.concat(C.HOWTO, "\n\n"), "GameFontHighlightSmall")
-    f.helpText:SetPoint("TOPLEFT", 12, -42)
-    f.helpText:SetWidth(396)
+    f.helpText:SetPoint("TOPLEFT", 0, -30)
+    f.helpText:SetWidth(WIDTH)
     f.helpText:SetJustifyH("LEFT")
     f.helpText:SetJustifyV("TOP")
     f.helpText:SetWordWrap(true)
-    f:Hide()
     C.frame = f
     return f
 end
 
 function C.Refresh()
     local f = C.frame
-    if not (f and f:IsShown()) then return end
+    if not (f and f:IsVisible()) then return end
     f.help:SetText(helping and "Back" or "How does this work?")
-    local parts = { f.mine, f.minePending, f.donateHead, f.donate, f.status, f.boardHead, f.foot }
+    local parts = { f.mine, f.minePending, f.donateHead, f.donate, f.status, f.boardHead, f.foot, f.read }
     for _, w in ipairs(f.boxes) do parts[#parts + 1] = w end
     for _, w in ipairs(f.labels) do parts[#parts + 1] = w end
     for _, w in ipairs(f.cols) do parts[#parts + 1] = w end
@@ -368,6 +389,7 @@ function C.Refresh()
     f.mine:SetText("Your chips: |cffffd100" .. C.Text(mine.ok) .. "|r")
     f.minePending:SetText(mine.pending > 0 and (C.Text(mine.pending) .. " more pending, waiting for an Officer to open the guild bank.") or "")
     f.donate:SetEnabled(bankOpen and not waiting)
+    f.read:SetEnabled(bankOpen)
     local open = 0
     for _, b in pairs(st and st.chipBuys or {}) do if not b.ok then open = open + 1 end end
     if lastNote then
@@ -376,19 +398,20 @@ function C.Refresh()
         f.status:SetText("Recording your donation...")
     elseif not bankOpen then
         f.status:SetText("Open the guild bank to donate. 1 gold is 1 gold chip, 1 silver is 1 silver chip, 1 copper is 1 copper chip."
-            .. (RBAC.ICan("award") and open > 0 and ("\n|cffffd100" .. open .. " donation" .. (open == 1 and " is" or "s are") .. " waiting: open the guild bank to confirm.|r") or ""))
+            .. (RBAC.ICan("award") and open > 0 and ("\n|cffffd100" .. open .. " donation" .. (open == 1 and " is" or "s are") .. " waiting: open the guild bank, then the Casino, to confirm.|r") or ""))
     else
         f.status:SetText("Type an amount and press Donate for chips. The gold goes into the guild bank.")
     end
     f.board:SetItems(C.Board(st, ns.NameForGUID))
 end
 
-function C.Toggle()
-    local f = C.frame or build()
-    if f:IsShown() then f:Hide() return end
+-- The page was just opened: start clean, and read the money log if the bank is open.
+function C.Opened()
     helping, lastNote = false, nil
-    f:Show()
-    C.Refresh()
+    if bankOpen then askForLog() end
 end
+
+-- Open the Casino on the chips page.
+function C.Toggle() ns.Casino.Toggle("Chips") end
 
 ns.Listen("LOG_CHANGED", function() C.Refresh() end)

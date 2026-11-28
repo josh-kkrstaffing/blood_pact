@@ -211,6 +211,12 @@ local function build()
     frame.partyBtn = partyBtn
     statusText = W.Text(bar, "", "GameFontDisableSmall")
     statusText:SetPoint("RIGHT", partyBtn, "LEFT", -12, 0)
+    -- Casino: chips and the games. It sits between Party and the glass button.
+    local casinoBtn = W.Button(bar, "Casino", 58, 22, function() ns.Casino.Toggle() end, "accent")
+    casinoBtn:SetPoint("RIGHT", glassBtn, "LEFT", -6, 0)
+    partyBtn:ClearAllPoints()
+    partyBtn:SetPoint("RIGHT", casinoBtn, "LEFT", -6, 0)
+    frame.casinoBtn = casinoBtn
 
     -- About: who makes Blind Tiger and where to join. Covers the tabs while open.
     local about = CreateFrame("Frame", nil, frame)
@@ -601,7 +607,14 @@ local SETTING_GROUPS = {
     { key = "wipe", title = "5. Wipe data and start fresh", rows = {}, extra = 124 },
 }
 
+local CHIP_GROUP = { key = "chips", title = "6. Casino chips (ADMIN only)", rows = {}, extra = 96 }
+
 UI.AddTab("settings", "Settings", "settings", function(p)
+    ns.settingsPanel = p
+    -- Only the ADMIN sees the chips group.
+    local groups = {}
+    for _, g in ipairs(SETTING_GROUPS) do groups[#groups + 1] = g end
+    if ns.RBAC.ICan("devtools") then groups[#groups + 1] = CHIP_GROUP end
     local intro = W.Text(p, "Rules for this guild. DKP defaults follow a published example and inactivity days start at ForeverGuildManager's 30/60/90; set your own here.", "GameFontHighlightSmall")
     intro:SetPoint("TOPLEFT", 0, 0)
     intro:SetWidth(700)
@@ -617,7 +630,7 @@ UI.AddTab("settings", "Settings", "settings", function(p)
         p.save:ClearAllPoints()
         p.save:SetPoint("TOPLEFT", 0, y - 6)
     end
-    for gi, g in ipairs(SETTING_GROUPS) do
+    for gi, g in ipairs(groups) do
         local lines = math.ceil(#g.rows / 2)
         local fold
         fold = W.Accordion(p, g.title, 700, lines * 30 + (g.extra or 0), "settings_" .. g.key, function(open)
@@ -705,6 +718,37 @@ UI.AddTab("settings", "Settings", "settings", function(p)
     p.wipeLast = W.Text(wb, "", "GameFontDisableSmall")
     p.wipeLast:SetPoint("TOPLEFT", 4, -84)
     p.wipeLast:SetWidth(690)
+
+    -- The ADMIN assigns chips to a guild member. It is written to the guild's log.
+    if p.chipsFold then
+        local cb = p.chipsFold.body
+        local hint = W.Text(cb, "Give chips to a guild member. No gold is involved, and the gift is written to the guild's log under your name.", "GameFontDisableSmall")
+        hint:SetPoint("TOPLEFT", 4, -2)
+        hint:SetWidth(690)
+        W.Text(cb, "Guild member", "GameFontHighlight"):SetPoint("TOPLEFT", 4, -30)
+        p.chipName = W.Edit(cb, 130, 40)
+        p.chipName:SetPoint("TOPLEFT", 100, -26)
+        p.chipBoxes = {}
+        for i, unit in ipairs({ "gold", "silver", "copper" }) do
+            local box = W.Edit(cb, 50, i == 1 and 6 or 2)
+            box:SetPoint("TOPLEFT", 244 + (i - 1) * 96, -26)
+            W.Text(cb, unit, "GameFontHighlightSmall"):SetPoint("LEFT", box, "RIGHT", 4, 0)
+            p.chipBoxes[i] = box
+        end
+        p.chipGive = W.Button(cb, "Give chips", 110, 22, function()
+            local ok, who, amount = ns.Chips.Grant(p.chipName:GetText(), p.chipBoxes[1]:GetText(), p.chipBoxes[2]:GetText(), p.chipBoxes[3]:GetText())
+            if ok then
+                for _, b in ipairs(p.chipBoxes) do b:SetText("") end
+                UI.Say(("Gave %s in chips to %s."):format(ns.Chips.Text(amount), U.Safe(ns.NameForGUID(who) or "?", 40)))
+            else
+                UI.Say(who)
+            end
+        end, "accent")
+        p.chipGive:SetPoint("TOPLEFT", 540, -26)
+        p.chipLast = W.Text(cb, "", "GameFontDisableSmall")
+        p.chipLast:SetPoint("TOPLEFT", 4, -60)
+        p.chipLast:SetWidth(690)
+    end
     p.place()
 end, function(p)
     local st = ns.Reducer.State()
@@ -716,6 +760,11 @@ end, function(p)
             date("%b %d, %Y", r.t), U.Safe(ns.NameForGUID(r.a) or "?", 40)) end
     end
     p.wipeLast:SetText(#parts > 0 and table.concat(parts, "  ") or "Nothing has been wiped yet.")
+    if p.chipLast then
+        local last = st.chipGrantLog[#st.chipGrantLog]
+        p.chipLast:SetText(last and ("Last gift: %s to %s on %s. %d so far."):format(ns.Chips.Text(last.amt),
+            U.Safe(ns.NameForGUID(last.to) or "?", 40), date("%b %d, %Y", last.t), #st.chipGrantLog) or "No chips have been given yet.")
+    end
     for _, b in ipairs(p.wipeBtns) do
         if GetTime() - (b.armed or -10) > 5 then b:SetText(b.label) end
     end

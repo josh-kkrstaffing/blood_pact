@@ -619,7 +619,7 @@ local function build()
     f:SetPoint("CENTER", UIParent, "CENTER", 0, 20)
     f:EnableMouse(true)
     W.Glass(f, true)
-    W.Title(f, "The Blind Tiger floor")
+    W.Title(f, "The Blind Tiger Casino")
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
     f.chips = W.Text(f, "", "GameFontHighlightSmall")
     f.chips:SetPoint("TOPRIGHT", -36, -11)
@@ -629,16 +629,18 @@ local function build()
     W.Line(f, -32)
 
     f.tabs = {}
-    for i, name in ipairs({ "Roulette", "Slots", "Blackjack", "Hold'em" }) do
+    for i, name in ipairs({ "Roulette", "Slots", "Blackjack", "Hold'em", "Chips" }) do
         local b = W.Button(f, name, 100, 22, function()
             stopMoving()
             game, note = name, nil
+            if name == "Chips" then Chips.Opened() end
             G.Refresh()
         end)
         b:SetPoint("TOPLEFT", 12 + (i - 1) * 106, -40)
         f.tabs[name] = b
     end
-    W.Text(f, "Stake", "GameFontHighlightSmall"):SetPoint("TOPLEFT", 12, -76)
+    f.stakeLabel = W.Text(f, "Stake", "GameFontHighlightSmall")
+    f.stakeLabel:SetPoint("TOPLEFT", 12, -76)
     f.stake = W.Edit(f, 80, 12)
     f.stake:SetPoint("TOPLEFT", 52, -72)
     f.stake:SetText("1s")
@@ -821,6 +823,10 @@ local function build()
     action(h, 2, "Call", G.HECall)
     action(h, 3, "Fold", G.HEFold)
 
+    -- Chips: your count, donating at the guild bank, and the leaderboard.
+    f.chipsPage = Chips.BuildPanel(f)
+    f.chipsPage:SetPoint("TOPLEFT", 12, -72)
+
     f.status = W.Text(f, "", "GameFontHighlightSmall")
     f.status:SetPoint("TOPLEFT", 12, -398)
     f.status:SetWidth(536)
@@ -855,6 +861,16 @@ function G.Refresh()
     f.slots:SetShown(game == "Slots")
     f.blackjack:SetShown(game == "Blackjack")
     f.holdem:SetShown(game == "Hold'em")
+    local chipsTab = game == "Chips"
+    f.chipsPage:SetShown(chipsTab)
+    f.stakeLabel:SetShown(not chipsTab)
+    f.stake:SetShown(not chipsTab)
+    f.stakeHint:SetShown(not chipsTab)
+    f.status:SetShown(not chipsTab)
+    if chipsTab then
+        Chips.Refresh()
+        return
+    end
     local function outcome(staked, back)
         local won = back - staked
         return won > 0 and ("|cff40ff40You won " .. Chips.Text(won) .. "|r") or won == 0 and "A push: your chips come back"
@@ -953,11 +969,14 @@ function G.Refresh()
     f.status:SetText(note and ("|cffffd100" .. note .. "|r") or "Chips are play chips: they never turn back into gold. The house is the guild.")
 end
 
-function G.Toggle()
+-- Open or close the Casino. With a page name ("Chips", "Slots"...) it opens on that page.
+function G.Toggle(page)
     local f = G.frame or build()
-    if f:IsShown() then f:Hide() return end
+    if f:IsShown() and (page == nil or page == game) then f:Hide() return end
+    if page and f.tabs[page] then game = page end
     note = nil
     f:Show()
+    Chips.Opened()        -- at the guild bank, opening the Casino reads the money log
     G.Refresh()
 end
 

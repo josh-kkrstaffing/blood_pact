@@ -48,7 +48,7 @@ Everything syncs between guild members inside the game. There is no website, no 
 
 **Guild chips.** Donate gold to your guild bank and get play chips one for one. An Officer's addon confirms each donation from the bank's own money log. Chips are one-way: they never turn back into gold.
 
-**The games floor.** Play your chips against the house, and the house is the guild:
+**The Casino.** One button in the title bar opens it: your chips, the leaderboard and the games. Play your chips against the house, and the house is the guild:
 
 - Roulette, on a spinning American wheel
 - Slots, with rolling reels and a 100-times jackpot for three Tigers

@@ -2237,7 +2237,9 @@ G.DepositGuildBankMoney = function(amount)
     local c = ctx
     addTimer(0.1, function() fire(c, "GUILDBANK_UPDATE_MONEY") end)
 end
+local BANK_ASKS = 0
 G.QueryGuildBankLog = function(tab)
+    BANK_ASKS = BANK_ASKS + 1
     assert(tab == 7, "the money log is the tab after the last item tab")
     local c = ctx
     addTimer(0.2, function() fire(c, "GUILDBANKLOG_UPDATE") end)
@@ -2508,11 +2510,69 @@ end)
 check(clickText(gm, "Raids") and clickText(gm, "Pick a drink") and gm.ns.Drinks.frame:IsShown(), "the Raids tab's header opens the drink menu")
 run(gm, "close drink", function() gm.ns.Drinks.frame:Hide() end)
 check(clickText(gm, "Party") and gm.ns.Party.frame:IsShown(), "the Party button sits in the title bar")
-check(clickText(gm, "Chips") and gm.ns.Chips.frame:IsShown(), "the Party window opens the chips window")
-check(clickText(gm, "Play games") and gm.ns.Casino.frame:IsShown() and clickText(gm, "Slots") and clickText(gm, "Blackjack")
-    and clickText(gm, "Hold'em") and clickText(gm, "Roulette"), "the chips window opens the games floor")
-run(gm, "close floor", function() gm.ns.Casino.frame:Hide() end)
-run(gm, "close chips", function() gm.ns.Chips.frame:Hide() end)
+check(clickText(gm, "Casino") and gm.ns.Casino.frame:IsShown(), "the Casino button sits in the title bar, beside Party")
+check(clickText(gm, "Slots") and clickText(gm, "Blackjack") and clickText(gm, "Hold'em") and clickText(gm, "Roulette"), "the Casino holds the four games")
+check(clickText(gm, "Chips") and gm.ns.Chips.frame:IsVisible() and not gm.ns.Casino.frame.stake:IsShown(), "and the chips page, in the same window")
+run(gm, "chips page", function()
+    local C, f = gm.ns.Chips, gm.ns.Chips.frame
+    check(f.mine:GetText():find("Your chips", 1, true) ~= nil and not f.read:IsEnabled() and not f.donate:IsEnabled(),
+        "the chips page shows your chips; donating and reading the log wait for the guild bank")
+    check(select(2, C.ReadLog()) == "Open the guild bank first. The money log is read there.", "no log to read away from the bank")
+    gm.ns.Casino.frame:Hide()
+    atBank(gm, true)
+    BANK_ASKS = 0
+    gm.ns.Casino.Toggle()
+    check(BANK_ASKS == 1, "opening the Casino at the guild bank reads the money log")
+end)
+check(gm.ns.Chips.frame:IsVisible() and clickText(gm, "Read the bank log") and BANK_ASKS == 2, "the Casino reopens on the page you left, and the chips page has a button to read the log again")
+run(gm, "close floor", function() gm.ns.Casino.frame:Hide(); atBank(gm, false) end)
+run(gm, "the Party window's Casino button", function()
+    local b = gm.ns.Party.frame.chips
+    b:GetScript("OnClick")(b, "LeftButton")
+    check(b:GetText() == "Casino" and gm.ns.Casino.frame:IsShown(), "the Party window's Casino button opens it too")
+    b:GetScript("OnClick")(b, "LeftButton")
+    check(not gm.ns.Casino.frame:IsShown(), "and a second click closes it")
+end)
+
+-- The ADMIN assigns chips. Nobody else can, and every client checks who wrote it.
+run(gm, "only the ADMIN gives chips", function()
+    check(select(2, gm.ns.Chips.Grant(member.name, "5", "", "")) == "Only the ADMIN can assign chips.", "a Guild Master can't assign chips")
+    check(gm.ns.Log.New("CHIP_GRANT", { to = member.guid, amt = 50000 }) == nil, "and can't write the record by hand")
+end)
+check(clickText(gm, "Settings") and gm.ns.settingsPanel.chipsFold == nil and gm.ns.settingsPanel.wipeFold ~= nil, "the chips group isn't shown to a Guild Master")
+local grantBefore
+for _, c in ipairs({ gm, officer, member }) do c.ns.RBAC.ROOT_ADMINS[2] = officer.guid end
+run(member, "before the gift", function() grantBefore = member.ns.Chips.Balances(member.ns.Reducer.State())[member.guid].ok end)
+run(officer, "the ADMIN gives chips", function()
+    local C = officer.ns.Chips
+    check(select(2, C.Grant("", "5", "", "")) == "Type the guild member's name.", "a gift needs a name")
+    check(select(2, C.Grant("Nobody", "5", "", "")) == "No guild member is named Nobody.", "and a real guild member")
+    check(select(2, C.Grant(member.name, "", "", "")) == "Type how many chips to give.", "and an amount")
+    local ok, who, amount = C.Grant(member.name:lower(), "5", "25", "")
+    check(ok and who == member.guid and amount == 52500, "the ADMIN gives chips by name, capitals or not")
+end)
+advance(3)
+run(member, "the gift arrives", function()
+    local st = member.ns.Reducer.State()
+    check(member.ns.Chips.Balances(st)[member.guid].ok == grantBefore + 52500, "the member's chips go up by the gift, on every client")
+    check(#st.chipGrantLog == 1 and st.chipGrantLog[1].by == officer.guid and st.chipGrantLog[1].amt == 52500, "the gift is on the guild's record under the ADMIN's name")
+    check(member.ns.Casino.Available() == grantBefore + 52500, "and can be played at once")
+end)
+open(officer)
+check(clickText(officer, "Settings") and officer.ns.settingsPanel.chipsFold ~= nil, "the ADMIN's Settings tab has the chips group")
+run(officer, "fill in a gift", function()
+    local p = officer.ns.settingsPanel
+    p.chipsFold:SetOpen(true)
+    p.chipName:SetText(gm.name)
+    p.chipBoxes[2]:SetText("40")
+end)
+check(clickText(officer, "Give chips"), "the Give chips button")
+advance(3)
+run(gm, "the second gift", function()
+    local st = gm.ns.Reducer.State()
+    check(st.chipGrants[gm.guid] == 4000 and #st.chipGrantLog == 2, "a gift from the Settings tab reaches the member")
+end)
+for _, c in ipairs({ gm, officer, member }) do c.ns.RBAC.ROOT_ADMINS[2] = nil end
 run(gm, "close party", function() gm.ns.Party.frame:Hide() end)
 
 -- The minimap button: the small tiger that opens the window.

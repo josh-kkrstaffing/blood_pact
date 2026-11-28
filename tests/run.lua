@@ -509,6 +509,13 @@ test("casino: the slot machine pays back exactly what its table says", function(
     -- Chips after play: what the floor took comes off, and never below nothing.
     local bal = ns.Chips.Balances({ chipBuys = { a = { id = "a", who = "g1", amt = 1000, t = 1, ok = true } }, chipNets = { g1 = -300, g2 = -50, g3 = 700 } })
     eq(bal.g1.ok, 700); eq(bal.g2.ok, 0); eq(bal.g3.ok, 700)
+    -- Chips the ADMIN assigned count like confirmed ones, and only the ADMIN's action may write them.
+    bal = ns.Chips.Balances({ chipGrants = { g1 = 500, g4 = 200 }, chipNets = { g1 = -600 } })
+    eq(bal.g1.ok, 0); eq(bal.g4.ok, 200)
+    eq(ns.Log.KINDS.CHIP_GRANT[1], "devtools"); eq(ns.RBAC.ACTIONS.devtools, "admin")
+    local grant = ns.Log.KINDS.CHIP_GRANT[2]
+    assert(grant({ to = "Player-1-0000AAAA", amt = 1 }) and not grant({ to = "Player-1-0000AAAA", amt = 0 }) and not grant({ to = "", amt = 5 })
+        and not grant({ to = "Player-1-0000AAAA", amt = 1.5 }) and not grant({ amt = 5 }))
     local nets, house = G.Nets({ chipNets = { g1 = -300, g2 = -50, g3 = 700 } })
     eq(nets.g1, -300); eq(house, -350)
 end)

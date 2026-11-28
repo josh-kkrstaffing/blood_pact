@@ -319,7 +319,7 @@ local function build()
 
     f.mute = W.Check(f, "Play party sounds", function(on) P.SetMuted(not on); P.Refresh() end)
     f.mute:SetPoint("TOPLEFT", 12, -288)
-    f.chips = W.Button(f, "Chips", 60, 20, function() ns.Chips.Toggle() end)
+    f.chips = W.Button(f, "Casino", 60, 20, function() ns.Casino.Toggle() end)
     f.chips:SetPoint("TOPRIGHT", -180, -6)
     f.drink = W.Button(f, "Announce the drink", 150, 22, function() done(P.Drink()) end)
     f.drink:SetPoint("TOPLEFT", 178, -285)

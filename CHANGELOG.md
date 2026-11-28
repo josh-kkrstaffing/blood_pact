@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.0
+
+- New: a Casino button in the title bar, between Party and the glass button. It opens the Casino from any tab
+- Chips now live in the Casino. The Chips page sits beside the four games in one window: your chips, donating at the guild bank, and the leaderboard. The separate chips window is gone
+- Opening the Casino at the guild bank reads the bank's money log, which is how donations get confirmed. The Chips page also has a "Read the bank log" button
+- New for the ADMIN: Settings has a "Casino chips" group to give chips to a guild member by name. No gold is involved, and each gift is written to the guild's log under the ADMIN's name. Nobody else can do this
+- The Party window's button now says Casino, and /tiger casino opens it too
+
 ## 2.2.0
 
 - New: a minimap button. A small round tiger sits on the edge of the minimap. Click it to open or close Blind Tiger, right-click it for the games floor, and drag it to move it round the edge
