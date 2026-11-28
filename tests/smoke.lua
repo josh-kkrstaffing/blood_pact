@@ -71,7 +71,7 @@ for _, name in ipairs({ "SetPoint", "ClearAllPoints", "SetAllPoints", "SetColorT
     "RegisterForDrag", "SetScrollChild", "SetFrameStrata", "SetClampedToScreen", "SetMovable", "EnableMouse",
     "SetResizable", "SetResizeBounds", "StartMoving", "StartSizing", "StopMovingOrSizing", "SetDrawLayer",
     "SetSnapToPixelGrid", "SetTexelSnappingBias", "SetOwner", "AddLine", "AddDoubleLine", "EnableMouseWheel",
-    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
+    "SetOrientation", "SetThumbTexture", "SetToplevel", "Raise", "SetStartPoint", "SetEndPoint", "SetThickness", "SetValueStep", "SetTexture", "SetTexCoord", "SetAlpha", "SetSpellByID", "SetHyperlink", "SetItemByID", "SetFrameLevel" }) do
     M[name] = noop
 end
 -- Secure buttons and the frames that hold them are locked while their owner

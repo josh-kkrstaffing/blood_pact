@@ -6,7 +6,7 @@
 ## Version: 2.0.0
 ## SavedVariables: BlindTigerDB
 ## OptionalDeps: Questie, Auctionator, BloodPact
-## IconTexture: Interface\AddOns\BlindTiger\Media\logo
+## IconTexture: Interface\AddOns\BlindTiger\Media\mark
 ## AddonCompartmentFunc: BlindTiger_OnCompartmentClick
 ## X-License: MIT
 ## X-Curse-Project-ID: 1815593

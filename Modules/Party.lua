@@ -271,7 +271,7 @@ local function build()
     f:SetPoint("CENTER", UIParent, "CENTER", 260, 60)
     f:EnableMouse(true)
     W.Glass(f, true)
-    W.Text(f, "Party", "GameFontNormal"):SetPoint("TOPLEFT", 10, -9)
+    W.Title(f, "Party")
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
     f.help = W.Button(f, "How does this work?", 140, 20, function()
         helping = not helping

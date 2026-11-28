@@ -272,7 +272,7 @@ local function build()
     f:SetPoint("CENTER", UIParent, "CENTER", -200, 40)
     f:EnableMouse(true)
     W.Glass(f, true)
-    W.Text(f, "Guild chips", "GameFontNormal"):SetPoint("TOPLEFT", 10, -9)
+    W.Title(f, "Guild chips")
     W.Button(f, "X", 22, 20, function() f:Hide() end):SetPoint("TOPRIGHT", -6, -6)
     f.help = W.Button(f, "How does this work?", 140, 20, function()
         helping = not helping

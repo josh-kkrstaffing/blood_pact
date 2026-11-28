@@ -220,7 +220,7 @@ local function build()
     about:EnableMouse(true)
     W.Fill(about, { W.C.bg[1], W.C.bg[2], W.C.bg[3], 0.97 })      -- hides the tab underneath
     local info = ns.ABOUT
-    W.Logo(about, 96):SetPoint("TOPRIGHT", -40, -28)
+    W.Logo(about, 180, true):SetPoint("TOPRIGHT", -36, -24)
     local y = -28
     local function line(text, template, gap)
         local fs = W.Text(about, text, template)

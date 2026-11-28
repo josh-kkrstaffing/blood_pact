@@ -340,13 +340,25 @@ function W.Accordion(parent, title, width, bodyHeight, key, onToggle, startOpen)
     return a
 end
 
--- The Blind Tiger mark: the guild's own drawing, shipped in Media.
-W.LOGO = "Interface\\AddOns\\BlindTiger\\Media\\logo"
-function W.Logo(parent, size)
-    local t = parent:CreateTexture(nil, "ARTWORK")
-    t:SetTexture(W.LOGO)
+-- The Blind Tiger brand, from the guild's own artwork in Media. Two cuts:
+--   mark   - the tiger's face alone, for small places (title bars, the addon list)
+--   emblem - the full framed piece, for big places (About, the games floor)
+W.MARK = "Interface\\AddOns\\BlindTiger\\Media\\mark"
+W.EMBLEM = "Interface\\AddOns\\BlindTiger\\Media\\emblem"
+function W.Logo(parent, size, emblem, alpha, layer)
+    local t = parent:CreateTexture(nil, layer or "ARTWORK")
+    t:SetTexture(emblem and W.EMBLEM or W.MARK)
     t:SetSize(size, size)
+    if alpha then t:SetAlpha(alpha) end
     return t
+end
+
+-- A pop-up window's title: the mark, then the name. One look for every Blind Tiger window.
+function W.Title(frame, text)
+    W.Logo(frame, 20):SetPoint("TOPLEFT", 8, -6)
+    local fs = W.Text(frame, text, "GameFontNormal")
+    fs:SetPoint("TOPLEFT", 34, -9)
+    return fs
 end
 
 function W.Text(parent, text, template)
